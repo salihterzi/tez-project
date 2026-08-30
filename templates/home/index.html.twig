@@ -1,0 +1,15 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}tez-proje{% endblock %}
+
+{% block body %}
+    <main style="font-family: system-ui, sans-serif; max-width: 640px; margin: 4rem auto; padding: 0 1rem;">
+        <h1>{{ message }}</h1>
+        <ul>
+            <li>Symfony {{ constant('Symfony\\Component\\HttpKernel\\Kernel::VERSION') }}</li>
+            <li>PHP {{ constant('PHP_VERSION') }}</li>
+            <li>Ortam: {{ app.environment }}</li>
+        </ul>
+        <p><a href="{{ path('app_health') }}">/health</a> — JSON durum ucu</p>
+    </main>
+{% endblock %}
