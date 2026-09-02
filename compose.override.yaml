@@ -8,6 +8,10 @@ services:
       - ./docker/php/conf.d/app.dev.ini:/usr/local/etc/php/conf.d/20-app.dev.ini:ro
     environment:
       XDEBUG_MODE: "${XDEBUG_MODE:-off}"
+      # compose.yaml'daki DATABASE_URL'i (app veritabanı) ezip Faz 1 şemasını
+      # whatsapp_messenger veritabanına yönlendiriyoruz. Gerçek env değişkeni
+      # .env / .env.local dosyalarını geçersiz kıldığı için override burada gerekli.
+      DATABASE_URL: "mysql://app:ChangeMe@database:3306/whatsapp_messenger?serverVersion=8.4&charset=utf8mb4"
     extra_hosts:
       - host.docker.internal:host-gateway
 

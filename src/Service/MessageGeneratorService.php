@@ -14,7 +14,8 @@ class MessageGeneratorService
     }
 
     /**
-     * Verilen prompt'a göre OpenAI üzerinden bir mesaj metni üretir.
+     * Verilen prompt'a göre OpenAI üzerinden tek seferlik bir mesaj metni üretir.
+     * (CLI komutu `app:send-message --generate` bu metodu kullanır.)
      *
      * @param string $prompt       Öğrenci profiline göre hazırlanmış kullanıcı promptu
      * @param string $systemPrompt İsteğe bağlı sistem promptu (ton/persona talimatı)
@@ -29,6 +30,17 @@ class MessageGeneratorService
 
         $messages[] = ['role' => 'user', 'content' => $prompt];
 
+        return $this->generateReply($messages);
+    }
+
+    /**
+     * Tam bir konuşma geçmişini (system dahil) OpenAI'a verip bağlama uygun yanıtı döner.
+     * Çok turlu webhook konuşmasında kullanılır.
+     *
+     * @param array<array{role: string, content: string}> $messages Tam konuşma geçmişi (system dahil)
+     */
+    public function generateReply(array $messages): string
+    {
         $response = $this->httpClient->request('POST', 'https://api.openai.com/v1/chat/completions', [
             'headers' => [
                 'Authorization' => sprintf('Bearer %s', $this->apiKey),
