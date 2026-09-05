@@ -13,6 +13,8 @@ edileceğini sırayla anlatır. Her adımı tamamlamadan sonrakine geçme.
 | Veritabanı | `whatsapp_messenger` |
 | Symfony komutları | `docker compose exec -u 1000:1000 php php bin/console <komut>` (yerel PHP 8.2 < gerekli 8.4) |
 | Webhook route | `GET` + `POST` `/webhook/whatsapp` |
+| ngrok sabit domain | `unreined-amorally-idella.ngrok-free.dev` → `localhost:8080` |
+| ngrok inceleme arayüzü | `http://localhost:4040` |
 
 ---
 
@@ -24,15 +26,27 @@ edileceğini sırayla anlatır. Her adımı tamamlamadan sonrakine geçme.
 uuidgen   # çıktıyı WHATSAPP_VERIFY_TOKEN'a yapıştır
 ```
 
-`.env.local` içinde şu 5 satır dolu olmalı:
+`.env.local` içinde şu satırlar dolu olmalı:
 
 ```dotenv
 WHATSAPP_VERIFY_TOKEN=<uuidgen çıktısı>
 META_APP_SECRET=<Meta App Dashboard > Settings > Basic > App Secret>
-WHATSAPP_ACCESS_TOKEN=<Meta > WhatsApp > API Setup > access token>
+WHATSAPP_ACCESS_TOKEN=<Meta > Business Settings > System Users > kalıcı token>
 WHATSAPP_PHONE_NUMBER_ID=<Meta > WhatsApp > API Setup > Phone number ID>
 OPENAI_API_KEY=<platform.openai.com > API keys>
+OPENAI_MODEL=gpt-4o-mini
 ```
+
+> **Dosya adı `.env.local` — başında nokta var.** `env.local` (noktasız) Symfony
+> tarafından okunmaz; değerler uygulamaya ulaşmaz.
+
+> **`WHATSAPP_ACCESS_TOKEN`:** API Setup sayfasındaki token 24 saatlik geçici
+> token. Sürekli test için Meta → Business Settings → System Users'dan
+> `whatsapp_business_messaging` + `whatsapp_business_management` izinli kalıcı
+> token üret.
+
+> **`OPENAI_API_KEY`:** hesapta kredi olmalı (https://platform.openai.com/settings/organization/billing).
+> Kredi biterse istek `429 insufficient_quota` döner ve yanıt üretilemez.
 
 > `DATABASE_URL` compose dosyalarında tanımlı değil; kaynak `.env` (docker
 > varsayılanı) + `.env.local` (senin değerin). `.env.local`'de hazır, dokunmana gerek yok.
@@ -42,7 +56,37 @@ Yeniden yükle:
 ```bash
 docker compose up -d
 docker compose exec -u 1000:1000 php php bin/console cache:clear
+docker compose restart php
 ```
+
+Değerlerin konteynere ulaştığını doğrula:
+
+```bash
+docker compose exec php php bin/console debug:dotenv | grep -E "WHATSAPP_|META_|OPENAI_"
+```
+
+---
+
+## Adım 0.1 — Dış servis kimlik bilgilerini tek tek doğrula
+
+**OpenAI** (JSON içinde `choices` dönmeli, `error` değil):
+
+```bash
+KEY=$(grep '^OPENAI_API_KEY=' .env.local | cut -d= -f2)
+curl -s https://api.openai.com/v1/chat/completions \
+  -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" \
+  -d '{"model":"gpt-4o-mini","messages":[{"role":"user","content":"ping"}]}'
+```
+
+**WhatsApp** (`display_phone_number` dönmeli, `error` değil):
+
+```bash
+TOKEN=$(grep '^WHATSAPP_ACCESS_TOKEN=' .env.local | cut -d= -f2)
+PNID=$(grep '^WHATSAPP_PHONE_NUMBER_ID=' .env.local | cut -d= -f2)
+curl -s "https://graph.facebook.com/v20.0/$PNID?fields=display_phone_number,verified_name&access_token=$TOKEN"
+```
+
+İkisi de temiz dönmeden sonraki adımlara geçme.
 
 ---
 
@@ -96,18 +140,18 @@ docker compose logs -f php
 
 ## Adım 3 — ngrok tüneli
 
-ngrok kurulu değilse kur (https://ngrok.com/download veya `snap install ngrok`), sonra:
+ngrok kurulu (Homebrew) ve authtoken yapılandırılmış. Sabit domain ile başlat:
 
 ```bash
-ngrok http 8080
+ngrok http --url=unreined-amorally-idella.ngrok-free.dev 8080
 ```
 
-Çıktıdaki `https://xxxx.ngrok-free.app` adresini kopyala. **Tünel açık kalmalı.**
+**Tünel açık kalmalı.** Gelen istekleri canlı izleme: `http://localhost:4040`.
 
 Doğrulama (challenge testi, bu sefer ngrok üzerinden):
 
 ```bash
-curl -i "https://xxxx.ngrok-free.app/webhook/whatsapp?hub_mode=subscribe&hub_verify_token=TOKEN&hub_challenge=test123"
+curl -i "https://unreined-amorally-idella.ngrok-free.dev/webhook/whatsapp?hub_mode=subscribe&hub_verify_token=TOKEN&hub_challenge=test123"
 ```
 
 ---
@@ -118,18 +162,21 @@ Meta App Dashboard → **WhatsApp → Configuration → Webhook → Edit**:
 
 | Alan | Değer |
 |---|---|
-| Callback URL | `https://xxxx.ngrok-free.app/webhook/whatsapp` |
+| Callback URL | `https://unreined-amorally-idella.ngrok-free.dev/webhook/whatsapp` |
 | Verify token | `.env.local`'deki `WHATSAPP_VERIFY_TOKEN` ile **birebir aynı** |
 
 **"Verify and save"** → yeşil onay gelmeli.
 
 Sonra aynı ekranda **Webhook fields** listesinde **`messages`** satırında **Subscribe**.
 
+Ayrıca **WhatsApp → API Setup → "To"** altında kendi WhatsApp numaranı alıcı olarak
+ekle ve gelen OTP ile doğrula (ücretsiz test modunda en fazla 5 alıcı).
+
 ---
 
 ## Adım 5 — Gerçek mesaj gönder (1. tur)
 
-Kendi kişisel WhatsApp numaranfrom, Meta'daki işletme test numarasına bir metin yaz:
+Kendi kişisel WhatsApp'ından, Meta'daki işletme test numarasına ("From") bir metin yaz:
 **`merhaba`**
 
 Log terminalinde: gelen POST → DB flush → OpenAI çağrısı → WhatsApp gönderimi.
@@ -203,8 +250,26 @@ Adım 1'deki opsiyonel POST komutunu **aynı `wamid.TEST001` ID'siyle iki kez**
 
 | Belirti | Bakılacak yer |
 |---|---|
+| `502 Bad Gateway` | php-fpm sağlıklı değil. `docker compose logs php` — genelde DB erişimi (`app` kullanıcısının `whatsapp_messenger` yetkisi) ya da `.env.local` |
 | Meta "verify" başarısız | `WHATSAPP_VERIFY_TOKEN` birebir eşleşiyor mu; `cache:clear` çalıştı mı; ngrok URL'si doğru mu |
 | Webhook 200 dönüyor ama yanıt gelmiyor | `docker compose logs php` — OpenAI (`OPENAI_API_KEY`) veya WhatsApp (`WHATSAPP_ACCESS_TOKEN`, 24 saat penceresi) hatası |
+| Log: "OpenAI boş yanıt döndü" | OpenAI `429` — kredi bitmiş (`insufficient_quota`) veya model adı geçersiz. Kredi ekle, `OPENAI_MODEL=gpt-4o-mini` |
+| Log: "yanıt gönderilemedi" veya `OAuthException code 190` | `WHATSAPP_ACCESS_TOKEN` süresi dolmuş (24 saatlik token) veya alıcı "To" listesinde doğrulanmamış |
 | DB'ye yazılmıyor | `docker compose exec -u 1000:1000 php php bin/console doctrine:schema:validate` |
 | `turn_count` artmıyor | Aynı `wamid` ile tekrar mesaj gelmiş olabilir (idempotency); Meta gerçek mesajda her seferinde yeni ID üretir |
 | Metin dışı mesaj (resim/ses) | Bilinçli olarak yok sayılır, 200 döner — `WhatsAppWebhookController` içinde `type !== 'text'` kontrolü |
+
+## Faydalı komutlar
+
+```bash
+docker compose ps                                              # konteyner durumu
+docker compose logs -f php                                     # canlı log
+docker compose exec php php bin/console debug:router | grep whatsapp
+docker compose exec php php bin/console debug:dotenv
+docker compose exec -u 1000:1000 php php bin/console doctrine:migrations:status
+
+# CLI'dan mesaj gönderme (24 saat penceresi açıksa serbest metin)
+docker compose exec php php bin/console app:send-message 905XXXXXXXXX "merhaba"
+docker compose exec php php bin/console app:send-message 905XXXXXXXXX x --template=hello_world
+docker compose exec php php bin/console app:send-message 905XXXXXXXXX "kısa moral mesajı" --generate
+```

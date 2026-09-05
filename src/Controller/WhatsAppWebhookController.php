@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Conversation\ConversationPrompt;
 use App\Entity\ConversationMessage;
 use App\Service\ConversationManager;
 use App\Service\MessageGeneratorService;
@@ -26,9 +27,6 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/webhook/whatsapp')]
 class WhatsAppWebhookController extends AbstractController
 {
-    // TODO: Faz 3'te öğrenci profiline göre dinamikleştirilecek.
-    private const SYSTEM_PROMPT = 'Sen bir öğrenci destek asistanısın. Kısa, samimi ve destekleyici mesajlar yaz. Türkçe yanıt ver.';
-
     private const CLOSING_NOTE = "\n\nBu oturum burada sona erdi, tekrar mesaj yazarsan yeni bir oturum başlar.";
 
     public function __construct(
@@ -117,7 +115,7 @@ class WhatsAppWebhookController extends AbstractController
         $session = $this->conversations->getOrCreateActiveSession($from);
         $this->conversations->addMessage($session, ConversationMessage::ROLE_USER, $text, $whatsappMessageId);
 
-        $history = $this->conversations->buildAiHistory($session, self::SYSTEM_PROMPT);
+        $history = $this->conversations->buildAiHistory($session, ConversationPrompt::SYSTEM);
 
         try {
             $replyText = $this->messageGenerator->generateReply($history);

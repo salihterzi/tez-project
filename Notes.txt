@@ -1,0 +1,32 @@
+2. .env.local içine gireceğin değerler
+
+WHATSAPP_ACCESS_TOKEN=<Meta panelinden aldığın geçici/kalıcı access token>
+WHATSAPP_PHONE_NUMBER_ID=<Meta → WhatsApp → API Setup'taki "Phone number ID" (telefon numarası değil, ID)>
+OPENAI_API_KEY=<platform.openai.com → API keys>
+OPENAI_MODEL=gpt-4o-mini
+
+▎ Not: OPENAI_MODEL satırını boş bırakırsan .env'deki gpt-4o-mini varsayılanını ezer ve model boş kalır — mutlaka bir değer yaz.
+
+3. Değerleri girdikten sonra çalıştıracağın test komutları
+
+App Docker'da çalıştığı için komutlar docker compose exec php ile başlıyor. <numaram> = kendi WhatsApp numaran, ülke koduyla, baştaki + olmadan (örn. 905551112233).
+
+Önce config'i tazele:
+docker compose exec php php bin/console cache:clear
+
+Adım 1 — Şablon testi (24 saat penceresi gerekmez, ilk temas için doğru yol):
+docker compose exec php php bin/console app:send-message <numaram> "ignored" --template=hello_world
+Başarılıysa telefonuna "Hello World" mesajı düşer ve konsolda messages[].id içeren JSON görürsün.
+
+Adım 2 — 24 saat penceresini aç: Adım 1'de gelen mesaja WhatsApp'tan herhangi bir yanıt yaz (örn. "test"). Bu, serbest metin göndermeye izin veren 24 saatlik pencereyi açar.
+
+Adım 3 — AI ile üretim + serbest metin testi:
+docker compose exec php php bin/console app:send-message <numaram> "Bir öğrenciye sınav haftası için 2 cümlelik motive edici kısa bir mesaj yaz" --generate
+Konsolda önce "Üretilen mesaj: ..." satırını, sonra gönderim JSON'unu görürsün.
+
+İsteğe bağlı persona ile:
+docker compose exec php php bin/console app:send-message <numaram> "<prompt>" --generate --system-prompt="Samimi, teşvik edici bir akademik danışman gibi yaz. Emoji kullanma."
+
+4. Dikkat edilecek tek şey
+
+Adım 3'ü Adım 2 olmadan çalıştırırsan WhatsApp 131047 / re-engagement message hatası döner (kod bunu İşlem başarısız: ... olarak gösterir) — bu beklenen davranış, kodun kabahati değil. Şablonla başlayıp pencereyi açman yeterli.
