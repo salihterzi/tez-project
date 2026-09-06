@@ -103,3 +103,7 @@ ortam değişkeni olarak ver.
 
 `Dockerfile` ilk satırında `php:8.4-fpm-alpine` → `php:8.5-fpm-alpine`,
 sonra `docker compose build`.
+
+## ngrok 
+! ngrok http --url=unreined-amorally-idella.ngrok-free.dev 8080 
+
