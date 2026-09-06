@@ -27,7 +27,13 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/webhook/whatsapp')]
 class WhatsAppWebhookController extends AbstractController
 {
-    private const CLOSING_NOTE = "\n\nBu oturum burada sona erdi, tekrar mesaj yazarsan yeni bir oturum başlar.";
+    private const CLOSING_NOTE = "\n\nBugünlük bu kadar, iyi çalışmalar! 🌿";
+
+    /** Bugünkü oturum tamamlanmışken öğrenci tekrar yazarsa gönderilen sabit (AI-dışı) mesaj. */
+    private const SESSION_ENDED_MESSAGE = 'Bugünlük sohbetimizi tamamladık 🌿 Emeğin için teşekkürler, yarın tekrar görüşmek üzere. İyi çalışmalar!';
+
+    /** Bugün için henüz komutla bir oturum açılmamışken öğrenci yazarsa gönderilen sabit mesaj. */
+    private const NO_SESSION_TODAY_MESSAGE = 'Bugün için henüz bir görüşme oturumu başlatılmadı. Oturum açıldığında sana buradan ulaşacağız.';
 
     public function __construct(
         private readonly ConversationManager $conversations,
@@ -83,10 +89,17 @@ class WhatsAppWebhookController extends AbstractController
         }
 
         $value = $payload['entry'][0]['changes'][0]['value'] ?? [];
+
+        // `statuses` bildirimi: bizim gönderdiğimiz bir mesajın delivered/read durumu.
+        // Aynı payload'da `messages` olmaz; burada işleyip devam ediyoruz.
+        foreach ((array) ($value['statuses'] ?? []) as $statusEntry) {
+            $this->handleStatusUpdate($statusEntry);
+        }
+
         $message = $value['messages'][0] ?? null;
 
-        // `messages` yoksa: bu bir `statuses` bildirimi (teslim/okundu) ya da alakasız bir
-        // olaydır. Mesaj değil -> hiçbir şey yapma, 200 dön.
+        // `messages` yoksa: bu yalnızca bir `statuses` bildirimiydi (yukarıda işlendi) ya da
+        // alakasız bir olaydır. Mesaj değil -> hiçbir şey yapma, 200 dön.
         if (!\is_array($message)) {
             return $this->ok();
         }
@@ -100,6 +113,10 @@ class WhatsAppWebhookController extends AbstractController
         $from = (string) ($message['from'] ?? '');
         $whatsappMessageId = (string) ($message['id'] ?? '');
         $text = trim((string) ($message['text']['body'] ?? ''));
+        $rawTimestamp = $message['timestamp'] ?? null;
+        $whatsappTimestamp = (null !== $rawTimestamp && is_numeric($rawTimestamp))
+            ? (new \DateTimeImmutable())->setTimestamp((int) $rawTimestamp)
+            : null;
 
         if ('' === $from || '' === $whatsappMessageId || '' === $text) {
             return $this->ok();
@@ -112,8 +129,27 @@ class WhatsAppWebhookController extends AbstractController
             return $this->ok();
         }
 
-        $session = $this->conversations->getOrCreateActiveSession($from);
-        $this->conversations->addMessage($session, ConversationMessage::ROLE_USER, $text, $whatsappMessageId);
+        // Oturumlar burada AÇILMAZ — yalnızca komutla (OutboundController) açılır.
+        // Webhook sadece bugüne ait mevcut oturumun durumuna göre davranır.
+        $today = $this->conversations->findTodaysSession($from);
+
+        if (null === $today) {
+            // Önceki günden kalma, hiç kapanmamış bir oturum varsa temizle.
+            $this->conversations->closeStaleActiveSession($from);
+            $this->sendStaticReply($from, self::NO_SESSION_TODAY_MESSAGE);
+
+            return $this->ok();
+        }
+
+        if (!$today->isActive()) {
+            // Bugünkü oturum tamamlanmış: AI'a hiç gitmeden sabit kapanış mesajını gönder.
+            $this->sendStaticReply($from, self::SESSION_ENDED_MESSAGE);
+
+            return $this->ok();
+        }
+
+        $session = $today;
+        $this->conversations->addMessage($session, ConversationMessage::ROLE_USER, $text, $whatsappMessageId, $whatsappTimestamp);
 
         $history = $this->conversations->buildAiHistory($session, ConversationPrompt::SYSTEM);
 
@@ -136,15 +172,18 @@ class WhatsAppWebhookController extends AbstractController
             return $this->ok();
         }
 
-        $this->conversations->addMessage($session, ConversationMessage::ROLE_ASSISTANT, $replyText);
-
         if ($this->conversations->incrementTurnAndCheckComplete($session)) {
             $this->conversations->closeSession($session);
             $replyText .= self::CLOSING_NOTE;
         }
 
+        // Önce gönder, sonra kaydet: hem gerçekte gönderilen NİHAİ metni (kapanış notu dahil)
+        // DB'ye yazmış oluyoruz, hem de Send API'nin döndüğü wamid'i yakalayıp mesaja
+        // işleyebiliyoruz (delivered/read `statuses` bildirimlerini buna eşlemek için).
+        $wamid = null;
         try {
-            $this->whatsAppClient->sendTextMessage($from, $replyText);
+            $waResponse = $this->whatsAppClient->sendTextMessage($from, $replyText);
+            $wamid = $waResponse['messages'][0]['id'] ?? null;
         } catch (\Throwable $e) {
             $this->logger->error('WhatsApp webhook: yanıt gönderilemedi.', [
                 'exception' => $e,
@@ -152,12 +191,55 @@ class WhatsAppWebhookController extends AbstractController
             ]);
         }
 
+        $this->conversations->addMessage($session, ConversationMessage::ROLE_ASSISTANT, $replyText, $wamid);
+
         return $this->ok();
     }
 
     private function ok(): JsonResponse
     {
         return new JsonResponse(['status' => 'ok'], Response::HTTP_OK);
+    }
+
+    /**
+     * Meta'nın `statuses` bildirimindeki tek bir kaydı (delivered/read/sent/failed) işler.
+     * İlgili wamid bizim gönderdiğimiz bir mesaja aitse {@see ConversationManager::recordDeliveryStatus()}
+     * ile o mesajın delivered_at/read_at alanlarına yazılır; bize ait değilse sessizce yok sayılır.
+     */
+    private function handleStatusUpdate(mixed $statusEntry): void
+    {
+        if (!\is_array($statusEntry)) {
+            return;
+        }
+
+        $wamid = (string) ($statusEntry['id'] ?? '');
+        $status = (string) ($statusEntry['status'] ?? '');
+        $rawTimestamp = $statusEntry['timestamp'] ?? null;
+
+        if ('' === $wamid || '' === $status || null === $rawTimestamp || !is_numeric($rawTimestamp)) {
+            return;
+        }
+
+        $this->conversations->recordDeliveryStatus(
+            $wamid,
+            $status,
+            (new \DateTimeImmutable())->setTimestamp((int) $rawTimestamp),
+        );
+    }
+
+    /**
+     * AI'dan bağımsız, sabit metinli bir WhatsApp mesajı gönderir (oturum-dışı durumlar için).
+     */
+    private function sendStaticReply(string $to, string $message): void
+    {
+        try {
+            $this->whatsAppClient->sendTextMessage($to, $message);
+        } catch (\Throwable $e) {
+            $this->logger->error('WhatsApp webhook: sabit yanıt gönderilemedi.', [
+                'exception' => $e,
+                'to' => $to,
+            ]);
+        }
     }
 
     /**

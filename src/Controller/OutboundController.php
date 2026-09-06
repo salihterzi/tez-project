@@ -74,11 +74,26 @@ class OutboundController extends AbstractController
             ], Response::HTTP_BAD_REQUEST);
         }
 
-        if ($fresh) {
-            $this->conversations->closeSession($this->conversations->getOrCreateActiveSession($to));
+        $session = $this->conversations->startSessionForToday($to, $fresh);
+
+        if (null === $session) {
+            return $this->json([
+                'status' => 'error',
+                'error' => 'Bu öğrenciyle bugün zaten bir oturum yapılmış. Günde yalnızca bir oturum '
+                    . 'açılabilir (zorlamak için fresh=1 kullan).',
+            ], Response::HTTP_CONFLICT);
         }
 
-        $session = $this->conversations->getOrCreateActiveSession($to);
+        // fresh=0 iken bugünkü oturum zaten aktif ve konuşma başlamışsa (ör. start endpoint'i
+        // yanlışlıkla iki kez çağrıldı), açılış mesajını tekrar göndermeyip mevcut durumu bildir.
+        if (!$fresh && !$session->getMessages()->isEmpty()) {
+            return $this->json([
+                'status' => 'ok',
+                'session' => $session->getId(),
+                'to' => $to,
+                'not' => 'Bugün için oturum zaten başlatılmış; açılış mesajı tekrar gönderilmedi.',
+            ]);
+        }
 
         return 'ai' === $mode
             ? $this->startWithAiText($session, $to, $params)
@@ -112,6 +127,17 @@ class OutboundController extends AbstractController
         if (null === $messageId) {
             return $this->unexpectedWhatsAppResponse($session, $waResponse, $to);
         }
+
+        // aiVisible=false: şablonun gerçek onaylı metnini burada bilmiyoruz (parametreli olabilir),
+        // bu yüzden OpenAI'a giden geçmişe bir yer tutucu olarak eklenmiyor — yalnızca delivered/read
+        // takibi için wamid'i bir mesaja bağlıyoruz.
+        $this->conversations->addMessage(
+            $session,
+            ConversationMessage::ROLE_ASSISTANT,
+            sprintf('[şablon mesajı: %s / %s]', $template, $lang),
+            $messageId,
+            aiVisible: false,
+        );
 
         $this->logger->info('Outbound: açılış şablonu gönderildi.', [
             'to' => $to,
@@ -160,8 +186,9 @@ class OutboundController extends AbstractController
             ], Response::HTTP_BAD_GATEWAY);
         }
 
-        $this->conversations->addMessage($session, ConversationMessage::ROLE_ASSISTANT, $opening);
-
+        // Önce gönder, sonra kaydet: gönderim başarısız olursa AI geçmişine "söylenmiş ama
+        // hiç iletilmemiş" bir mesaj eklenmesin; başarılıysa Send API'nin döndüğü wamid'i
+        // mesaja işleyip delivered/read `statuses` takibini mümkün kılıyoruz.
         try {
             $waResponse = $this->whatsAppClient->sendTextMessage($to, $opening);
         } catch (\Throwable $e) {
@@ -179,6 +206,8 @@ class OutboundController extends AbstractController
         if (null === $messageId) {
             return $this->unexpectedWhatsAppResponse($session, $waResponse, $to, $opening);
         }
+
+        $this->conversations->addMessage($session, ConversationMessage::ROLE_ASSISTANT, $opening, $messageId);
 
         $this->logger->info('Outbound: AI açılış metni gönderildi.', [
             'to' => $to,

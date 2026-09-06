@@ -1,0 +1,34 @@
+[
+    {
+        "name": "musteri_bilgi_v1",
+        "language": "tr",
+        "category": "UTILITY",
+        "components": [
+            {
+                "type": "BODY",
+                "text": "Merhaba {{1}}, size önemli bir bilgilendirme iletmek istiyoruz: {{2}}. Bilgi edinmenizi rica ederiz.",
+                "example": {
+                    "body_text": [
+                        ["Ahmet Yılmaz", "randevunuz onaylandı."]
+                    ]
+                }
+            }
+        ]
+    },
+    {
+        "name": "sinav_hatirlatma_v1",
+        "language": "tr",
+        "category": "UTILITY",
+        "components": [
+            {
+                "type": "BODY",
+                "text": "Merhaba {{1}}, {{2}} sınavına {{3}} gün kaldı. Bu ara ders çalışmana biraz daha zaman ayırman iyi olur.",
+                "example": {
+                    "body_text": [
+                        ["Ahmet Yılmaz", "Calculus I", "5"]
+                    ]
+                }
+            }
+        ]
+    }
+]

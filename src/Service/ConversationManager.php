@@ -23,17 +23,80 @@ class ConversationManager
     }
 
     /**
-     * Bu numara için aktif bir oturum varsa onu, yoksa yeni oluşturulmuş (ve persist edilmiş)
-     * bir oturumu döner.
+     * Bu numara için aktif bir oturum varsa onu döner, yoksa null.
+     * Webhook tarafında kullanılır; DİKKAT: oturum AÇMAZ — oturumlar yalnızca
+     * {@see self::startSessionForToday()} üzerinden, yani komutla (outbound) açılır.
      */
-    public function getOrCreateActiveSession(string $phoneNumber): ConversationSession
+    public function findActiveSession(string $phoneNumber): ?ConversationSession
     {
-        $session = $this->sessionRepository->findActiveByPhoneNumber($phoneNumber);
+        return $this->sessionRepository->findActiveByPhoneNumber($phoneNumber);
+    }
 
-        if (null !== $session) {
-            return $session;
+    /**
+     * Bu numara için bugün (yerel takvim günü) oluşturulmuş bir oturum varsa onu döner
+     * (durumu aktif ya da tamamlanmış olabilir), yoksa null. Webhook, öğrenciye nasıl
+     * yanıt vereceğine bu metotla karar verir: oturum yok / bugün tamamlanmış / bugün aktif.
+     */
+    public function findTodaysSession(string $phoneNumber): ?ConversationSession
+    {
+        $latest = $this->sessionRepository->findLatestByPhoneNumber($phoneNumber);
+
+        return (null !== $latest && $this->isToday($latest->getCreatedAt())) ? $latest : null;
+    }
+
+    /**
+     * Önceki bir günden kalma, hiç kapanmamış "unutulmuş" bir aktif oturum varsa kapatır.
+     * (Örn. oturum maxTurns'e ulaşmadan öğrenci bir daha hiç yazmadıysa.) Böylece o oturum
+     * bugünün günlük-oturum-sınırı hesabına dahil olmaz.
+     */
+    public function closeStaleActiveSession(string $phoneNumber): void
+    {
+        $active = $this->sessionRepository->findActiveByPhoneNumber($phoneNumber);
+
+        if (null !== $active && !$this->isToday($active->getCreatedAt())) {
+            $this->closeSession($active);
+        }
+    }
+
+    /**
+     * Bu numara için bugün (durumu ne olursa olsun) zaten bir oturum oluşturulmuş mu?
+     * Günde-tek-oturum kuralının temel kontrolüdür.
+     */
+    public function hasSessionToday(string $phoneNumber): bool
+    {
+        return null !== $this->findTodaysSession($phoneNumber);
+    }
+
+    /**
+     * Komut tarafından (outbound) çağrılır — webhook'un ASLA çağırmaması gerekir.
+     *
+     * $force = false (varsayılan): bugün için zaten bir oturum varsa yeni oturum AÇMAZ.
+     *   O oturum hâlâ aktifse onu döner (idempotent yeniden tetikleme); tamamlanmışsa
+     *   null döner ("bugün için hak tükendi" sinyali) — çağıran bunu hataya çevirmeli.
+     * $force = true: mevcut aktif oturumu (günü fark etmeksizin) kapatıp daima yeni,
+     *   boş bir oturum açar. Bilinçli bir yönetici override'ıdır (test/acil durum).
+     */
+    public function startSessionForToday(string $phoneNumber, bool $force = false): ?ConversationSession
+    {
+        if ($force) {
+            $active = $this->sessionRepository->findActiveByPhoneNumber($phoneNumber);
+            if (null !== $active) {
+                $this->closeSession($active);
+            }
+
+            return $this->createSession($phoneNumber);
         }
 
+        $today = $this->findTodaysSession($phoneNumber);
+        if (null !== $today) {
+            return $today->isActive() ? $today : null;
+        }
+
+        return $this->createSession($phoneNumber);
+    }
+
+    private function createSession(string $phoneNumber): ConversationSession
+    {
         $session = new ConversationSession($phoneNumber);
         $this->entityManager->persist($session);
         $this->entityManager->flush();
@@ -41,19 +104,54 @@ class ConversationManager
         return $session;
     }
 
+    private function isToday(\DateTimeImmutable $dateTime): bool
+    {
+        return $dateTime->format('Y-m-d') === (new \DateTimeImmutable())->format('Y-m-d');
+    }
+
     public function addMessage(
         ConversationSession $session,
         string $role,
         string $content,
         ?string $whatsappMessageId = null,
+        ?\DateTimeImmutable $whatsappTimestamp = null,
+        bool $aiVisible = true,
     ): ConversationMessage {
-        $message = new ConversationMessage($session, $role, $content, $whatsappMessageId);
+        $message = new ConversationMessage($session, $role, $content, $whatsappMessageId, $whatsappTimestamp, $aiVisible);
         $session->addMessage($message);
 
         $this->entityManager->persist($message);
         $this->entityManager->flush();
 
         return $message;
+    }
+
+    /**
+     * Meta'nın `statuses` webhook bildirimini (bizim gönderdiğimiz bir mesajın delivered/read
+     * durumu) ilgili {@see ConversationMessage} kaydına işler. Bizde olmayan bir wamid ise
+     * (ör. takip etmediğimiz bir gönderim) sessizce yok sayılır.
+     */
+    public function recordDeliveryStatus(string $whatsappMessageId, string $status, \DateTimeImmutable $timestamp): void
+    {
+        $message = $this->messageRepository->findOneByWhatsappMessageId($whatsappMessageId);
+        if (null === $message) {
+            return;
+        }
+
+        if ('read' === $status) {
+            // "read" durumu zaten teslim edildiği anlamına gelir; ayrı bir "delivered"
+            // bildirimi hiç gelmemiş olabilir (Meta bazen atlar).
+            if (null === $message->getDeliveredAt()) {
+                $message->setDeliveredAt($timestamp);
+            }
+            $message->setReadAt($timestamp);
+        } elseif ('delivered' === $status) {
+            $message->setDeliveredAt($timestamp);
+        } else {
+            return; // 'sent' / 'failed' vb. şimdilik takip edilmiyor
+        }
+
+        $this->entityManager->flush();
     }
 
     /**
@@ -77,6 +175,10 @@ class ConversationManager
         ];
 
         foreach ($session->getMessages() as $message) {
+            if (!$message->isAiVisible()) {
+                continue;
+            }
+
             $history[] = [
                 'role' => $message->getRole(),
                 'content' => $message->getContent(),

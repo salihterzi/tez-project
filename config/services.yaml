@@ -27,6 +27,20 @@ services:
             $accessToken: '%env(WHATSAPP_ACCESS_TOKEN)%'
             $phoneNumberId: '%env(WHATSAPP_PHONE_NUMBER_ID)%'
 
+    App\Service\WhatsAppTemplateClient:
+        arguments:
+            $accessToken: '%env(WHATSAPP_ACCESS_TOKEN)%'
+            $wabaId: '%env(WHATSAPP_WABA_ID)%'
+
+    App\Service\WhatsAppTemplateSender:
+        arguments:
+            $accessToken: '%env(WHATSAPP_ACCESS_TOKEN)%'
+            $phoneNumberId: '%env(WHATSAPP_PHONE_NUMBER_ID)%'
+
+    App\Command\CreateTemplatesCommand:
+        arguments:
+            $projectDir: '%kernel.project_dir%'
+
     App\Service\MessageGeneratorService:
         arguments:
             $apiKey: '%env(OPENAI_API_KEY)%'

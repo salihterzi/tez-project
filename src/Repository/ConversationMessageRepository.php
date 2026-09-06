@@ -23,4 +23,13 @@ class ConversationMessageRepository extends ServiceEntityRepository
     {
         return null !== $this->findOneBy(['whatsappMessageId' => $whatsappMessageId]);
     }
+
+    /**
+     * `statuses` webhook bildirimindeki wamid'e karşılık gelen mesajı bulur (delivered/read
+     * durumunu bu mesaja yazmak için). Bizim gönderdiğimiz mesajlar için kullanılır.
+     */
+    public function findOneByWhatsappMessageId(string $whatsappMessageId): ?ConversationMessage
+    {
+        return $this->findOneBy(['whatsappMessageId' => $whatsappMessageId]);
+    }
 }

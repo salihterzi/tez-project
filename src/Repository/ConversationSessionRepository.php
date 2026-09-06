@@ -26,4 +26,16 @@ class ConversationSessionRepository extends ServiceEntityRepository
             ['id' => 'DESC'],
         );
     }
+
+    /**
+     * Verilen numara için (durumu ne olursa olsun) en son oluşturulan oturumu döner.
+     * Günlük oturum sınırını ve "bugünkü oturum" kontrollerini yapmak için kullanılır.
+     */
+    public function findLatestByPhoneNumber(string $phoneNumber): ?ConversationSession
+    {
+        return $this->findOneBy(
+            ['phoneNumber' => $phoneNumber],
+            ['id' => 'DESC'],
+        );
+    }
 }
