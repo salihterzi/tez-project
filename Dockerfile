@@ -19,6 +19,7 @@ RUN apk add --no-cache \
 COPY --from=mlocati/php-extension-installer:latest /usr/bin/install-php-extensions /usr/local/bin/
 RUN install-php-extensions \
 	apcu \
+	gd \
 	intl \
 	opcache \
 	pdo_mysql \

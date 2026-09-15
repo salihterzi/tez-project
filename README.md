@@ -88,6 +88,72 @@ Sık kullanılanlar: `HTTP_PORT`, `MYSQL_PORT`, `MYSQL_PASSWORD`, `MYSQL_DATABAS
 nginx ayarı: `docker/nginx/default.conf` (dev'de bind-mount'lu, `docker compose restart nginx` ile yenilenir).
 PHP ayarı: `docker/php/conf.d/*.ini`.
 
+## Öğrenci Aktivite Modülü
+
+Açık öğretim/uzaktan eğitim öğrencilerinin sisteme giriş, materyal erişim ve sınav
+sonucu verilerini tutan modül. `KAYIT_NO` (öğrenci numarası), `ogrenci` tablosunun
+birincil anahtarı ve diğer tüm tabloların ortak yabancı anahtarıdır.
+
+### Entity'ler (`src/Entity/`)
+
+| Entity              | Tablo                 | Açıklama                                             |
+|---------------------|-----------------------|-------------------------------------------------------|
+| `Ogrenci`           | `ogrenci`             | Demografik bilgiler. PK `ogrenciNo` **auto-increment değil**, dışarıdan atanır. |
+| `LoginLog`          | `login_log`           | Sisteme giriş kayıtları.                              |
+| `MateryalErisimLog` | `materyal_erisim_log` | Ders materyali erişim kayıtları.                      |
+| `SinavSonucu`       | `sinav_sonucu`        | Test/sınav sonuçları (`uniteler`: JSON int dizisi).   |
+
+`ogrenciNo`, `dersKodu` ve `yil`+`donem` kombinasyonu üzerinde analiz sorgularını
+hızlandıracak index'ler tanımlıdır (bkz. entity attribute'ları).
+
+**`dersKodu` neden string?** Şimdilik ayrı bir `Ders` entity'si yok; kod doğrudan
+`varchar` olarak tutuluyor. İleride normalize etmek istenirse:
+1. `Ders` entity'si oluştur (`kodu` alanı PK veya unique).
+2. `doctrine:migrations:diff` ile `ders` tablosunu ve mevcut `ders_kodu` kolonlarını
+   `ders_kodu` FK'sine çeviren migration'ı üret (mevcut distinct değerleri önce
+   `ders` tablosuna INSERT eden bir veri migration'ı elle eklemek gerekir).
+3. `MateryalErisimLog`/`SinavSonucu`'ndaki `dersKodu: string` alanlarını
+   `ders: Ders` (ManyToOne) ile değiştir.
+
+### Migration
+
+```sh
+make console c='doctrine:migrations:diff'      # entity değişince yeni migration üret
+make migrate                                    # bekleyen migration'ları uygula
+```
+
+### Örnek veri içe aktarma
+
+```sh
+make console c='app:import-ornek-veri var/ornek_veri.xlsx'
+# ya da doğrudan:
+docker compose exec php bin/console app:import-ornek-veri var/ornek_veri.xlsx
+```
+
+Excel dosyası 4 sayfa içermelidir — **sayfa adları aşağıdaki gibi birebir olmalı**.
+Sütun sırası önemli değildir; sütun başlıklarının yazım biçimi de (camelCase,
+`snake_case`, `UPPER_SNAKE_CASE`, aralarda boşluk...) önemli değildir — eşleştirme
+harf/rakam dışındaki karakterleri yok sayıp küçük harfe çevirerek yapılır, yani
+`islemZamani`, `ISLEM_ZAMANI` ve `Islem Zamani` hepsi aynı sütun kabul edilir.
+Aşağıdaki tablo alan adlarını (birebir de kullanılabilir) gösterir:
+
+| Sayfa adı              | Sütunlar |
+|-------------------------|----------|
+| `Demografik`             | `ogrenciNo` (**veya `KAYIT_NO`**), `cinsiyet` (`K`/`E`), `dogumTarihi` |
+| `Login_Log`              | `ogrenciNo`/`KAYIT_NO`, `yil`, `donem`, `islemZamani` |
+| `Materyal_Erisim_Log`    | `ogrenciNo`/`KAYIT_NO`, `dersKodu`, `yil`, `donem`, `materyalTipi`, `uniteNo`, `islemZamani` |
+| `Sinav_Sonuclari`        | `ogrenciNo`/`KAYIT_NO`, `dersKodu`, `yil`, `donem`, `puan`, `sure`, `uniteler` (`"1 , 2 , 3"`), `bos`, `dogru`, `yanlis`, `soruSayisi`, `islemZamani` |
+
+Sayfalar bu sırayla (önce `Demografik`) işlenir ki `ogrenciNo` FK bütünlüğü bozulmasın.
+Zaten var olan bir `ogrenciNo`, tekrar çalıştırıldığında atlanır (uyarı basılır); log
+tabloları doğal bir benzersiz anahtara sahip olmadığından aynı dosyanın iki kez içe
+aktarılması log satırlarını yineler — komut tek seferlik örnek veri yüklemesi içindir.
+
+### phpMyAdmin
+
+Dev ortamında `http://localhost:8081` üzerinden (kullanıcı `app` / parola `ChangeMe`,
+`compose.override.yaml`'daki `phpmyadmin` servisi).
+
 ## Prod imajları
 
 ```sh
