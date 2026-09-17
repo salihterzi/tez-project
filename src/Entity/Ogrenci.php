@@ -30,11 +30,41 @@ class Ogrenci
     #[ORM\Column(name: 'dogum_tarihi', type: 'date_immutable')]
     private \DateTimeImmutable $dogumTarihi;
 
-    public function __construct(int $ogrenciNo, Cinsiyet $cinsiyet, \DateTimeImmutable $dogumTarihi)
-    {
+    /**
+     * Öğrencinin (çalışıyorsa) iş/çalışma saatinin başlangıcı. Tarihsiz, yalnızca saat
+     * bilgisi tutulur. Bilinmiyorsa veya öğrenci çalışmıyorsa null.
+     */
+    #[ORM\Column(name: 'calisma_saati_baslangic', type: 'time_immutable', nullable: true)]
+    private ?\DateTimeImmutable $calismaSaatiBaslangic = null;
+
+    /**
+     * Öğrencinin (çalışıyorsa) iş/çalışma saatinin bitişi. Tarihsiz, yalnızca saat
+     * bilgisi tutulur. Bilinmiyorsa veya öğrenci çalışmıyorsa null.
+     */
+    #[ORM\Column(name: 'calisma_saati_bitis', type: 'time_immutable', nullable: true)]
+    private ?\DateTimeImmutable $calismaSaatiBitis = null;
+
+    /**
+     * Öğrencinin bakmakla yükümlü olduğu biri (aile sorumluluğu) olup olmadığı.
+     * Bilinmiyorsa null.
+     */
+    #[ORM\Column(name: 'aile_sorumlulugu', nullable: true)]
+    private ?bool $aileSorumlulugu = null;
+
+    public function __construct(
+        int $ogrenciNo,
+        Cinsiyet $cinsiyet,
+        \DateTimeImmutable $dogumTarihi,
+        ?\DateTimeImmutable $calismaSaatiBaslangic = null,
+        ?\DateTimeImmutable $calismaSaatiBitis = null,
+        ?bool $aileSorumlulugu = null,
+    ) {
         $this->ogrenciNo = $ogrenciNo;
         $this->cinsiyet = $cinsiyet;
         $this->dogumTarihi = $dogumTarihi;
+        $this->calismaSaatiBaslangic = $calismaSaatiBaslangic;
+        $this->calismaSaatiBitis = $calismaSaatiBitis;
+        $this->aileSorumlulugu = $aileSorumlulugu;
     }
 
     public function getOgrenciNo(): int
@@ -62,6 +92,42 @@ class Ogrenci
     public function setDogumTarihi(\DateTimeImmutable $dogumTarihi): static
     {
         $this->dogumTarihi = $dogumTarihi;
+
+        return $this;
+    }
+
+    public function getCalismaSaatiBaslangic(): ?\DateTimeImmutable
+    {
+        return $this->calismaSaatiBaslangic;
+    }
+
+    public function setCalismaSaatiBaslangic(?\DateTimeImmutable $calismaSaatiBaslangic): static
+    {
+        $this->calismaSaatiBaslangic = $calismaSaatiBaslangic;
+
+        return $this;
+    }
+
+    public function getCalismaSaatiBitis(): ?\DateTimeImmutable
+    {
+        return $this->calismaSaatiBitis;
+    }
+
+    public function setCalismaSaatiBitis(?\DateTimeImmutable $calismaSaatiBitis): static
+    {
+        $this->calismaSaatiBitis = $calismaSaatiBitis;
+
+        return $this;
+    }
+
+    public function getAileSorumlulugu(): ?bool
+    {
+        return $this->aileSorumlulugu;
+    }
+
+    public function setAileSorumlulugu(?bool $aileSorumlulugu): static
+    {
+        $this->aileSorumlulugu = $aileSorumlulugu;
 
         return $this;
     }

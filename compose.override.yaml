@@ -18,6 +18,12 @@ services:
       - ./public:/app/public:ro
       - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
 
+  python:
+    build:
+      target: python_base
+    volumes:
+      - ./python:/app
+
   database:
     ports:
       - "${MYSQL_PORT:-3307}:3306"

@@ -68,12 +68,28 @@ RUN composer install --no-cache --prefer-dist --no-dev --no-autoloader --no-scri
 
 COPY . ./
 RUN set -eux; \
-	rm -rf docker/ .dockerignore; \
+	rm -rf docker/ python/ .dockerignore; \
 	mkdir -p var/cache var/log; \
 	composer dump-autoload --classmap-authoritative --no-dev; \
 	composer dump-env prod; \
 	composer run-script --no-dev post-install-cmd; \
 	chmod +x bin/console
+
+# ---------------------------------------------------------------------------
+# Python (MySQL veritabanına bağlanan veri/analiz betikleri için)
+# ---------------------------------------------------------------------------
+FROM python:3.12-slim AS python_base
+
+WORKDIR /app
+
+COPY python/requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY python/ ./
+
+# Kalıcı bir servis değil; `docker compose exec python python <script>.py` ile
+# kullanılması için container'ı ayakta tutar.
+CMD ["tail", "-f", "/dev/null"]
 
 # ---------------------------------------------------------------------------
 # nginx

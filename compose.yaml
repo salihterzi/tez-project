@@ -16,6 +16,23 @@ services:
 
         condition: service_healthy
 
+  python:
+    image: ${IMAGES_PREFIX:-}tez-proje-python
+    build:
+      context: .
+      target: python_base
+    restart: unless-stopped
+    environment:
+      MYSQL_HOST: database
+      MYSQL_PORT: 3306
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-whatsapp_messenger}
+      MYSQL_USER: ${MYSQL_USER:-app}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-ChangeMe}
+      DATABASE_URL: mysql+pymysql://${MYSQL_USER:-app}:${MYSQL_PASSWORD:-ChangeMe}@database:3306/${MYSQL_DATABASE:-whatsapp_messenger}
+    depends_on:
+      database:
+        condition: service_healthy
+
   nginx:
     image: ${IMAGES_PREFIX:-}tez-proje-nginx
     build:

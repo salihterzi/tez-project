@@ -20,9 +20,12 @@ class SinavSonucu
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(targetEntity: Ogrenci::class)]
-    #[ORM\JoinColumn(name: 'ogrenci_no', referencedColumnName: 'ogrenci_no', nullable: false, onDelete: 'CASCADE')]
-    private Ogrenci $ogrenci;
+    /**
+     * Not: Şimdilik `ogrenci` tablosuna FK ile bağlı değil (bkz. proje notları) — sadece
+     * öğrenci numarasını tutan düz bir kolon.
+     */
+    #[ORM\Column(name: 'ogrenci_no', type: 'integer')]
+    private int $ogrenciNo;
 
     /**
      * Ders kodu, örn. "SIY201U". Şimdilik ayrı bir Ders entity'sine normalize edilmemiş,
@@ -89,7 +92,7 @@ class SinavSonucu
      * @param int[] $uniteler
      */
     public function __construct(
-        Ogrenci $ogrenci,
+        int $ogrenciNo,
         string $dersKodu,
         int $yil,
         int $donem,
@@ -102,7 +105,7 @@ class SinavSonucu
         int $soruSayisi,
         \DateTimeImmutable $islemZamani,
     ) {
-        $this->ogrenci = $ogrenci;
+        $this->ogrenciNo = $ogrenciNo;
         $this->dersKodu = $dersKodu;
         $this->yil = $yil;
         $this->donem = $donem;
@@ -121,9 +124,9 @@ class SinavSonucu
         return $this->id;
     }
 
-    public function getOgrenci(): Ogrenci
+    public function getOgrenciNo(): int
     {
-        return $this->ogrenci;
+        return $this->ogrenciNo;
     }
 
     public function getDersKodu(): string

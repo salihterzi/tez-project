@@ -19,9 +19,12 @@ class LoginLog
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(targetEntity: Ogrenci::class)]
-    #[ORM\JoinColumn(name: 'ogrenci_no', referencedColumnName: 'ogrenci_no', nullable: false, onDelete: 'CASCADE')]
-    private Ogrenci $ogrenci;
+    /**
+     * Not: Şimdilik `ogrenci` tablosuna FK ile bağlı değil (bkz. proje notları) — sadece
+     * öğrenci numarasını tutan düz bir kolon.
+     */
+    #[ORM\Column(name: 'ogrenci_no', type: 'integer')]
+    private int $ogrenciNo;
 
     #[ORM\Column(type: 'smallint')]
     private int $yil;
@@ -35,9 +38,9 @@ class LoginLog
     #[ORM\Column(name: 'islem_zamani', type: 'datetime_immutable')]
     private \DateTimeImmutable $islemZamani;
 
-    public function __construct(Ogrenci $ogrenci, int $yil, int $donem, \DateTimeImmutable $islemZamani)
+    public function __construct(int $ogrenciNo, int $yil, int $donem, \DateTimeImmutable $islemZamani)
     {
-        $this->ogrenci = $ogrenci;
+        $this->ogrenciNo = $ogrenciNo;
         $this->yil = $yil;
         $this->donem = $donem;
         $this->islemZamani = $islemZamani;
@@ -48,9 +51,9 @@ class LoginLog
         return $this->id;
     }
 
-    public function getOgrenci(): Ogrenci
+    public function getOgrenciNo(): int
     {
-        return $this->ogrenci;
+        return $this->ogrenciNo;
     }
 
     public function getYil(): int
