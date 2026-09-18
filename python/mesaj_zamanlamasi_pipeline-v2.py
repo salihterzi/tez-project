@@ -42,6 +42,7 @@ FAZLAR = ['normal_hafta', 'ara_sinav_oncesi', 'final_oncesi']
 
 MIN_GOZLEM_ESIGI = 4          # bireysel modele dahil olmak için min. materyal erişimi
 PRIOR_AGIRLIK_MANUEL = None   # None -> karma etkiler modelinin otomatik BLUP'unu kullan (önerilen)
+COLD_START_ALPHA = 0.05       # cold-start yardımcı modelinde yas/cinsiyet anlamlılık eşiği
 
 # =====================================================================
 # 1. VERİ YÜKLEME (Adım 1)
@@ -351,30 +352,45 @@ def calisma_saati_filtresi_uygula(tahmin_df, dem):
 # 6. COLD-START (Adım 7 — yetersiz davranışsal veri)
 # =====================================================================
 
-def cold_start_tahmin(dem, mat, min_gozlem=MIN_GOZLEM_ESIGI):
+def cold_start_tahmin(dem, mat, min_gozlem=MIN_GOZLEM_ESIGI, alpha=COLD_START_ALPHA):
     counts = mat.groupby('ogrenci_no').size()
-    yetersiz = dem[~dem['ogrenci_no'].isin(counts[counts >= min_gozlem].index)]
+    yeterli_id = counts[counts >= min_gozlem].index
+    yetersiz = dem[~dem['ogrenci_no'].isin(yeterli_id)]
     if len(yetersiz) == 0:
         return pd.DataFrame()
 
     # davranışsal verisi yeterli öğrencilerle yardımcı regresyon eğit
-    yeterli_id = counts[counts >= min_gozlem].index
     egitim = mat[mat['ogrenci_no'].isin(yeterli_id)].groupby('ogrenci_no').agg(
         ort_saat=('saat', 'mean')).reset_index()
     egitim = egitim.merge(dem, on='ogrenci_no')
 
-    # basit örnek: yaş ve aile sorumluluğuyla regresyon (gerçek şemaya göre genişlet)
-    import statsmodels.api as sm
-    X = sm.add_constant(egitim[['yas']])  # aile_sorumlulugu vb. eklenebilir
-    y = egitim['ort_saat']
-    yardimci_model = sm.OLS(y, X).fit()
+    # yas ve cinsiyet şu an sözde veri: ikisinin de gerçekten anlamlı olup olmadığı
+    # her çalıştırmada bu veriden belirlenir, sabit kodlanmaz. Tam modelde (yas +
+    # cinsiyet) p-değeri alpha'nın altında kalan terimler nihai modele alınır; hiçbiri
+    # anlamlı değilse yeterli-veri grubunun ortalama erişim saatine düşülür.
+    # aile_sorumlulugu / calisma_saati bilinçli olarak aday değişken DEĞİL: ogrenci
+    # tablosunda dönem bazlı tutulmuyor (tek güncel değer), bu yüzden geçmiş dönem
+    # (mat) davranışını açıklayan bir kovaryat olarak kullanılmaları dönem uyuşmazlığı
+    # yaratır — bugünkü değer, mat'teki dönemde geçerli olan değerle aynı olmayabilir.
+    tam_model = smf.ols("ort_saat ~ yas + C(cinsiyet)", egitim).fit()
+    terimler = []
+    if tam_model.pvalues.get('yas', 1.0) < alpha:
+        terimler.append('yas')
+    cinsiyet_terimleri = [t for t in tam_model.pvalues.index if t.startswith('C(cinsiyet)')]
+    if any(tam_model.pvalues[t] < alpha for t in cinsiyet_terimleri):
+        terimler.append('C(cinsiyet)')
 
-    X_yeni = sm.add_constant(yetersiz[['yas']])
-    tahmini_saat = yardimci_model.predict(X_yeni)
+    if terimler:
+        yardimci_model = smf.ols("ort_saat ~ " + " + ".join(terimler), egitim).fit()
+        tahmini_saat = yardimci_model.predict(yetersiz)
+        kaynak = 'cold_start_demografik(' + '+'.join(terimler) + ')'
+    else:
+        tahmini_saat = pd.Series(egitim['ort_saat'].mean(), index=yetersiz.index)
+        kaynak = 'cold_start_grup_ortalamasi'
 
     return pd.DataFrame({'ogrenci_no': yetersiz['ogrenci_no'].values,
                           'tahmini_saat': tahmini_saat.values,
-                          'kaynak': 'cold_start_demografik'})
+                          'kaynak': kaynak})
 
 
 # =====================================================================
@@ -406,13 +422,16 @@ def main():
               "(Aksi halde BLUP'lar veri yokluğundan sıfıra yakınsar.)")
         tahmin_df = model_kur_ve_tahmin_et(mat)
 
-    print("5) Çalışma saati filtresi uygulanıyor...")
-    tahmin_df = calisma_saati_filtresi_uygula(tahmin_df, dem)
-
-    print("6) Cold-start tahminleri ekleniyor...")
+    print("5) Cold-start tahminleri ekleniyor...")
     cold_start_df = cold_start_tahmin(dem, mat)
     if len(cold_start_df) > 0:
         tahmin_df = pd.concat([tahmin_df, cold_start_df], ignore_index=True)
+
+    # Çalışma saati filtresi cold-start birleştirildikten SONRA, tüm tahmin_df'e
+    # uygulanır — aksi halde cold-start satırları (grup ortalaması/demografik
+    # tahmin) hiç filtreden geçmeden kalır.
+    print("6) Çalışma saati filtresi uygulanıyor...")
+    tahmin_df = calisma_saati_filtresi_uygula(tahmin_df, dem)
 
     tahmin_df['tahmini_saat_hhmm'] = tahmin_df['tahmini_saat'].apply(ondalik_saat_to_hhmm)
 
