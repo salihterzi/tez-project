@@ -1,0 +1,321 @@
+MESAJ ZAMANLAMASI TAHMİNİ: YÖNTEM
+===================================
+(Tez Yöntem bölümünde kullanılmak üzere hazırlanmıştır)
+
+
+BÖLÜM A — AKADEMİK METİN
+==========================
+
+A.1. Genel Çerçeve
+
+Öğrenciye gönderilecek hatırlatma/etkileşim mesajının hangi güne ve hangi
+saate denk getirileceğini belirlemek amacıyla iki ayrı, fakat aynı hibrit
+metodolojik felsefeyi paylaşan tahmin modeli geliştirilmiştir: (i) saat
+tahmini için sürekli-dairesel bir karma etkiler (mixed-effects) regresyon
+modeli, (ii) gün tahmini için kategorik bir en-sık-görülen-N (top-N)
+frekans modeli. Her iki model de aynı davranışsal veri kümesi üzerinde,
+öğrenci × dönemsel-faz (student × phase) düzeyinde çalışır ve her hücre
+için verinin bireysel bir tahmine yetip yetmediğine dair bir karar
+üretir; veri yetersiz kaldığında modelin popülasyon geneline (gerekirse
+öğrencinin kendi önceki dönem verisine) kademeli olarak geri düştüğü bir
+"hibrit" (hybrid backoff) yaklaşım benimsenmiştir. Bu tasarımın temel
+gerekçesi, öğrenci başına gözlem sayısının aşırı heterojen olması
+(bazı öğrencilerde binlerce, bazılarında sıfıra yakın davranışsal kayıt
+bulunması) karşısında, tekil bir "tümü bireysel" ya da "tümü ortalama"
+stratejisinin her iki uçta da hatalı tahminler üretecek olmasıdır.
+
+A.2. Veri Hazırlığı ve Öznitelik Mühendisliği
+
+Ham davranışsal veri, öğrencinin öğrenme yönetim sistemi üzerindeki iki
+etkileşim kaynağından derlenir: materyal erişim kayıtları
+(materyal_erisim_log) ve sınav çözüm kayıtları (sinav_sonucu). İki kaynak,
+"öğrencinin platformla ne zaman etkileşime girdiği" ortak sinyali
+etrafında tek bir olay günlüğünde birleştirilir; sınav çözüm zamanının,
+materyal erişiminin aksine sınavın açık olduğu pencereyle sınırlı
+olabileceği ve bu nedenle tamamen gönüllü bir zaman tercihini birebir
+yansıtmayabileceği metodolojik bir varsayım olarak not edilmiştir.
+
+Her davranışsal olay için şu öznitelikler türetilir:
+  - saat: işlem zamanının 0-24 arası ondalık saat karşılığı;
+  - saat_sin, saat_cos: saatin dairesel (circular) trigonometrik
+    izdüşümleri, saat_rad = (saat/24)·2π olmak üzere sin(saat_rad) ve
+    cos(saat_rad). Bu dönüşüm, günün 23:00 ile 01:00 gibi birbirine
+    saatlik olarak yakın fakat sayısal olarak uzak noktalarının model
+    tarafından yanlışlıkla "uzak" olarak öğrenilmesini engeller;
+  - gun_index: haftanın günü (0=Pazartesi … 6=Pazar).
+
+Ayrıca her olay, akademik takvime göre üç davranışsal faza (FAZ)
+ayrıştırılır: normal_hafta (sınav dönemleri dışındaki tüm zaman),
+ara_sinav_oncesi (ara sınavdan 7 gün önce başlayıp sınavın bitişine kadar
+süren pencere) ve final_oncesi (final sınavından 7 gün önce başlayıp
+final bitişine kadar süren pencere). Faz ayrımının gerekçesi, öğrenci
+davranışının sınav yaklaştıkça sistematik olarak değişmesi (yoğunlaşma,
+saat kayması) beklentisidir; bu nedenle tahmin modelleri tek bir ortalama
+davranış yerine faza duyarlı ayrı tahminler üretecek şekilde
+kurgulanmıştır.
+
+A.3. Saat Tahmini: Dairesel Karma Etkiler Regresyonu
+
+Saat tahmini, saat_sin ve saat_cos değişkenleri üzerinde ayrı ayrı kurulan
+iki doğrusal karma etkiler modeliyle (linear mixed-effects model,
+statsmodels mixedlm) gerçekleştirilir. Sabit etki (fixed effect) terimi
+faz (C(FAZ)) olup, rastgele etki (random effect) yapısı öğrenci
+gruplaması altında hem rastgele kesim noktası hem de faza özgü rastgele
+eğim içerir: (1 + FAZ | öğrenci). Model, materyal/sınav tablosunda en az
+bir gözlemi bulunan tüm öğrenciler üzerinde TEK SEFERDE kurulur; ayrı bir
+toplam-gözlem eşiği uygulanmaz, çok az veri içeren öğrenciler dahi fit
+sürecine dahil edilerek karma etkiler modelinin doğal büzülme
+(shrinkage) mekanizmasına bırakılır.
+
+Model kurulduktan sonra, her (öğrenci, faz) hücresi için post-hoc bir
+bireysel/popülasyon kararı verilir:
+  - n_faz ≥ eşik (MIN_FAZ_GOZLEM_ESIGI = 4) ise, öğrencinin kendi
+    rastgele kesim noktası VE kendi faza özgü rastgele eğim BLUP'u
+    (best linear unbiased predictor) tahmine dahil edilir (Seçenek B —
+    bireysel);
+  - n_faz < eşik ise, öğrencinin kendi faz eğimine güvenilmeyip yalnızca
+    sabit (popülasyon) faz etkisi ve — öğrencinin en az bir gözlemi
+    varsa — kendi rastgele kesim noktası kullanılır; öğrencinin hiç
+    gözlemi yoksa yalnızca sabit etki kullanılır (Seçenek A — fallback).
+
+Nihai tahmini saat, tahmini sin/cos bileşenlerinin ark tanjantı
+(arctan2) alınıp 0-2π aralığına normalize edilerek ve 24 saatlik
+ölçeğe geri dönüştürülerek elde edilir.
+
+A.3.1. Eşik Değerinin Türetilmesi
+
+MIN_FAZ_GOZLEM_ESIGI değeri keyfi seçilmemiş, karma etkiler modelinin
+güvenilirlik (reliability) formülünden türetilmiştir:
+
+    λ = n / (n + w),   w = σ² / τ²(faz)
+
+Burada σ², modelin kalıntı (residual) varyansı; τ²(faz), ilgili fazın
+kişiler-arası (between-student) birleşik varyansıdır (referans faz için
+yalnızca rastgele kesim noktası varyansı; diğer fazlar için kesim
+noktası varyansı, faz-eğimi varyansı ve ikisi arasındaki kovaryansın
+toplamı). λ, BLUP tahmininin ne ölçüde öğrencinin kendi verisine
+dayandığını gösteren bir güvenilirlik katsayısıdır (0 = saf popülasyon
+ortalaması, 1 = saf bireysel tahmin). Psikometri literatüründe (Nunnally,
+1978) kabul edilebilir güvenilirlik için yaygın kullanılan λ = 0,7 hedef
+alınarak formül n için çözülmüş (n_esik = w·λ/(1−λ)) ve gerçek veri
+kümesi (2024-2025 bahar dönemi, 3,78 milyon gözlem, 49.384 öğrenci)
+üzerinde hesaplandığında üç faz için de yaklaşık 3,4-3,8 arası bir değer
+elde edilmiştir; tavana yuvarlama ile üçü de 4'e denk geldiğinden, faza
+özgü ayrı eşikler yerine tek bir sabit (MIN_FAZ_GOZLEM_ESIGI = 4)
+kullanılmıştır.
+
+A.3.2. Çalışma Saati Kısıtı
+
+Modelden elde edilen ham saat tahmini, öğrencinin bilinen çalışma saati
+bloğuna denk geliyorsa sert bir kural ile bu bloğun dışına itilir: tahmin
+edilen saat, bloğun başlangıcının hemen öncesine veya bitişinin hemen
+sonrasına (hangisi daha yakınsa) yaklaşık 3 dakikalık bir tampon payıyla
+kaydırılır. Bu işlem, gece yarısını saran çalışma bloklarını (örn.
+22:00-06:00) da doğru biçimde ele alacak şekilde tasarlanmıştır.
+
+A.4. Gün Tahmini: Kategorik En-Sık-N Frekans Modeli
+
+statsmodels'te kategorik (multinomial) çıktılı karma etkiler modellerinin
+pratik desteği bulunmadığından, gün tahmini saat modelinden farklı bir
+mekanizmayla, her (öğrenci, faz) hücresinde en sık gözlenen N günün
+(frekans sıralamasıyla, mod istatistiği mantığıyla) belirlenmesi yoluyla
+gerçekleştirilir. N değeri faza göre değişir (FAZ_TOP_N): normal_hafta
+için 3, ara_sinav_oncesi ve final_oncesi için 4 — gerekçe, normal haftada
+etkileşim günlerinin daha dağınık, ~7 günlük sınav öncesi pencerede ise
+daha yoğunlaşmış olmasıdır.
+
+Bireysel/popülasyon kararı burada üç kademeli bir yapıya sahiptir:
+  1. n_faz ≥ GUN_MIN_FAZ_GOZLEM_ESIGI (=10) ise, öğrencinin kendi
+     verisinden top-N gün hesaplanır (Seçenek B — bireysel). Öğrencinin
+     verisinde N'den az farklı gün gözlenmişse, eksik sıralar
+     popülasyonun top-N listesinden (bireyselde zaten yer alanlar hariç)
+     tamamlanır.
+  2. n_faz < eşik fakat öğrencinin önceki dönemden aynı (öğrenci, faz)
+     hücresi için gerçek bireysel (Seçenek B kökenli) bir sonucu varsa,
+     popülasyona düşülmeden önce bu önceki dönem sonucu önsel
+     (Seçenek C) olarak kullanılır. Güncel dönem verisi eşiği aştığı an
+     Seçenek C tamamen devre dışı kalır; yani önceki dönem önseli yalnızca
+     yeni dönemin henüz yeterli veri üretmediği bir geçiş köprüsü
+     işlevi görür.
+  3. n_faz < eşik ve önceki dönem önseli de yoksa (yeni öğrenci veya
+     önceki dönemde de fallback), o fazdaki popülasyon genelinin top-N
+     günü kullanılır (Seçenek A — fallback); hiç davranışsal verisi
+     olmayan öğrenciler otomatik olarak bu kademeye düşer.
+
+A.4.1. Eşik Değerinin Türetilmesi
+
+GUN_MIN_FAZ_GOZLEM_ESIGI, saat modelindeki σ²/τ² tabanlı BLUP
+güvenilirlik formülünden bilinçli olarak bağımsız tutulmuştur, zira bu
+formül sürekli/dairesel regresyona özgüdür ve kategorik top-N/mod
+mekanizmasına doğrudan aktarılamaz. Bunun yerine ampirik bir
+alt-örnekleme (subsampling) prosedürü izlenmiştir: her faz için en az
+40 gözlemi bulunan "veri zengin" öğrencilerin TÜM verisinden çıkan top-N
+gün kümesi "gerçek" (ground truth) kabul edilmiş; aday n değerleri
+(1'den 35'e) için her veri-zengin öğrencinin gözlemlerinden rastgele n
+tanesi 50 kez örneklenmiş, her örneklemden hesaplanan top-N ile "gerçek"
+küme arasındaki örtüşme oranı (|kesişim| / top_n) ölçülmüş ve tüm
+öğrenciler/tekrarlar üzerinden ortalanmıştır. Saat modelindeki λ = 0,7
+hedefiyle aynı ruhta bir hedef örtüşme oranı (%70) belirlenmiş; bu oranı
+ilk aşan n değeri, üç fazın tamamında (top_n değeri 3 veya 4 olmasına
+rağmen) 10 olarak bulunmuş ve bu nedenle faza özgü ayrım yerine tek bir
+sabit (GUN_MIN_FAZ_GOZLEM_ESIGI = 10) benimsenmiştir. Aynı analiz, hiç
+kişiselleştirme yapılmadan doğrudan popülasyon top-N'inin atanması
+durumunda beklenen isabet oranını da (popülasyon taban çizgisi/baseline)
+ölçmüş; çok düşük n değerlerinde (n=1) bireysel tahminin isabet oranının
+popülasyon taban çizgisinin belirgin biçimde altında kaldığı, dolayısıyla
+yetersiz veriyle erken bireyselleştirmenin tahmini iyileştirmek yerine
+kötüleştirdiği gözlenmiştir. Bu bulgu, eşiğin (10) korunmasını ve eşik
+altındaki boşluğun popülasyona atlamadan önce Seçenek C ile
+doldurulmasını metodolojik olarak desteklemektedir.
+
+A.5. İki Eşiğin Bağımsızlığı Üzerine Metodolojik Not
+
+Saat modelinin eşiği (4) teorik olarak (BLUP güvenilirlik formülü,
+λ=0,7) türetilmişken, gün modelinin eşiği (10) ampirik olarak
+(alt-örnekleme, hedef örtüşme %70) türetilmiştir. İki eşiğin sayısal
+olarak farklı çıkması ("4 vs 10"), aynı "≈%70 güvenilirlik/örtüşme"
+felsefesinin farklı istatistiksel mekanizmalara (sürekli-dairesel
+regresyon karşısında kategorik frekans) uygulanmasının doğal ve beklenen
+bir sonucu olarak değerlendirilmelidir; iki değerin birbirine
+eşitlenmesi metodolojik olarak gerekçesizdir.
+
+A.6. Çıktılar
+
+Saat tahmini modeli her (öğrenci, faz) hücresi için tek bir satır üretir
+(ogrenci_no, FAZ, n_gozlem_faz, n_gozlem_toplam, tahmini_saat, yontem,
+çalışma saati kısıt bilgileri). Gün tahmini modeli ise uzun (long)
+formatta, her (öğrenci, faz) için top_n kadar satır üretir (gun_sira
+kolonu günün sıralamadaki yerini belirtir). İki çıktı, ogrenci_no ve FAZ
+üzerinden birleştirilerek "Salı 14:30" biçiminde birleşik bir gün-saat
+önerisine dönüştürülebilir.
+
+
+BÖLÜM B — SADE ANLATIM VE ÖRNEKLER
+=====================================
+
+Bu bölüm, yukarıdaki akademik anlatımın aynısını günlük dille ve somut
+sayısal örneklerle özetler; tez metninde dipnot/açıklayıcı kutu olarak
+veya sözlü savunmada kullanılabilir.
+
+B.1. Temel fikir nedir?
+
+Elimizde her öğrencinin platforma ne zaman (hangi gün, hangi saat)
+girdiğine dair kayıtlar var. Amaç, "bu öğrenciye mesajı ne zaman
+gönderirsek okuma ihtimali en yüksek olur" sorusuna cevap vermek.
+
+İki farklı strateji arasında seçim yapmak yerine ikisini birleştirdik:
+  - Eğer bir öğrenci hakkında YETERİNCE veri varsa → onun KENDİ
+    alışkanlığını kullan.
+  - Eğer veri AZSA (yeni öğrenci, az aktif öğrenci) → o öğrenciyi
+    "ortalama öğrenci" gibi varsay, genel popülasyonun alışkanlığını
+    kullan.
+  - Gün tahmininde ayrıca üçüncü bir ara basamak var: bu dönem verisi
+    az ama geçen dönem o öğrenci hakkında güçlü bir bireysel bilgi
+    varsa, direkt popülasyona düşmeden önce geçmiş dönemin bilgisini
+    kullan.
+
+Bunun nedeni basit: 2-3 gözlemle "bu öğrenci hep Salı 22:00'de
+çalışıyor" demek yanıltıcı olur — tesadüf olabilir. Ama 500 gözlemle
+aynı şeyi söylemek güvenilirdir. Eşik değerleri (saat için 4, gün için
+10), "kaç gözlemden sonra bireysel veriye güvenmeye başlayalım"
+sorusunun matematiksel/istatistiksel cevabıdır.
+
+B.2. Saat tahmini nasıl çalışıyor? (basit örnek)
+
+Diyelim ki öğrenci 2572, "final_oncesi" fazında 6 kez platforma girmiş
+(eşik 4'ün üzerinde). Bu durumda:
+  - Model önce TÜM öğrencilerin ortalama davranışına bakarak bir
+    "popülasyon saati" belirler (örneğin final öncesi ortalama saat
+    21:40 olsun).
+  - Sonra öğrenci 2572'nin kendi 6 gözlemine bakıp, bu ortalamadan ne
+    kadar SAPTIĞINI hesaplar (örneğin bu öğrenci hep daha geç, 23:15
+    civarı çalışıyor olabilir).
+  - Sonuç, ikisinin istatistiksel olarak "ağırlıklı" bileşimidir — az
+    veri varken popülasyona daha yakın, çok veri varken öğrencinin
+    kendi ortalamasına daha yakın bir tahmin çıkar. Bu otomatik
+    ağırlıklandırmaya istatistikte "shrinkage" (büzülme/çekilme) denir.
+  - Eğer aynı öğrencinin bu fazda sadece 2 gözlemi olsaydı (eşik 4'ün
+    altında), modelin kendi eğimine güvenilmez, sadece popülasyon
+    ortalaması (+varsa öğrencinin genel kesim noktası) kullanılırdı.
+
+Saatin neden "sin/cos" ile hesaplandığı: saatler bir çizgi değil, bir
+daire üzerindedir. 23:00 ile 01:00 arasında sadece 2 saat fark vardır,
+ama düz sayılarla (23 ile 1) hesaplarsanız model bunu "22 saat fark"
+gibi yanlış algılar. Saati bir saat kadranındaki açıya çevirip
+(sin/cos), sonra tekrar saate döndürerek bu sorunu çözüyoruz.
+
+Örnek: öğrencinin çalışma saatleri 09:00-17:00 arasıysa ve model ona
+14:00 saatini önerseydi, bu çalışma saatine denk geldiği için sistem
+otomatik olarak en yakın sınırın (17:03 gibi, biraz payla) dışına
+kaydırır — çünkü öğrenci muhtemelen o saatte mesajı okuyamayacaktır.
+
+B.3. Gün tahmini nasıl çalışıyor? (basit örnek)
+
+Gün için "ortalama" hesaplamak anlamsız (Salı ortalama Çarşamba
+etmez), bu yüzden farklı bir yöntem kullanıldı: "en sık görülen N gün".
+
+Diyelim ki öğrenci 2572'nin "ara_sinav_oncesi" fazında 12 gözlemi var
+(eşik 10'un üzerinde), ve bu fazda 4 gün önerilmesi gerekiyor
+(FAZ_TOP_N['ara_sinav_oncesi']=4):
+  - Öğrencinin 12 gözlemine bakılır: diyelim ki 5 kez Pazartesi, 4 kez
+    Çarşamba, 2 kez Cuma, 1 kez Pazar girmiş.
+  - En sık 4 gün zaten net: Pazartesi, Çarşamba, Cuma, Pazar → bunlar
+    doğrudan kullanılır (Seçenek B, bireysel).
+  - Eğer öğrenci sadece 2 farklı gün kullanmış olsaydı (örn. hep
+    Pazartesi ve Çarşamba), kalan 2 sıra popülasyonun en sık
+    günlerinden (öğrencide zaten olanlar hariç) tamamlanır.
+
+Eğer aynı öğrencinin bu fazda sadece 6 gözlemi olsaydı (eşik 10'un
+altında):
+  - Önce "geçen dönem bu öğrenci için güvenilir bir bireysel sonuç var
+    mıydı" diye bakılır. Varsa, o kullanılır (Seçenek C) — çünkü
+    öğrenci hakkında zaten elimizde güçlü bir sinyal var, sırf bu
+    dönem henüz yeterince veri birikmedi diye onu sıfırdan
+    "tanımıyormuş" gibi davranmak bilgi kaybıdır.
+  - Geçen dönem de yoksa/yetersizse, doğrudan o fazın popülasyon
+    ortalaması (en sık N gün, tüm öğrenciler bazında) kullanılır
+    (Seçenek A, fallback).
+
+Neden eşik 10 ve neden 4 değil (top_n=4 olmasına rağmen)? Deneysel
+olarak test edildi: veri açısından zengin öğrencilerin gerçek "en sık
+4 günü" biliniyordu (tüm verileriyle hesaplanmıştı). Sonra bu
+öğrencilerin verisinden rastgele küçük örneklemler alınıp (n=1, 2, 3...
+gibi artan büyüklüklerde), bu küçük örneklemden çıkan "en sık N gün"
+gerçek sonuçla ne kadar örtüşüyor diye ölçüldü. n=4'te örtüşme sadece
+%55 civarındaydı (yani top-4 günü doğru tahmin etmek için 4 gözlem
+YETERSİZ) — n=10 civarında örtüşme %70'i geçti, bu yüzden 10 eşik
+olarak seçildi. Kısacası: "kaç gün önereceğiz" (top_n) ile "kaç gözlem
+gerekli" (eşik) aynı sayı DEĞİL — doğru sıralama için önerilecek gün
+sayısının birkaç katı kadar gözlem gerekiyor.
+
+Ayrıca ilginç bir bulgu: eğer öğrencinin sadece 1 gözlemi varken direkt
+o günü "bireysel tahmin" olarak sunsaydık, isabet oranı popülasyon
+ortalamasını kullanmaktan bile daha KÖTÜ çıkıyordu (~%22-27 vs ~%50-62).
+Yani "az veri de olsa bireysel göstermek her zaman daha iyidir" varsayımı
+YANLIŞ — çok az veriyle erken bireyselleştirme, tahmin kalitesini
+düşürüyor. Eşiğin var olmasının asıl istatistiksel gerekçesi budur.
+
+B.4. Neden saat eşiği 4, gün eşiği 10 — aynı olmaları gerekmez mi?
+
+Hayır, çünkü iki eşik tamamen farklı matematiksel yöntemlerle
+hesaplandı:
+  - Saat eşiği (4): teorik bir formülden (karma etkiler modelinin
+    "güvenilirlik" formülü) hesaplandı.
+  - Gün eşiği (10): pratik bir deneyden (küçük örneklemlerin gerçek
+    sonuçla ne kadar örtüştüğünü ölçerek) hesaplandı.
+
+İkisi de aynı hedefi paylaşıyor — "%70 güvenilirlik/isabet" — ama
+farklı problemlere (biri sürekli sayı tahmini, diğeri kategori seçimi)
+uygulandıkları için farklı sayılar çıkması normal ve beklenen bir
+durum, tutarsızlık değil.
+
+B.5. Özet tablo
+
+| | Saat tahmini | Gün tahmini |
+|---|---|---|
+| Ne tahmin ediyor | 0-24 arası saat (sürekli) | Haftanın günü (kategorik) |
+| Yöntem | Dairesel karma etkiler regresyonu (mixedlm + BLUP) | En sık görülen N gün (frekans/mod) |
+| Bireysel için gereken min. gözlem | 4 (bu fazda) | 10 (bu fazda) |
+| Eşik nasıl bulundu | Formülle (λ=0,7 güvenilirlik hedefi) | Deneyle (alt-örnekleme, %70 örtüşme hedefi) |
+| Veri yetersizse ne olur | Popülasyon ortalaması (+varsa kendi kesim noktası) | Önce geçen dönem varsa o, yoksa popülasyon top-N'i |
+| Ek kısıt | Çalışma saatiyle çakışırsa dışına kaydırılır | — |

@@ -49,7 +49,7 @@ def main():
     print("Veri yükleniyor...")
     # DB'de şu an tek dönem var: 2024/2 (bahar) — pipeline-v2.py ile aynı.
     mat, _, _ = pipeline.veriyi_yukle(engine, yil=2024, donem=2)
-    mat = pipeline.oznitelik_olustur(mat)
+    mat = pipeline.oznitelik_olustur(mat, pipeline.BAHAR_2024_TAKVIMI)
 
     tablo = faz_gozlem_tablosu(mat)
 

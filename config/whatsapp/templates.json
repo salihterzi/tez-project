@@ -30,5 +30,74 @@
                 }
             }
         ]
+    },
+    {
+        "name": "engel_v1",
+        "language": "tr",
+        "category": "UTILITY",
+        "components": [
+            {
+                "type": "BODY",
+                "text": "Merhaba {{1}}, bu hafta e-kampüs öğrenme sistemi ile etkileşiminin düşük olduğu görülüyor. Seni şu an en çok ne zorluyor?",
+                "example": {
+                    "body_text": [
+                        ["Ahmet Yılmaz"]
+                    ]
+                }
+            },
+            {
+                "type": "BUTTONS",
+                "buttons": [
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Zamanım yok"
+                    },
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "İçerik zor"
+                    },
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Motivasyonum düşük"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "name": "engel_v2",
+        "language": "tr",
+        "category": "UTILITY",
+        "components": [
+            {
+                "type": "BODY",
+                "text": "Merhaba {{1}}, bu hafta e-kampüs öğrenme sistemi ile etkileşiminin düşük olduğu görülüyor. Seni şu an en çok ne zorluyor?",
+                "example": {
+                    "body_text": [
+                        ["Ahmet Yılmaz"]
+                    ]
+                }
+            },
+            {
+                "type": "BUTTONS",
+                "buttons": [
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Zamanım yok",
+                        "payload": "no_time"
+                    },
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "İçerik zor",
+                        "payload": "content_hard"
+                    },
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Motivasyonum düşük",
+                        "payload": "low_motivation"
+                    }
+                ]
+            }
+        ]
     }
 ]

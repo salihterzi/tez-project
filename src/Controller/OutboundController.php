@@ -8,6 +8,7 @@ use App\Entity\ConversationSession;
 use App\Service\ConversationManager;
 use App\Service\MessageGeneratorService;
 use App\Service\WhatsAppClient;
+use App\Service\WhatsAppTemplateSender;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -31,14 +32,15 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/outbound')]
 class OutboundController extends AbstractController
 {
-    private const DEFAULT_TEMPLATE = 'hello_world';
-    private const DEFAULT_TEMPLATE_LANG = 'en_US';
+    private const DEFAULT_TEMPLATE = 'engel_v1';
+    private const DEFAULT_TEMPLATE_LANG = 'tr';
     private const DEFAULT_AI_PROMPT = 'Öğrenciye sıcak ve kısa bir açılış mesajı yaz: kendini öğrenci destek asistanı olarak tanıt ve bugün nasıl yardımcı olabileceğini sor.';
 
     public function __construct(
         private readonly ConversationManager $conversations,
         private readonly MessageGeneratorService $messageGenerator,
         private readonly WhatsAppClient $whatsAppClient,
+        private readonly WhatsAppTemplateSender $templateSender,
         private readonly LoggerInterface $logger,
     ) {
     }
@@ -49,8 +51,11 @@ class OutboundController extends AbstractController
      * Parametreler (query string; GET ya da POST):
      *   to        (zorunlu) Alıcı numara, ülke koduyla, yalnızca rakam. Örn: 905455743041
      *   fresh     (ops.)    "1" -> mevcut aktif oturum kapatılıp yeni oturum açılır.
-     *   template  (ops.)    Gönderilecek şablon adı. Varsayılan: hello_world
-     *   lang      (ops.)    Şablon dil kodu. Varsayılan: en_US
+     *   template  (ops.)    Gönderilecek şablon adı. Varsayılan: engel_v1
+     *   lang      (ops.)    Şablon dil kodu. Varsayılan: tr
+     *   param[]   (ops.)    Şablon gövdesindeki {{1}}, {{2}}, ... yerine sırayla basılacak
+     *                       değerler (örn. param[]=Ahmet+Y%C4%B1lmaz). engel_v1 gibi
+     *                       parametreli şablonlarda zorunludur.
      *   mode      (ops.)    "ai" -> şablon yerine OpenAI'ın ürettiği serbest metni dener.
      *   prompt    (ops.)    mode=ai için AI talimatı.
      *   system    (ops.)    mode=ai için persona / sistem promptu override.
@@ -110,9 +115,13 @@ class OutboundController extends AbstractController
     {
         $template = trim((string) ($params['template'] ?? '')) ?: self::DEFAULT_TEMPLATE;
         $lang = trim((string) ($params['lang'] ?? '')) ?: self::DEFAULT_TEMPLATE_LANG;
+        $bodyParameters = array_values(array_map(
+            static fn (mixed $value): string => trim((string) $value),
+            (array) ($params['param'] ?? [])
+        ));
 
         try {
-            $waResponse = $this->whatsAppClient->sendTemplateMessage($to, $template, $lang);
+            $waResponse = $this->templateSender->sendTemplateMessage($to, $template, $lang, $bodyParameters);
         } catch (\Throwable $e) {
             $this->logger->error('Outbound: şablon gönderimi başarısız.', ['exception' => $e, 'to' => $to]);
 

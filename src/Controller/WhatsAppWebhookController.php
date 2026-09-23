@@ -104,15 +104,20 @@ class WhatsAppWebhookController extends AbstractController
             return $this->ok();
         }
 
-        // TODO: metin dışı tipler (image / audio / document / location / interactive ...)
+        // TODO: metin/buton dışı tipler (image / audio / document / location / interactive ...)
         // ileride burada desteklenebilir. Şimdilik yok sayılıp 200 dönülür.
-        if ('text' !== ($message['type'] ?? null)) {
+        $messageType = $message['type'] ?? null;
+        if ('text' !== $messageType && 'button' !== $messageType) {
             return $this->ok();
         }
 
         $from = (string) ($message['from'] ?? '');
         $whatsappMessageId = (string) ($message['id'] ?? '');
-        $text = trim((string) ($message['text']['body'] ?? ''));
+        // Template quick-reply buton tıklaması `type: "button"` olarak gelir; gövde
+        // metni yerine `button.text` alanındaki buton yazısı kullanıcı mesajı sayılır.
+        $text = 'button' === $messageType
+            ? trim((string) ($message['button']['text'] ?? ''))
+            : trim((string) ($message['text']['body'] ?? ''));
         $rawTimestamp = $message['timestamp'] ?? null;
         $whatsappTimestamp = (null !== $rawTimestamp && is_numeric($rawTimestamp))
             ? (new \DateTimeImmutable())->setTimestamp((int) $rawTimestamp)

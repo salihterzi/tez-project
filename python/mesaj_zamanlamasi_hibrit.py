@@ -6,19 +6,31 @@ kararı GLOBAL'dir: öğrencilerin en az %50'si her fazda >= MIN_FAZ_GOZLEM_ESIG
 gözleme sahipse TÜM öğrenciler için Seçenek B (kişiye özel faz eğimi), değilse
 TÜM öğrenciler için Seçenek A (sabit/ortak faz etkisi) kullanılır.
 
-Bu dosya, kararı (öğrenci, faz) ÇİFTİ düzeyine indirir:
+Bu dosya, kararı (öğrenci, faz) ÇİFTİ düzeyine indirir, ve SADECE faz-bazlı eşiği
+(MIN_FAZ_GOZLEM_ESIGI) kullanır -- toplam gözlem eşiği (eski MIN_GOZLEM_ESIGI)
+YOKTUR, ayrı bir cold-start adımına da gerek kalmaz:
   - Bir öğrencinin bir fazda >= MIN_FAZ_GOZLEM_ESIGI gözlemi varsa, o öğrenci-faz
     kombinasyonu için KENDİ BLUP faz-eğimi kullanılır (Seçenek B davranışı).
   - Yetersizse, o öğrenci-faz kombinasyonu için kişiye özel (güvenilmez) slope
-    BLUP'una güvenilmez; sadece popülasyon (sabit) faz etkisi + öğrencinin kendi
-    random intercept'i kullanılır (Seçenek A davranışı).
+    BLUP'una güvenilmez; popülasyon (sabit) faz etkisine düşülür (Seçenek A
+    davranışı) -- öğrencinin mat'te en az 1 gözlemi varsa buna kendi random
+    intercept'i de eklenir, hiç gözlemi yoksa (mixedlm'in random_effects'inde
+    bulunmaz -- rastgele etki tahmin edilemez) sadece sabit etki kullanılır.
+    Her iki durum da 'secenek_a_fallback' olarak etiketlenir; tek fark verinin
+    hiç mi yoksa yetersiz mi olduğu (`n_gozlem_faz`/`n_gozlem_toplam` kolonlarından
+    ayırt edilebilir).
 
-ÖNEMLİ: mixedlm modeli TEK SEFER "(1+FAZ|öğrenci)" formülüyle, >= MIN_GOZLEM_ESIGI
-toplam gözlemi olan tüm öğrenciler üzerinde fit edilir -- öğrenci bazında ayrı
+ÖNEMLİ: mixedlm modeli TEK SEFER "(1+FAZ|öğrenci)" formülüyle, mat'te EN AZ 1
+gözlemi olan TÜM öğrenciler üzerinde fit edilir -- öğrenci bazında ayrı
 formüllerle fit etmek mümkün değil (bkz. mesaj_zamanlamasi_pipeline-v2.py'deki
 tartışma). Ayrım, model fit edildikten SONRA, tahmin üretilirken (post-hoc)
 uygulanır: düşük veri olan öğrenci-faz kombinasyonları için o öğrencinin kendi
-slope BLUP'u kullanılmaz, doğrudan sabit etkiye düşülür.
+slope BLUP'u kullanılmaz, doğrudan sabit etkiye düşülür. Çok az (1-2) toplam
+gözlemi olan öğrencilerin de fit'e dahil edilmesi, mixedlm'in doğal shrinkage
+davranışına bırakılır (rastgele etkileri veri yokluğundan zaten popülasyon
+ortalamasına yakınsar); bu, eski MIN_GOZLEM_ESIGI eşiğinin varlığından daha
+tutarlı bir metodolojidir çünkü tüm karar TEK bir mekanizmaya (faz-bazlı eşik)
+bağlanmış olur.
 
 KULLANIM (python container'ı içinde):
     docker compose exec python python mesaj_zamanlamasi_hibrit.py
@@ -46,7 +58,6 @@ _spec.loader.exec_module(pipeline)
 
 FAZLAR = pipeline.FAZLAR
 
-MIN_GOZLEM_ESIGI = pipeline.MIN_GOZLEM_ESIGI            # bireysel modele dahil olmak için (toplam)
 MIN_FAZ_GOZLEM_ESIGI = pipeline.MIN_FAZ_GOZLEM_ESIGI    # (öğrenci, faz) için Seçenek B eşiği
 
 
@@ -54,20 +65,20 @@ MIN_FAZ_GOZLEM_ESIGI = pipeline.MIN_FAZ_GOZLEM_ESIGI    # (öğrenci, faz) için
 # HİBRİT MODEL
 # =====================================================================
 
-def model_kur_ve_tahmin_et_hibrit(mat, min_gozlem=MIN_GOZLEM_ESIGI,
-                                   min_faz_gozlem=MIN_FAZ_GOZLEM_ESIGI):
-    counts_toplam = mat.groupby('ogrenci_no').size()
-    yeterli = counts_toplam[counts_toplam >= min_gozlem].index
-    sub = mat[mat['ogrenci_no'].isin(yeterli)].copy()
+def model_kur_ve_tahmin_et_hibrit(mat, dem, min_faz_gozlem=MIN_FAZ_GOZLEM_ESIGI):
+    sub = mat.copy()
     sub['ogrenci_no_str'] = sub['ogrenci_no'].astype(str)
     sub['FAZ'] = pd.Categorical(sub['FAZ'], categories=FAZLAR)
+
+    counts_toplam = mat.groupby('ogrenci_no').size()
 
     faz_counts = sub.groupby(['ogrenci_no', 'FAZ']).size().unstack(fill_value=0)
     for faz in FAZLAR:
         if faz not in faz_counts.columns:
             faz_counts[faz] = 0
 
-    # Model tek seferde, (1+FAZ|öğrenci) formülüyle fit edilir.
+    # Model tek seferde, (1+FAZ|öğrenci) formülüyle, mat'te en az 1 gözlemi olan
+    # TÜM öğrenciler üzerinde fit edilir.
     m_sin = smf.mixedlm("saat_sin ~ C(FAZ)", sub, groups=sub['ogrenci_no_str'],
                          re_formula="~C(FAZ)")
     r_sin = m_sin.fit()
@@ -76,13 +87,14 @@ def model_kur_ve_tahmin_et_hibrit(mat, min_gozlem=MIN_GOZLEM_ESIGI,
     r_cos = m_cos.fit()
 
     sonuclar = []
-    for ogrenci_no in sub['ogrenci_no'].unique():
+    # dem'deki TÜM kayıtlı öğrenciler kapsanır -- mat'te hiç satırı olmayanlar
+    # (n_toplam=0) mixedlm'in random_effects'inde de bulunmaz; rastgele etki
+    # tahmin edilemeyeceği için onlara sadece popülasyonun sabit faz ortalaması atanır.
+    for ogrenci_no in dem['ogrenci_no']:
         kn = str(ogrenci_no)
         re_sin = r_sin.random_effects.get(kn)
         re_cos = r_cos.random_effects.get(kn)
-        if re_sin is None or re_cos is None:
-            continue
-        n_toplam = counts_toplam[ogrenci_no]
+        n_toplam = int(counts_toplam.get(ogrenci_no, 0))
 
         for faz in FAZLAR:
             n_faz = int(faz_counts.loc[ogrenci_no, faz]) if ogrenci_no in faz_counts.index else 0
@@ -93,22 +105,29 @@ def model_kur_ve_tahmin_et_hibrit(mat, min_gozlem=MIN_GOZLEM_ESIGI,
             sabit_cos = r_cos.fe_params['Intercept'] + (
                 r_cos.fe_params.get(f'C(FAZ)[T.{faz}]', 0) if faz != 'normal_hafta' else 0)
 
-            rastgele_intercept_sin = re_sin.get('Group', 0)
-            rastgele_intercept_cos = re_cos.get('Group', 0)
-
-            if yeterli_veri:
-                # Seçenek B: bu öğrenci-faz kombinasyonu için kendi slope BLUP'u da dahil
-                faz_kolon = f'C(FAZ)[T.{faz}]'
-                rastgele_sin = rastgele_intercept_sin + (
-                    re_sin.get(faz_kolon, 0) if faz != 'normal_hafta' else 0)
-                rastgele_cos = rastgele_intercept_cos + (
-                    re_cos.get(faz_kolon, 0) if faz != 'normal_hafta' else 0)
-                yontem = 'secenek_b_bireysel'
-            else:
-                # Seçenek A fallback: sadece random intercept + popülasyon faz etkisi
-                rastgele_sin = rastgele_intercept_sin
-                rastgele_cos = rastgele_intercept_cos
+            if re_sin is None or re_cos is None:
+                # mat'te hiç gözlemi yok: rastgele etki tahmin edilemez, saf popülasyon ortalaması.
+                # Bu da Seçenek A fallback sayılır -- ayrı bir kategori açılmıyor.
+                rastgele_sin = 0
+                rastgele_cos = 0
                 yontem = 'secenek_a_fallback'
+            else:
+                rastgele_intercept_sin = re_sin.get('Group', 0)
+                rastgele_intercept_cos = re_cos.get('Group', 0)
+
+                if yeterli_veri:
+                    # Seçenek B: bu öğrenci-faz kombinasyonu için kendi slope BLUP'u da dahil
+                    faz_kolon = f'C(FAZ)[T.{faz}]'
+                    rastgele_sin = rastgele_intercept_sin + (
+                        re_sin.get(faz_kolon, 0) if faz != 'normal_hafta' else 0)
+                    rastgele_cos = rastgele_intercept_cos + (
+                        re_cos.get(faz_kolon, 0) if faz != 'normal_hafta' else 0)
+                    yontem = 'secenek_b_bireysel'
+                else:
+                    # Seçenek A fallback: sadece random intercept + popülasyon faz etkisi
+                    rastgele_sin = rastgele_intercept_sin
+                    rastgele_cos = rastgele_intercept_cos
+                    yontem = 'secenek_a_fallback'
 
             tahmini_sin = sabit_sin + rastgele_sin
             tahmini_cos = sabit_cos + rastgele_cos
@@ -141,27 +160,24 @@ def main():
     mat, _, dem = pipeline.veriyi_yukle(engine, yil=2024, donem=2)
 
     print("2) Öznitelikler oluşturuluyor...")
-    mat = pipeline.oznitelik_olustur(mat)
+    mat = pipeline.oznitelik_olustur(mat, pipeline.BAHAR_2024_TAKVIMI)
     dem = pipeline.demografik_hazirla(dem)
 
     print("3) Hibrit model (öğrenci x faz bazlı Seçenek A/B) kuruluyor...")
-    tahmin_df = model_kur_ve_tahmin_et_hibrit(mat)
+    tahmin_df = model_kur_ve_tahmin_et_hibrit(mat, dem)
 
     dagilim = tahmin_df['yontem'].value_counts()
     print("\nYöntem dağılımı (öğrenci x faz satırı bazında):")
     print(dagilim.to_string())
-    print(f"\n-> %{100 * dagilim.get('secenek_b_bireysel', 0) / len(tahmin_df):.1f} "
-          f"satırda öğrencinin kendi faz-eğimi (Seçenek B), "
-          f"%{100 * dagilim.get('secenek_a_fallback', 0) / len(tahmin_df):.1f} "
-          f"satırda popülasyon faz etkisine (Seçenek A) düşüldü.")
+    toplam = len(tahmin_df)
+    print(f"\n-> %{100 * dagilim.get('secenek_b_bireysel', 0) / toplam:.1f} satırda öğrencinin "
+          f"kendi faz-eğimi (Seçenek B), "
+          f"%{100 * dagilim.get('secenek_a_fallback', 0) / toplam:.1f} satırda popülasyon faz "
+          f"etkisine (Seçenek A -- az veri olan kendi intercept'iyle, hiç veri olmayan saf "
+          f"popülasyon ortalamasıyla) düşüldü.")
 
     print("\n4) Çalışma saati filtresi uygulanıyor...")
     tahmin_df = pipeline.calisma_saati_filtresi_uygula(tahmin_df, dem)
-
-    print("5) Cold-start tahminleri ekleniyor...")
-    cold_start_df = pipeline.cold_start_tahmin(dem, mat)
-    if len(cold_start_df) > 0:
-        tahmin_df = pd.concat([tahmin_df, cold_start_df], ignore_index=True)
 
     tahmin_df['tahmini_saat_hhmm'] = tahmin_df['tahmini_saat'].apply(pipeline.ondalik_saat_to_hhmm)
 
