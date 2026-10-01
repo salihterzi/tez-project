@@ -54,6 +54,11 @@ if [ "$1" = 'php-fpm' ] || [ "$1" = 'php' ] || [ "$1" = 'bin/console' ] || [ "$1
 		mkdir -p var/cache var/log
 		setfacl -R -m u:www-data:rwX -m u:root:rwX var 2>/dev/null || chmod -R 777 var
 	fi
+
+	# --- Günlük zamanlanmış görevler (cron) ------------------------------
+	if [ "$1" = 'php-fpm' ]; then
+		crond -b -l 8
+	fi
 fi
 
 exec "$@"

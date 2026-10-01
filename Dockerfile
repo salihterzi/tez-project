@@ -36,6 +36,7 @@ ENV SYMFONY_VERSION="" \
 
 COPY docker/php/conf.d/app.ini              $PHP_INI_DIR/conf.d/00-app.ini
 COPY docker/php/php-fpm.d/zz-app.conf       /usr/local/etc/php-fpm.d/zz-app.conf
+COPY --chmod=600 docker/php/crontab          /etc/crontabs/root
 COPY --chmod=755 docker/php/docker-entrypoint.sh   /usr/local/bin/docker-entrypoint
 COPY --chmod=755 docker/php/php-fpm-healthcheck    /usr/local/bin/php-fpm-healthcheck
 

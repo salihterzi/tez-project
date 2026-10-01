@@ -44,7 +44,7 @@ import pandas as pd
 import statsmodels.formula.api as smf
 import warnings
 
-from db import get_engine
+from db import get_connection, get_engine
 
 warnings.filterwarnings('ignore')
 
@@ -149,6 +149,69 @@ def model_kur_ve_tahmin_et_hibrit(mat, dem, min_faz_gozlem=MIN_FAZ_GOZLEM_ESIGI)
 
 
 # =====================================================================
+# YAZMA: student_profile.observed_time_window_* (PHP tarafı, TIME kolonları)
+# =====================================================================
+
+# Python'un FAZ adları -> PHP `student_profile` kolon adları. Kabalaştırma
+# (06-12/12-18/18-24/00-06 gibi 4 dilime İNDİRGEME) YOK -- `tahmini_saat_hhmm`
+# ("HH:MM") olduğu gibi TIME kolonuna yazılır (kullanıcı kararı).
+FAZ_TO_OBSERVED_KOLON = {
+    'normal_hafta': 'observed_time_window_normal',
+    'ara_sinav_oncesi': 'observed_time_window_ara_sinav_oncesi',
+    'final_oncesi': 'observed_time_window_final_oncesi',
+}
+
+
+def student_profile_gozlem_saatini_yaz(tahmin_df):
+    """`tahmin_df`'i (ogrenci_no, FAZ, tahmini_saat_hhmm) `student_profile`'ın
+    üç TIME kolonuna (bkz. FAZ_TO_OBSERVED_KOLON) yazar -- CSV'ye YAZMAZ
+    (kullanıcı kararı: "python csv yerine tabloya yazsın").
+
+    `student_profile` satırı henüz yoksa (öğrenci PHP tarafında hiç
+    görülmediyse) varsayılan bir profille birlikte oluşturulur
+    (current_state=YENİ, messages_sent_this_week=0 -- PHP'nin kendi
+    `ensureProfilesExist()`'iyle aynı varsayımlar); satır zaten varsa yalnızca
+    gözlem saati kolonları güncellenir, diğer alanlara dokunulmaz.
+
+    Döner: yazılan öğrenci satırı sayısı.
+    """
+    genis = tahmin_df.pivot(index='ogrenci_no', columns='FAZ', values='tahmini_saat_hhmm')
+
+    def _deger(ogrenci_no, faz):
+        if faz not in genis.columns:
+            return None
+        v = genis.at[ogrenci_no, faz]
+        return v if pd.notna(v) else None
+
+    satirlar = [
+        (
+            int(ogrenci_no),
+            _deger(ogrenci_no, 'normal_hafta'),
+            _deger(ogrenci_no, 'ara_sinav_oncesi'),
+            _deger(ogrenci_no, 'final_oncesi'),
+        )
+        for ogrenci_no in genis.index
+    ]
+
+    sorgu = """
+        INSERT INTO student_profile
+            (student_id, current_state, messages_sent_this_week, updated_at,
+             observed_time_window_normal, observed_time_window_ara_sinav_oncesi,
+             observed_time_window_final_oncesi)
+        VALUES (%s, 'YENİ', 0, NOW(), %s, %s, %s)
+        ON DUPLICATE KEY UPDATE
+            observed_time_window_normal = VALUES(observed_time_window_normal),
+            observed_time_window_ara_sinav_oncesi = VALUES(observed_time_window_ara_sinav_oncesi),
+            observed_time_window_final_oncesi = VALUES(observed_time_window_final_oncesi)
+    """
+    with get_connection() as conn, conn.cursor() as cursor:
+        cursor.executemany(sorgu, satirlar)
+        conn.commit()
+
+    return len(satirlar)
+
+
+# =====================================================================
 # ANA AKIŞ
 # =====================================================================
 
@@ -184,8 +247,9 @@ def main():
     print("\nSonuç örneği:")
     print(tahmin_df.head(10).to_string(index=False))
 
-    tahmin_df.to_csv('bahar_mesaj_zamanlamasi_tahminleri_hibrit.csv', index=False)
-    print("\nKaydedildi: bahar_mesaj_zamanlamasi_tahminleri_hibrit.csv")
+    print("\n5) student_profile.observed_time_window_normal/_ara_sinav_oncesi/_final_oncesi yazılıyor...")
+    yazilan = student_profile_gozlem_saatini_yaz(tahmin_df)
+    print(f"Yazıldı: {yazilan} öğrenci satırı.")
 
 
 if __name__ == "__main__":

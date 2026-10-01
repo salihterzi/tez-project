@@ -15,4 +15,17 @@ class OgrenciRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Ogrenci::class);
     }
+
+    /**
+     * Tüm öğrenci numaralarını döner (günlük tetikleyici değerlendirmesi gibi toplu
+     * taramalar için — entity hydrate etmeden, tek bir hafif sorgu).
+     *
+     * @return int[]
+     */
+    public function findAllOgrenciNolar(): array
+    {
+        return array_map(intval(...), $this->getEntityManager()->getConnection()
+            ->executeQuery('SELECT ogrenci_no FROM ogrenci')
+            ->fetchFirstColumn());
+    }
 }

@@ -106,10 +106,13 @@ ele alır.
 
 ### 2.5 Çıktı
 
-`bahar_mesaj_zamanlamasi_tahminleri_hibrit.csv` — kolonlar: `ogrenci_no`,
-`FAZ`, `n_gozlem_faz`, `n_gozlem_toplam`, `tahmini_saat`, `yontem`,
-`calisma_saati_baslangic/bitis`, `calisma_saatiyle_cakisiyor`,
-`tahmini_saat_hhmm`.
+CSV'ye YAZILMAZ — `student_profile_gozlem_saatini_yaz()`, faz başına (Normal /
+Ara Sınav Öncesi / Final Öncesi) `tahmini_saat_hhmm`'i doğrudan PHP tarafının
+`student_profile` tablosundaki üç TIME kolonuna (`observed_time_window_normal`
+/ `_ara_sinav_oncesi` / `_final_oncesi`) yazar — 4 kaba dilime (06-12/12-18/
+18-24/00-06) İNDİRGEME YOK, ham "HH:MM" değeri olduğu gibi yazılır (kullanıcı
+kararı). `student_profile` satırı yoksa varsayılan bir profille (current_state=
+YENİ) birlikte oluşturulur; satır zaten varsa yalnızca bu üç kolon güncellenir.
 
 ---
 
@@ -209,11 +212,19 @@ göstermek yerine, eşik (10) korunuyor; eşik altındaki boşluk Seçenek C
 
 ### 3.5 Çıktı
 
-`bahar_mesaj_zamanlamasi_gun_tahminleri_hibrit.csv` — UZUN (long) formatta:
-her (öğrenci, FAZ) için `top_n` kadar satır, `gun_sira` (1..top_n) o günün
-sıralamadaki yerini gösterir. Kolonlar: `ogrenci_no`, `FAZ`, `gun_sira`,
-`top_n`, `n_gozlem_faz`, `n_gozlem_toplam`, `tahmini_gun_index`,
-`tahmini_gun`, `yontem`.
+CSV'ye YAZILMAZ — `student_profile_gozlem_gunlerini_yaz()`, UZUN formattaki
+`tahmin_df`'i her öğrenci için faz->sıralı gün listesi JSON'ına indirger
+(anahtarlar PHP `Phase` enum değerleriyle birebir: `Normal`/`Ara_Sinav_Oncesi`/
+`Final_Oncesi`) ve `student_profile.observed_days`'e yazar, örn.:
+```json
+{"Normal": ["Pazartesi", "Çarşamba", "Cuma"], "Ara_Sinav_Oncesi": ["Salı", "Perşembe"], "Final_Oncesi": ["Pazar"]}
+```
+Not: `main(onceki_donem_csv=...)` parametresi (Seçenek C, §3.2) hâlâ bir CSV
+DOSYASI okur — bu, kendi OKUDUĞU girdi kaynağı, öğrencinin bir önceki dönemin
+kendi çıktısından beslenmesi; yukarıdaki DB'ye YAZMA değişikliğiyle ilgisi
+yok. DB'de şu an tek dönem olduğu için bugün kullanılmıyor; ileride yeni bir
+dönem eklendiğinde bu önsel mekanizmanın kaynağının (CSV mi, DB'de saklanan
+önceki `observed_days` mi) yeniden değerlendirilmesi gerekebilir.
 
 ---
 
@@ -234,11 +245,11 @@ olarak (4 vs 10) farklı çıkması BEKLENEN ve DOĞRU bir sonuç.
 
 ## 5. İki modelin birleştirilmesi ("şu gün şu saat")
 
-Şu an iki model AYRI dosyalarda, AYRI CSV'ler üretiyor. Aynı öğrenci için
-`ogrenci_no` + `FAZ` üzerinden birleştirilip tek bir "Salı 14:30" gibi
-okunur sonuç üretmek istenirse, iki CSV `merge` edilip
-`tahmini_gun + " " + tahmini_saat_hhmm` şeklinde birleştirilebilir (henüz
-ayrı bir script olarak yazılmadı).
+Artık ayrı bir birleştirme adımına gerek YOK: iki script de kendi çıktısını
+AYNI `student_profile` satırına yazıyor (saat → `observed_time_window_*`
+TIME kolonları, gün → `observed_days` JSON) — PHP tarafı "şu gün şu saat"i
+istediğinde ikisini `student_id` üzerinden zaten aynı satırdan okuyabilir,
+ayrı bir CSV `merge` scriptine ihtiyaç kalmadı.
 
 ---
 
@@ -250,10 +261,14 @@ docker compose up -d python
 # Saat tahmini
 docker compose exec python python mesaj_zamanlamasi_hibrit.py
 
-# Gün tahmini (opsiyonel: önceki dönem CSV'si ile Seçenek C aktif olur)
+# Gün tahmini
+docker compose exec python python mesaj_zamanlamasi_gun_hibrit.py
+
+# Gün tahmini + Seçenek C (opsiyonel: önceki dönemin gün çıktısını AYRICA bir
+# CSV'ye kaydetmiş olman gerekir -- artık otomatik üretilmiyor, bkz. §3.5 notu)
 docker compose exec python python -c "
 import mesaj_zamanlamasi_gun_hibrit as m
-m.main(onceki_donem_csv='bahar_mesaj_zamanlamasi_gun_tahminleri_hibrit.csv')
+m.main(onceki_donem_csv='onceki_donem_gun_tahminleri.csv')
 "
 ```
 

@@ -37,6 +37,9 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  * (uyarı basılır). Log tabloları (LoginLog, MateryalErisimLog, SinavSonucu) doğal
  * bir benzersiz anahtara sahip olmadığından, aynı dosya iki kez içe aktarılırsa bu
  * satırlar yinelenir — bu komut tek seferlik örnek veri yüklemesi için tasarlandı.
+ *
+ * Demografik sayfasında `ad`/`soyad`/`telefonNumarasi` OPSİYONEL sütunlardır (bkz.
+ * {@see self::FIELDS_DEMOGRAFIK_OPSIYONEL}) — sayfada yoksa hata vermeden `null` bırakılır.
  */
 #[AsCommand(
     name: 'app:import-ornek-veri',
@@ -53,6 +56,14 @@ class ImportOrnekVeriCommand extends Command
 
     /** @var string[] */
     private const array FIELDS_DEMOGRAFIK = ['ogrenciNo', 'cinsiyet', 'dogumTarihi'];
+
+    /**
+     * Demografik sayfasında OPSİYONEL sütunlar — bulunursa okunur, bulunmazsa hata vermeden
+     * `null` bırakılır (örnek veri setinde genelde yoklar, ama gerçek/test verisinde olabilir).
+     *
+     * @var string[]
+     */
+    private const array FIELDS_DEMOGRAFIK_OPSIYONEL = ['ad', 'soyad', 'telefonNumarasi'];
 
     /** @var string[] */
     private const array FIELDS_LOGIN_LOG = ['ogrenciNo', 'yil', 'donem', 'islemZamani'];
@@ -142,7 +153,7 @@ class ImportOrnekVeriCommand extends Command
         $count = 0;
         $skipped = 0;
 
-        foreach ($this->readRows($sheet, self::FIELDS_DEMOGRAFIK) as $row) {
+        foreach ($this->readRows($sheet, self::FIELDS_DEMOGRAFIK, self::FIELDS_DEMOGRAFIK_OPSIYONEL) as $row) {
             $ogrenciNo = $this->toInt($row['ogrenciNo']);
 
             if (null !== $this->ogrenciRepository->find($ogrenciNo)) {
@@ -154,6 +165,9 @@ class ImportOrnekVeriCommand extends Command
                 $ogrenciNo,
                 Cinsiyet::from(strtoupper($this->toStr($row['cinsiyet']))),
                 $this->parseDateTime($row['dogumTarihi']),
+                ad: $this->toStrOrNull($row['ad']),
+                soyad: $this->toStrOrNull($row['soyad']),
+                telefonNumarasi: $this->toStrOrNull($row['telefonNumarasi']),
             );
             $this->entityManager->persist($ogrenci);
 
@@ -301,6 +315,18 @@ class ImportOrnekVeriCommand extends Command
     }
 
     /**
+     * {@see self::toStr()} ile aynı, ama boş/olmayan (opsiyonel sütun bulunamadığında `null`
+     * gelir) değerler için `null` döner — Ogrenci'nin nullable ad/soyad/telefonNumarasi
+     * alanlarına doğrudan geçirilebilsin diye.
+     */
+    private function toStrOrNull(mixed $value): ?string
+    {
+        $str = $this->toStr($value);
+
+        return '' !== $str ? $str : null;
+    }
+
+    /**
      * Bir hücre değerini int'e çevirir. Doğrudan `(int) $value` yerine önce {@see self::toStr()}
      * ile string'e çevrilir — aksi halde `$value` bir `RichText` nesnesiyse (metin sütunlarında
      * olduğu gibi, biçimlendirmeden dolayı) doğrudan `(int)` cast'i hataya yol açar.
@@ -324,11 +350,14 @@ class ImportOrnekVeriCommand extends Command
      * kebab-case, aralarda boşluk...) önemli değildir; eşleştirme {@see self::normalizeHeader()}
      * ile normalize edilerek yapılır — örn. "islemZamani" == "ISLEM_ZAMANI" == "islem-zamani".
      *
-     * @param string[] $fields beklenen alan adları (entity alan adlarıyla aynı, örn. "ogrenciNo")
+     * @param string[] $fields         beklenen ZORUNLU alan adları (entity alan adlarıyla aynı,
+     *                                 örn. "ogrenciNo") — sayfada yoksa hata fırlatılır
+     * @param string[] $optionalFields OPSİYONEL alan adları — sayfada yoksa hata verilmez,
+     *                                 her satırda `null` olarak gelir
      *
      * @return iterable<array<string, mixed>>
      */
-    private function readRows(Worksheet $sheet, array $fields): iterable
+    private function readRows(Worksheet $sheet, array $fields, array $optionalFields = []): iterable
     {
         $highestRow = $sheet->getHighestDataRow();
         $highestColumn = Coordinate::columnIndexFromString($sheet->getHighestDataColumn());
@@ -343,7 +372,8 @@ class ImportOrnekVeriCommand extends Command
         }
 
         // Her beklenen alan için, hangi sütuna karşılık geldiğini (normalize ederek, alias'ları
-        // da deneyerek) bul.
+        // da deneyerek) bul. Zorunlu alan bulunamazsa hata; opsiyonel alan bulunamazsa sessizce
+        // atlanır (o satırlarda `null` olarak gelir).
         $columnByField = [];
         foreach ($fields as $field) {
             $candidates = self::HEADER_ALIASES[$field] ?? [$field];
@@ -368,10 +398,23 @@ class ImportOrnekVeriCommand extends Command
             $columnByField[$field] = $col;
         }
 
+        $optionalColumnByField = [];
+        foreach ($optionalFields as $field) {
+            $col = $columnsByNormalizedHeader[$this->normalizeHeader($field)] ?? null;
+            if (null !== $col) {
+                $optionalColumnByField[$field] = $col;
+            }
+        }
+
         for ($rowNum = 2; $rowNum <= $highestRow; ++$rowNum) {
             $row = [];
             foreach ($columnByField as $field => $col) {
                 $row[$field] = $sheet->getCell([$col, $rowNum])->getValue();
+            }
+            foreach ($optionalFields as $field) {
+                $row[$field] = isset($optionalColumnByField[$field])
+                    ? $sheet->getCell([$optionalColumnByField[$field], $rowNum])->getValue()
+                    : null;
             }
 
             $doluHucreSayisi = count(array_filter($row, static fn (mixed $v): bool => null !== $v && '' !== $v));

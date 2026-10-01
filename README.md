@@ -139,7 +139,7 @@ Aşağıdaki tablo alan adlarını (birebir de kullanılabilir) gösterir:
 
 | Sayfa adı              | Sütunlar |
 |-------------------------|----------|
-| `Demografik`             | `ogrenciNo` (**veya `KAYIT_NO`**), `cinsiyet` (`K`/`E`), `dogumTarihi` |
+| `Demografik`             | `ogrenciNo` (**veya `KAYIT_NO`**), `cinsiyet` (`K`/`E`), `dogumTarihi`, opsiyonel: `ad`, `soyad`, `telefonNumarasi` |
 | `Login_Log`              | `ogrenciNo`/`KAYIT_NO`, `yil`, `donem`, `islemZamani` |
 | `Materyal_Erisim_Log`    | `ogrenciNo`/`KAYIT_NO`, `dersKodu`, `yil`, `donem`, `materyalTipi`, `uniteNo`, `islemZamani` |
 | `Sinav_Sonuclari`        | `ogrenciNo`/`KAYIT_NO`, `dersKodu`, `yil`, `donem`, `puan`, `sure`, `uniteler` (`"1 , 2 , 3"`), `bos`, `dogru`, `yanlis`, `soruSayisi`, `islemZamani` |

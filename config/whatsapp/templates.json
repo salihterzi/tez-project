@@ -99,5 +99,1156 @@
                 ]
             }
         ]
+    },
+    {
+        "name": "engel_v3",
+        "language": "tr",
+        "category": "UTILITY",
+        "components": [
+            {
+                "type": "BODY",
+                "text": "Merhaba {{1}}, seni şu an en çok ne zorluyor?",
+                "example": {
+                    "body_text": [
+                        ["Ahmet Yılmaz"]
+                    ]
+                }
+            },
+            {
+                "type": "BUTTONS",
+                "buttons": [
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Zamanım yok",
+                        "payload": "no_time"
+                    },
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "İçerik zor",
+                        "payload": "content_hard"
+                    },
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Motivasyonum düşük",
+                        "payload": "low_motivation"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "name": "engel_zaman_v1",
+        "language": "tr",
+        "category": "UTILITY",
+        "components": [
+            {
+                "type": "BODY",
+                "text": "Anlıyorum, çoğu kişi için en büyük engel bu. Küçük adımlarla ilerlemek ister misin?"
+            },
+            {
+                "type": "BUTTONS",
+                "buttons": [
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Haftada 1 kısa oturum",
+                        "payload": "haftada_1_kisa_oturum"
+                    },
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Tempo aynı kalsın",
+                        "payload": "tempo_ayni_kalsin"
+                    },
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Şimdilik ara vermek istiyorum",
+                        "payload": "ara_vermek_istiyorum"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "name": "engel_zaman_saat_v1",
+        "language": "tr",
+        "category": "UTILITY",
+        "components": [
+            {
+                "type": "BODY",
+                "text": "Harika, haftada 1 kısa oturuma göre ayarlıyorum. Hangi saat aralığı sana daha uygun?"
+            },
+            {
+                "type": "BUTTONS",
+                "buttons": [
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Sabah",
+                        "payload": "sabah"
+                    },
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Akşam",
+                        "payload": "aksam"
+                    },
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Gece",
+                        "payload": "gece"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "name": "engel_zaman_saat_kapanis_v1",
+        "language": "tr",
+        "category": "UTILITY",
+        "components": [
+            {
+                "type": "BODY",
+                "text": "Süper, seni bu tercihe göre hatırlatacağım. Başarılar!"
+            }
+        ]
+    },
+    {
+        "name": "engel_zaman_tempo_kapanis_v1",
+        "language": "tr",
+        "category": "UTILITY",
+        "components": [
+            {
+                "type": "BODY",
+                "text": "Anladım, mevcut tempoda devam ediyoruz. İyi gidiyorsun, böyle sürdür! 💪"
+            }
+        ]
+    },
+    {
+        "name": "engel_zaman_donus_v1",
+        "language": "tr",
+        "category": "UTILITY",
+        "components": [
+            {
+                "type": "BODY",
+                "text": "Anlıyorum, sana alan tanıyalım. Ne zaman tekrar yazayım?"
+            },
+            {
+                "type": "BUTTONS",
+                "buttons": [
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "1 hafta sonra",
+                        "payload": "1_hafta"
+                    },
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "2 hafta sonra",
+                        "payload": "2_hafta"
+                    },
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Şimdilik mesaj göndermeyin",
+                        "payload": "mesaj_gondermeyin"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "name": "engel_zaman_donus_kapanis_v1",
+        "language": "tr",
+        "category": "UTILITY",
+        "components": [
+            {
+                "type": "BODY",
+                "text": "Tamam, seninle belirlediğin zamanda tekrar iletişime geçeceğiz. İstediğin zaman buradayız."
+            }
+        ]
+    },
+    {
+        "name": "engel_zorluk_v1",
+        "language": "tr",
+        "category": "UTILITY",
+        "components": [
+            {
+                "type": "BODY",
+                "text": "Anlıyorum. Şu an bu konuda sana özel bir kaynak yönlendiremiyorum, ama şunlardan hangisi işine yarar?"
+            },
+            {
+                "type": "BUTTONS",
+                "buttons": [
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Materyali baştan gözden geçir",
+                        "payload": "materyali_gozden_gecir"
+                    },
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Notumu bırak, sonra değerlendirilsin",
+                        "payload": "notumu_birak"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "name": "engel_zorluk_kapanis_v1",
+        "language": "tr",
+        "category": "UTILITY",
+        "components": [
+            {
+                "type": "BODY",
+                "text": "Tamam, işte materyal bağlantın: https://ekampus.anadolu.edu.tr. Kolay gelsin!"
+            }
+        ]
+    },
+    {
+        "name": "engel_zorluk_not_v1",
+        "language": "tr",
+        "category": "UTILITY",
+        "components": [
+            {
+                "type": "BODY",
+                "text": "Tabii, kısaca ne olduğunu yazabilir misin?"
+            }
+        ]
+    },
+    {
+        "name": "engel_zorluk_not_kapanis_v1",
+        "language": "tr",
+        "category": "UTILITY",
+        "components": [
+            {
+                "type": "BODY",
+                "text": "Teşekkürler, not aldım. Bu hemen bir çözüm sunmuyor ama ileride kaynakları geliştirirken değerlendirilecek."
+            }
+        ]
+    },
+    {
+        "name": "engel_motivasyon_v1",
+        "language": "tr",
+        "category": "UTILITY",
+        "components": [
+            {
+                "type": "BODY",
+                "text": "Kayıt olurken hedefin \"{{1}}\" idi, hâlâ geçerli mi?",
+                "example": {
+                    "body_text": [
+                        ["İyi bir not almak"]
+                    ]
+                }
+            },
+            {
+                "type": "BUTTONS",
+                "buttons": [
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Evet, geçerli",
+                        "payload": "hedef_hala_gecerli"
+                    },
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Değişti",
+                        "payload": "hedef_degisti"
+                    },
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Emin değilim",
+                        "payload": "emin_degil"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "name": "engel_motivasyon_gecerli_takip_v1",
+        "language": "tr",
+        "category": "UTILITY",
+        "components": [
+            {
+                "type": "BODY",
+                "text": "Güzel, hedefin hâlâ geçerli. Küçük adımlarla ilerlemek ister misin?"
+            },
+            {
+                "type": "BUTTONS",
+                "buttons": [
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Haftada 1 kısa oturum",
+                        "payload": "haftada_1_kisa_oturum"
+                    },
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Tempo aynı kalsın",
+                        "payload": "tempo_ayni_kalsin"
+                    },
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Şimdilik ara vermek istiyorum",
+                        "payload": "ara_vermek_istiyorum"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "name": "engel_motivasyon_degisti_kapanis_v1",
+        "language": "tr",
+        "category": "UTILITY",
+        "components": [
+            {
+                "type": "BODY",
+                "text": "Anladım, hedefler zamanla değişebilir. Bunu not aldım."
+            }
+        ]
+    },
+    {
+        "name": "engel_motivasyon_emin_degil_kapanis_v1",
+        "language": "tr",
+        "category": "UTILITY",
+        "components": [
+            {
+                "type": "BODY",
+                "text": "Sorun değil, net olmasa da ilerlemeye devam edebilirsin."
+            }
+        ]
+    },
+    {
+        "name": "tetikleyici_t1_normal_v1",
+        "language": "tr",
+        "category": "UTILITY",
+        "components": [
+            {
+                "type": "BODY",
+                "text": "Merhaba {{1}}, {{2}} dersine hoş geldin. Ne zaman göz atmak istersin?",
+                "example": {
+                    "body_text": [
+                        ["Ahmet Yılmaz", "Calculus I"]
+                    ]
+                }
+            },
+            {
+                "type": "BUTTONS",
+                "buttons": [
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Bugün",
+                        "payload": "bugun"
+                    },
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Bu hafta içinde",
+                        "payload": "bu_hafta_icinde"
+                    },
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Yardım lazım",
+                        "payload": "yardim_lazim"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "name": "tetikleyici_t1_normal_v2",
+        "language": "tr",
+        "category": "UTILITY",
+        "components": [
+            {
+                "type": "BODY",
+                "text": "Merhaba {{1}}, {{2}} seni bekliyor. İlk adım sadece göz atmak, istersen şimdi başlayabilirsin.",
+                "example": {
+                    "body_text": [
+                        ["Ahmet Yılmaz", "Calculus I"]
+                    ]
+                }
+            },
+            {
+                "type": "BUTTONS",
+                "buttons": [
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Şimdi başla",
+                        "payload": "simdi_basla"
+                    },
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Daha sonra",
+                        "payload": "daha_sonra"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "name": "tetikleyici_t1_normal_v3",
+        "language": "tr",
+        "category": "UTILITY",
+        "components": [
+            {
+                "type": "BODY",
+                "text": "Merhaba {{1}}, kayıt olduğun {{2}} dersine henüz başlamadın. Küçük bir adımla başlamak ister misin?",
+                "example": {
+                    "body_text": [
+                        ["Ahmet Yılmaz", "Calculus I"]
+                    ]
+                }
+            },
+            {
+                "type": "BUTTONS",
+                "buttons": [
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Evet",
+                        "payload": "evet"
+                    },
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Yardım lazım",
+                        "payload": "yardim_lazim"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "name": "tetikleyici_t2_normal_v1",
+        "language": "tr",
+        "category": "UTILITY",
+        "components": [
+            {
+                "type": "BODY",
+                "text": "Merhaba {{1}}, kaldığın yer hazır duruyor. Seni şu an en çok ne zorluyor?",
+                "example": {
+                    "body_text": [
+                        ["Ahmet Yılmaz"]
+                    ]
+                }
+            },
+            {
+                "type": "BUTTONS",
+                "buttons": [
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Zamanım yok",
+                        "payload": "zaman"
+                    },
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "İçerik zor",
+                        "payload": "zorluk"
+                    },
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Motivasyonum düşük",
+                        "payload": "motivasyon"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "name": "tetikleyici_t2_normal_v2",
+        "language": "tr",
+        "category": "UTILITY",
+        "components": [
+            {
+                "type": "BODY",
+                "text": "Merhaba {{1}}, bir süredir seni derste göremedik. Seni şu an en çok ne zorluyor?",
+                "example": {
+                    "body_text": [
+                        ["Ahmet Yılmaz"]
+                    ]
+                }
+            },
+            {
+                "type": "BUTTONS",
+                "buttons": [
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Zamanım yok",
+                        "payload": "zaman"
+                    },
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "İçerik zor",
+                        "payload": "zorluk"
+                    },
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Motivasyonum düşük",
+                        "payload": "motivasyon"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "name": "tetikleyici_t2_normal_v3",
+        "language": "tr",
+        "category": "UTILITY",
+        "components": [
+            {
+                "type": "BODY",
+                "text": "Merhaba {{1}}, {{2}}'te bir süredir hareket yok. Şu an seni en çok ne zorluyor?",
+                "example": {
+                    "body_text": [
+                        ["Ahmet Yılmaz", "Calculus I"]
+                    ]
+                }
+            },
+            {
+                "type": "BUTTONS",
+                "buttons": [
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Zamanım yok",
+                        "payload": "zaman"
+                    },
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "İçerik zor",
+                        "payload": "zorluk"
+                    },
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Motivasyonum düşük",
+                        "payload": "motivasyon"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "name": "tetikleyici_t2_sinav_oncesi_v1",
+        "language": "tr",
+        "category": "UTILITY",
+        "components": [
+            {
+                "type": "BODY",
+                "text": "Merhaba {{1}}, {{2}} yaklaşıyor. Tekrar planı yapmak ister misin?",
+                "example": {
+                    "body_text": [
+                        ["Ahmet Yılmaz", "Vize sınavı"]
+                    ]
+                }
+            },
+            {
+                "type": "BUTTONS",
+                "buttons": [
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Evet, plan yapalım",
+                        "payload": "evet_plan_yapalim"
+                    },
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Zaten çalışıyorum",
+                        "payload": "zaten_calisiyorum"
+                    },
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Şu an uygun değil",
+                        "payload": "su_an_uygun_degil"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "name": "tetikleyici_t2_sinav_oncesi_v2",
+        "language": "tr",
+        "category": "UTILITY",
+        "components": [
+            {
+                "type": "BODY",
+                "text": "Merhaba {{1}}, {{2}}'a 2 hafta kaldı. Nasıl gidiyor?",
+                "example": {
+                    "body_text": [
+                        ["Ahmet Yılmaz", "Vize sınavı"]
+                    ]
+                }
+            },
+            {
+                "type": "BUTTONS",
+                "buttons": [
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "İyi gidiyor",
+                        "payload": "iyi_gidiyor"
+                    },
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Biraz zorlanıyorum",
+                        "payload": "biraz_zorlaniyorum"
+                    },
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Henüz başlamadım",
+                        "payload": "henuz_baslamadim"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "name": "tetikleyici_t2_sinav_oncesi_v3",
+        "language": "tr",
+        "category": "UTILITY",
+        "components": [
+            {
+                "type": "BODY",
+                "text": "Merhaba {{1}}, sınav dönemine girdik. Hazırlığın için buradayım, nasıl yardımcı olabilirim?",
+                "example": {
+                    "body_text": [
+                        ["Ahmet Yılmaz"]
+                    ]
+                }
+            },
+            {
+                "type": "BUTTONS",
+                "buttons": [
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Konu tekrarı önerisi",
+                        "payload": "konu_tekrari_onerisi"
+                    },
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Destek talebi",
+                        "payload": "destek_talebi"
+                    },
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Şu an gerek yok",
+                        "payload": "su_an_gerek_yok"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "name": "tetikleyici_t2_sinav_oncesi_v4",
+        "language": "tr",
+        "category": "UTILITY",
+        "components": [
+            {
+                "type": "BODY",
+                "text": "Merhaba {{1}}, {{2}} öncesi son günler. Bu haftaki hedefin ne?",
+                "example": {
+                    "body_text": [
+                        ["Ahmet Yılmaz", "Vize sınavı"]
+                    ]
+                }
+            },
+            {
+                "type": "BUTTONS",
+                "buttons": [
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Eksik konuları tamamlamak",
+                        "payload": "eksik_konulari_tamamlamak"
+                    },
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Genel tekrar yapmak",
+                        "payload": "genel_tekrar_yapmak"
+                    },
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Sadece dinlenmek",
+                        "payload": "sadece_dinlenmek"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "name": "tetikleyici_t3_normal_v1",
+        "language": "tr",
+        "category": "UTILITY",
+        "components": [
+            {
+                "type": "BODY",
+                "text": "Bu hafta nasıl gidiyor?"
+            },
+            {
+                "type": "BUTTONS",
+                "buttons": [
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "İyi, devam ediyorum",
+                        "payload": "iyi_devam_ediyorum"
+                    },
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Yoğunum",
+                        "payload": "yogunum"
+                    },
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Destek lazım",
+                        "payload": "destek_lazim"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "name": "tetikleyici_t3_normal_v2",
+        "language": "tr",
+        "category": "UTILITY",
+        "components": [
+            {
+                "type": "BODY",
+                "text": "Merhaba {{1}}, bu hafta biraz daha sakin geçti. Her şey yolunda mı?",
+                "example": {
+                    "body_text": [
+                        ["Ahmet Yılmaz"]
+                    ]
+                }
+            },
+            {
+                "type": "BUTTONS",
+                "buttons": [
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "İyi, devam ediyorum",
+                        "payload": "iyi_devam_ediyorum"
+                    },
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Yoğunum",
+                        "payload": "yogunum"
+                    },
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Destek lazım",
+                        "payload": "destek_lazim"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "name": "tetikleyici_t3_normal_v3",
+        "language": "tr",
+        "category": "UTILITY",
+        "components": [
+            {
+                "type": "BODY",
+                "text": "Merhaba {{1}}, geçen haftaya göre biraz yavaşladın. Nasıl gidiyor?",
+                "example": {
+                    "body_text": [
+                        ["Ahmet Yılmaz"]
+                    ]
+                }
+            },
+            {
+                "type": "BUTTONS",
+                "buttons": [
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "İyi, devam ediyorum",
+                        "payload": "iyi_devam_ediyorum"
+                    },
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Yoğunum",
+                        "payload": "yogunum"
+                    },
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Destek lazım",
+                        "payload": "destek_lazim"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "name": "tetikleyici_t3_sinav_oncesi_v1",
+        "language": "tr",
+        "category": "UTILITY",
+        "components": [
+            {
+                "type": "BODY",
+                "text": "Merhaba {{1}}, bu hafta tempon biraz değişti, muhtemelen sınava çalışıyorsundur. Ders materyaline de göz atman için bir hatırlatma yapayım mı?",
+                "example": {
+                    "body_text": [
+                        ["Ahmet Yılmaz"]
+                    ]
+                }
+            },
+            {
+                "type": "BUTTONS",
+                "buttons": [
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Evet",
+                        "payload": "evet"
+                    },
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Şimdilik gerek yok",
+                        "payload": "simdilik_gerek_yok"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "name": "tetikleyici_t3_sinav_oncesi_v2",
+        "language": "tr",
+        "category": "UTILITY",
+        "components": [
+            {
+                "type": "BODY",
+                "text": "Merhaba {{1}}, sınav haftasına yaklaşırken herkesin temposu değişir. İhtiyacın olan bir şey var mı?",
+                "example": {
+                    "body_text": [
+                        ["Ahmet Yılmaz"]
+                    ]
+                }
+            },
+            {
+                "type": "BUTTONS",
+                "buttons": [
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Konu tekrarı",
+                        "payload": "konu_tekrari"
+                    },
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Zaman planı",
+                        "payload": "zaman_plani"
+                    },
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Şu an gerek yok",
+                        "payload": "su_an_gerek_yok"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "name": "tetikleyici_t3_sinav_oncesi_v3",
+        "language": "tr",
+        "category": "UTILITY",
+        "components": [
+            {
+                "type": "BODY",
+                "text": "Merhaba {{1}}, {{2}} öncesi çalışma düzenin nasıl gidiyor?",
+                "example": {
+                    "body_text": [
+                        ["Ahmet Yılmaz", "Vize sınavı"]
+                    ]
+                }
+            },
+            {
+                "type": "BUTTONS",
+                "buttons": [
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Planlı gidiyor",
+                        "payload": "planli_gidiyor"
+                    },
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Biraz dağınık",
+                        "payload": "biraz_daginik"
+                    },
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Henüz oturmadı",
+                        "payload": "henuz_oturmadi"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "name": "tetikleyici_t3_sinav_oncesi_v4",
+        "language": "tr",
+        "category": "UTILITY",
+        "components": [
+            {
+                "type": "BODY",
+                "text": "Merhaba {{1}}, sınava az kaldı. Bu ara dersle daha az, sınav notlarınla mı ilgileniyorsun?",
+                "example": {
+                    "body_text": [
+                        ["Ahmet Yılmaz"]
+                    ]
+                }
+            },
+            {
+                "type": "BUTTONS",
+                "buttons": [
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Evet",
+                        "payload": "evet"
+                    },
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Hayır, ikisini birden yapıyorum",
+                        "payload": "ikisini_birden_yapiyorum"
+                    },
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "İkisi de zor geliyor",
+                        "payload": "ikisi_de_zor_geliyor"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "name": "tetikleyici_t4_normal_v1",
+        "language": "tr",
+        "category": "UTILITY",
+        "components": [
+            {
+                "type": "BODY",
+                "text": "Bu dönem öğrencilerin çoğu {{1}} ve {{2}} ile çalışıyor. Bu hafta göz atmak ister misin?",
+                "example": {
+                    "body_text": [
+                        ["Ünite 3 özeti", "Örnek sorular"]
+                    ]
+                }
+            },
+            {
+                "type": "BUTTONS",
+                "buttons": [
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Evet, göster",
+                        "payload": "evet_goster"
+                    },
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Şimdi değil",
+                        "payload": "simdi_degil"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "name": "tetikleyici_t4_normal_v2",
+        "language": "tr",
+        "category": "UTILITY",
+        "components": [
+            {
+                "type": "BODY",
+                "text": "Merhaba {{1}}, sınıfın genel ilerlemesine göre biraz gerideyiz. Birlikte bir plan yapalım mı?",
+                "example": {
+                    "body_text": [
+                        ["Ahmet Yılmaz"]
+                    ]
+                }
+            },
+            {
+                "type": "BUTTONS",
+                "buttons": [
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Evet",
+                        "payload": "evet"
+                    },
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Şimdi değil",
+                        "payload": "simdi_degil"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "name": "tetikleyici_t4_normal_v3",
+        "language": "tr",
+        "category": "UTILITY",
+        "components": [
+            {
+                "type": "BODY",
+                "text": "Merhaba {{1}}, bu dönem materyallerine göz atma sıran bu hafta olabilir. Ne dersin?",
+                "example": {
+                    "body_text": [
+                        ["Ahmet Yılmaz"]
+                    ]
+                }
+            },
+            {
+                "type": "BUTTONS",
+                "buttons": [
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Olur",
+                        "payload": "olur"
+                    },
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Şimdilik geç",
+                        "payload": "simdilik_gec"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "name": "tetikleyici_t4_sinav_oncesi_v1",
+        "language": "tr",
+        "category": "UTILITY",
+        "components": [
+            {
+                "type": "BODY",
+                "text": "Merhaba {{1}}, {{2}} öncesi son kontrol: eksik kalan bir konu var mı?",
+                "example": {
+                    "body_text": [
+                        ["Ahmet Yılmaz", "Vize sınavı"]
+                    ]
+                }
+            },
+            {
+                "type": "BUTTONS",
+                "buttons": [
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Evet, var",
+                        "payload": "evet_var"
+                    },
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Hayır, tamam",
+                        "payload": "hayir_tamam"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "name": "tetikleyici_t4_sinav_oncesi_v2",
+        "language": "tr",
+        "category": "UTILITY",
+        "components": [
+            {
+                "type": "BODY",
+                "text": "Merhaba {{1}}, sınav öncesi genel bir özet ister misin?",
+                "example": {
+                    "body_text": [
+                        ["Ahmet Yılmaz"]
+                    ]
+                }
+            },
+            {
+                "type": "BUTTONS",
+                "buttons": [
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Evet",
+                        "payload": "evet"
+                    },
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Hayır",
+                        "payload": "hayir"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "name": "tetikleyici_t4_sinav_oncesi_v3",
+        "language": "tr",
+        "category": "UTILITY",
+        "components": [
+            {
+                "type": "BODY",
+                "text": "Merhaba {{1}}, {{2}}'a hazırlanırken önceliklendirmen gereken bir konu var mı diye sormak istedim.",
+                "example": {
+                    "body_text": [
+                        ["Ahmet Yılmaz", "Vize sınavı"]
+                    ]
+                }
+            },
+            {
+                "type": "BUTTONS",
+                "buttons": [
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Var, yardım lazım",
+                        "payload": "var_yardim_lazim"
+                    },
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Yok, hazırım",
+                        "payload": "yok_hazirim"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "name": "tetikleyici_t4_sinav_oncesi_v4",
+        "language": "tr",
+        "category": "UTILITY",
+        "components": [
+            {
+                "type": "BODY",
+                "text": "Merhaba {{1}}, son 2 haftada nelere odaklanacağını netleştirdin mi?",
+                "example": {
+                    "body_text": [
+                        ["Ahmet Yılmaz"]
+                    ]
+                }
+            },
+            {
+                "type": "BUTTONS",
+                "buttons": [
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Evet, netleştirdim",
+                        "payload": "evet_netlestirdim"
+                    },
+                    {
+                        "type": "QUICK_REPLY",
+                        "text": "Henüz değil",
+                        "payload": "henuz_degil"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "name": "tetikleyici_sinav_gunu_vize_v1",
+        "language": "tr",
+        "category": "UTILITY",
+        "components": [
+            {
+                "type": "BODY",
+                "text": "Merhaba {{1}}, {{2}} vizesinde sana başarılar dileriz!",
+                "example": {
+                    "body_text": [
+                        ["Ahmet Yılmaz", "Calculus I"]
+                    ]
+                }
+            }
+        ]
+    },
+    {
+        "name": "tetikleyici_sinav_gunu_final_v1",
+        "language": "tr",
+        "category": "UTILITY",
+        "components": [
+            {
+                "type": "BODY",
+                "text": "Merhaba {{1}}, {{2}} finalinde sana başarılar dileriz!",
+                "example": {
+                    "body_text": [
+                        ["Ahmet Yılmaz", "Calculus I"]
+                    ]
+                }
+            }
+        ]
     }
 ]

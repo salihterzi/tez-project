@@ -1,6 +1,7 @@
 monolog:
     channels:
         - deprecation # Deprecations are logged in the dedicated "deprecation" channel when it exists
+        - tetikleyici # Günlük etkileşim tetikleyicileri (T1-T4) — bkz. EvaluateDailyTriggersCommand
 
 when@dev:
     monolog:

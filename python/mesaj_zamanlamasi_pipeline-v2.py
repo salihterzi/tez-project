@@ -59,7 +59,35 @@ BAHAR_2024_TAKVIMI = DonemTakvimi(
     final_bitis=pd.Timestamp('2025-05-25 23:59:59'),
 )
 
+# Dönem takvimi kaydı: yeni bir dönem eklendiğinde (materyal_erisim_log/sinav_sonucu'na
+# o dönemin verisi girdiğinde) buraya (yil, donem) -> DonemTakvimi eklenmeli. Gün modelinin
+# (mesaj_zamanlamasi_gun_hibrit.py) aktif dönem DIŞINDAKİ geçmiş dönemleri otomatik DB'den
+# hesaplayıp önsel (Seçenek C) olarak kullanabilmesi için, her geçmiş dönemin kendi FAZ
+# atamasına ihtiyacı var -- takvim kaydı olmayan bir dönem atlanır (bkz. o script'in
+# gecmis_donemleri_hesapla_ve_yaz() fonksiyonu).
+TAKVIM_KAYITLARI = {
+    (2024, 2): BAHAR_2024_TAKVIMI,
+}
+
 FAZLAR = ['normal_hafta', 'ara_sinav_oncesi', 'final_oncesi']
+
+
+def tum_donem_kombinasyonlarini_bul(engine):
+    """`materyal_erisim_log` ve `sinav_sonucu`'nda görülen tüm (yil, donem) çiftlerini
+    (en yeniden en eskiye sıralı) döner. Gün modelinin geçmiş dönem taramasında
+    ("aktif dönem dışındaki dönemler için de hesaplama yapılmalı" -- kullanıcı kararı)
+    kullanılır.
+    """
+    sorgu = """
+        SELECT DISTINCT yil, donem FROM (
+            SELECT yil, donem FROM materyal_erisim_log
+            UNION
+            SELECT yil, donem FROM sinav_sonucu
+        ) t
+        ORDER BY yil DESC, donem DESC
+    """
+    df = pd.read_sql(sorgu, engine)
+    return list(df[['yil', 'donem']].itertuples(index=False, name=None))
 
 MIN_GOZLEM_ESIGI = 4          # bireysel modele dahil olmak için min. materyal erişimi
 PRIOR_AGIRLIK_MANUEL = None   # None -> karma etkiler modelinin otomatik BLUP'unu kullan (önerilen)

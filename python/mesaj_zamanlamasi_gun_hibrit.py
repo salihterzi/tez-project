@@ -18,17 +18,29 @@ olduğundan 4 gün istenir (bkz. FAZ_TOP_N):
     listesinden (bireyselde zaten olanlar hariç) tamamlanır -- her satırın
     `yontem` kolonu bu günün bireysel mi yoksa popülasyonla mı tamamlandığını
     gösterir.
-  - Öğrencinin fazda hiç yeterli verisi yoksa VE önceki dönemden o öğrenci-faz
-    için bireysel (Seçenek B kökenli) bir sonuç varsa, popülasyona düşmeden
-    ÖNCE o önceki dönem sonucu "önsel" olarak kullanılır (Seçenek C --
+  - Öğrencinin fazda hiç yeterli verisi yoksa VE geçmiş bir dönemden o
+    öğrenci-faz için bireysel (Seçenek B kökenli) bir sonuç varsa, popülasyona
+    düşmeden ÖNCE o sonuç "önsel" olarak kullanılır (Seçenek C --
     `secenek_c_onceki_donem_onseli`). Gerekçe: pipeline her dönemi kendi
     verisiyle SIFIRDAN çalıştırır (bkz. aşağıdaki ÖNEMLİ not) -- bu da
     geçmişte güçlü bir bireysel örüntüsü kanıtlanmış bir öğrenciyi, yeni
     dönemin ilk haftalarında (henüz GUN_MIN_FAZ_GOZLEM_ESIGI'ye ulaşmadan)
     sıfırdan bir yabancı gibi (saf popülasyon) ele almak anlamına gelirdi --
-    oysa elimizde zaten onun hakkında güçlü bir sinyal var. Önceki dönemin
+    oysa elimizde zaten onun hakkında güçlü bir sinyal var. Geçmiş dönemin
     kendisi de fallback/önsel ise (gerçek bireysel sinyal değilse) zincirleme
     yapılmaz, doğrudan popülasyona düşülür.
+
+    Önsel kaynağı DB'dir, CSV DEĞİL (kullanıcı kararı) -- `gun_tahmini_gecmisi`
+    tablosu, öğrenci x (yıl, dönem) x FAZ bazında geçmişte üretilmiş TÜM
+    sonuçları biriktirir. Her çalıştırmada: (1) aktif dönem DIŞINDAKİ, veri
+    tabanında görülen ama `gun_tahmini_gecmisi`'nde henüz kaydı olmayan her
+    dönem otomatik hesaplanıp bu tabloya yazılır (bkz. `TAKVIM_KAYITLARI`,
+    `mesaj_zamanlamasi_pipeline-v2.py`), (2) her öğrenci-faz için KİŞİ BAZLI EN
+    SON önsel (hangi geçmiş dönemde olursa olsun, sırf "bir önceki dönem"
+    değil -- örn. bir dönem ara vermiş öğrenci için de en son bilinen bireysel
+    sinyal bulunur) DB'den okunur, (3) aktif dönemin kendi sonucu da hesaplanır
+    hesaplanmaz aynı tabloya yazılır -- böylece bir SONRAKİ dönem çalıştığında
+    bu dönemin önseli otomatik hazır olur.
   - Öğrencinin fazda hiç yeterli verisi yoksa VE önceki dönem önseli de yoksa
     (yeni öğrenci veya önceki dönemde de fallback), o fazdaki POPÜLASYON
     genelinde (>= MIN_GOZLEM_ESIGI toplam gözlemi olan öğrenci havuzunda) en
@@ -59,12 +71,15 @@ KULLANIM (python container'ı içinde):
 import importlib.util
 import pathlib
 
+import json
 import pandas as pd
 import warnings
 
-from db import get_engine
+from db import get_connection, get_engine
 
 warnings.filterwarnings('ignore')
+
+GECMIS_TABLOSU = 'gun_tahmini_gecmisi'
 
 # Modül adı tire içerdiği için (`mesaj_zamanlamasi_pipeline-v2.py`) doğrudan import
 # edilemiyor; mesaj_zamanlamasi_hibrit.py'deki gibi dosyayı yoluna göre yüklüyoruz --
@@ -202,56 +217,253 @@ def model_kur_ve_tahmin_et_gun_hibrit(mat, dem, min_gozlem=MIN_GOZLEM_ESIGI,
 
 
 # =====================================================================
+# GEÇMİŞ DÖNEM ÖNSELLERİ (Seçenek C, DB kaynaklı)
+# =====================================================================
+#
+# `gun_tahmini_gecmisi`: öğrenci x (yıl, dönem) x FAZ bazında, o dönem için
+# üretilmiş TÜM tahmin_df satırlarını (yontem'i ne olursa olsun) biriktiren
+# bir tablo. Bu tablo PHP tarafında YOK -- Doctrine şemasının bir parçası
+# değil, çünkü PHP hiçbir zaman okumuyor/yazmıyor; tamamen bu script'in KENDİ
+# geçmiş dönem önsellerini (Seçenek C) DB'de saklamak için kullandığı dahili
+# bir durum tablosu. Bu yüzden Python kendi şemasını kendi yönetir (idempotent
+# CREATE TABLE IF NOT EXISTS) -- ayrı bir PHP migration'ına ihtiyaç yok.
+
+def _gecmis_tablosunu_hazirla(conn):
+    with conn.cursor() as cursor:
+        cursor.execute(f"""
+            CREATE TABLE IF NOT EXISTS {GECMIS_TABLOSU} (
+                ogrenci_no INT NOT NULL,
+                yil INT NOT NULL,
+                donem INT NOT NULL,
+                faz VARCHAR(32) NOT NULL,
+                gun_sira INT NOT NULL,
+                tahmini_gun_index INT NOT NULL,
+                tahmini_gun VARCHAR(16) NOT NULL,
+                yontem VARCHAR(64) NOT NULL,
+                hesaplanma_tarihi DATETIME NOT NULL,
+                PRIMARY KEY (ogrenci_no, yil, donem, faz, gun_sira),
+                INDEX idx_gun_tahmini_gecmisi_ogrenci_faz (ogrenci_no, faz)
+            ) DEFAULT CHARACTER SET utf8mb4
+        """)
+    conn.commit()
+
+
+def gecmis_donem_var_mi(conn, yil, donem):
+    """Bu (yil, donem) için `gun_tahmini_gecmisi`'nde zaten kayıt var mı? Geçmiş
+    dönemlerin verisi sabit olduğundan (tarihte kalmış bir dönem bir daha
+    değişmez), bir kere hesaplanan dönem TEKRAR hesaplanmaz."""
+    with conn.cursor() as cursor:
+        cursor.execute(
+            f"SELECT 1 FROM {GECMIS_TABLOSU} WHERE yil = %s AND donem = %s LIMIT 1",
+            (yil, donem),
+        )
+        return cursor.fetchone() is not None
+
+
+def gecmis_donemi_yaz(conn, tahmin_df, yil, donem):
+    """`tahmin_df`'in TÜMÜNÜ (yontem'i ne olursa olsun -- Seçenek C'nin ileride
+    hangi satırların bireysel olduğunu filtreleyebilmesi için) bir (yil, donem)
+    için `gun_tahmini_gecmisi`'ye yazar. Aynı (yil, donem) için önce eski
+    satırlar silinir (yeniden çalıştırma idempotent olsun diye), sonra güncel
+    satırlar eklenir. Döner: yazılan satır sayısı."""
+    if 0 == len(tahmin_df):
+        return 0
+
+    satirlar = [
+        (
+            int(r.ogrenci_no), yil, donem, r.FAZ, int(r.gun_sira),
+            int(r.tahmini_gun_index), r.tahmini_gun, r.yontem,
+        )
+        for r in tahmin_df.itertuples(index=False)
+    ]
+
+    with conn.cursor() as cursor:
+        cursor.execute(f"DELETE FROM {GECMIS_TABLOSU} WHERE yil = %s AND donem = %s", (yil, donem))
+        cursor.executemany(f"""
+            INSERT INTO {GECMIS_TABLOSU}
+                (ogrenci_no, yil, donem, faz, gun_sira, tahmini_gun_index, tahmini_gun, yontem, hesaplanma_tarihi)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, NOW())
+        """, satirlar)
+    conn.commit()
+
+    return len(satirlar)
+
+
+def kisi_bazli_son_onselleri_getir(conn, aktif_yil, aktif_donem):
+    """Her (ogrenci_no, FAZ) için, aktif dönem HARİÇ, en güncel (yil, donem)'de
+    Seçenek B kökenli (bireysel sinyal İÇEREN) satırları döner --
+    `_onceki_donem_gunleri()`'nin beklediğiyle aynı formatta bir DataFrame
+    (ogrenci_no, FAZ, gun_sira, tahmini_gun_index, yontem).
+
+    "Kişi bazlı en son önsel" (kullanıcı kararı): sırf BİR ÖNCEKİ dönem değil,
+    öğrencinin geçmişte bireysel sinyalinin kanıtlandığı EN SON dönem
+    kullanılır -- örn. bir dönem ara vermiş bir öğrenci için de en son bilinen
+    gerçek sinyal bulunur, aradaki boş dönem yüzünden popülasyona düşülmez.
+
+    Ham pymysql cursor'la (SQLAlchemy engine yerine) yazıldı -- `%s` (pymysql
+    paramstyle'i) ile SQLAlchemy'nin `text()` bind stiline karışma riskini
+    baştan ortadan kaldırmak için (bkz. db.py'deki diğer yazma fonksiyonlarıyla
+    aynı örüntü).
+    """
+    aktif_kodu = aktif_yil * 100 + aktif_donem
+    sorgu = f"""
+        SELECT g.ogrenci_no, g.faz AS FAZ, g.gun_sira, g.tahmini_gun_index, g.yontem
+        FROM {GECMIS_TABLOSU} g
+        INNER JOIN (
+            SELECT ogrenci_no, faz, MAX(yil * 100 + donem) AS son_donem_kodu
+            FROM {GECMIS_TABLOSU}
+            WHERE yontem LIKE 'secenek_b%%' AND (yil * 100 + donem) < %s
+            GROUP BY ogrenci_no, faz
+        ) son ON son.ogrenci_no = g.ogrenci_no AND son.faz = g.faz
+             AND (g.yil * 100 + g.donem) = son.son_donem_kodu
+        WHERE g.yontem LIKE 'secenek_b%%'
+        ORDER BY g.ogrenci_no, g.faz, g.gun_sira
+    """
+    with conn.cursor() as cursor:
+        cursor.execute(sorgu, (aktif_kodu,))
+        satirlar = cursor.fetchall()
+
+    return pd.DataFrame(satirlar, columns=['ogrenci_no', 'FAZ', 'gun_sira', 'tahmini_gun_index', 'yontem'])
+
+
+def gecmis_donemleri_hesapla_ve_yaz(engine, conn, aktif_yil, aktif_donem):
+    """Aktif dönem DIŞINDA, DB'de (`materyal_erisim_log`/`sinav_sonucu`) verisi
+    bulunan ama `gun_tahmini_gecmisi`'nde henüz kaydı olmayan her dönemi bulur,
+    o dönemin KENDİ verisiyle ve KENDİ takvimiyle (`pipeline.TAKVIM_KAYITLARI`)
+    gün modelini çalıştırır ve sonucu `gun_tahmini_gecmisi`'ye yazar (kullanıcı
+    kararı: "aktif dönem dışındaki dönemlerin verileri için bu hesaplama
+    yapılmalı"). Takvim kaydı olmayan bir dönem varsa (FAZ ataması yapılamaz)
+    UYARIYLA atlanır.
+
+    Not: Bu adım geçmiş dönemi SIFIRDAN (kendi onceki_donem_df'i olmadan)
+    hesaplar -- zincirleme (geçmişin geçmişi) yapılmaz; modül docstring'indeki
+    "fallback'ten fallback'e zincirlemek bilgi katmaz" ilkesiyle tutarlı.
+    """
+    tum_donemler = pipeline.tum_donem_kombinasyonlarini_bul(engine)
+    gecmis_donemler = [(y, d) for (y, d) in tum_donemler if (y, d) != (aktif_yil, aktif_donem)]
+
+    for (y, d) in gecmis_donemler:
+        if gecmis_donem_var_mi(conn, y, d):
+            continue
+
+        takvim = pipeline.TAKVIM_KAYITLARI.get((y, d))
+        if takvim is None:
+            print(f"   ! {y}/{d}: TAKVIM_KAYITLARI'nda kaydı yok, atlanıyor.")
+            continue
+
+        print(f"   -> {y}/{d} geçmiş dönemi hesaplanıyor (gun_tahmini_gecmisi'nde henüz yok)...")
+        g_mat, _, g_dem = pipeline.veriyi_yukle(engine, yil=y, donem=d)
+        g_mat = pipeline.oznitelik_olustur(g_mat, takvim)
+        g_dem = pipeline.demografik_hazirla(g_dem)
+        g_tahmin_df = model_kur_ve_tahmin_et_gun_hibrit(g_mat, g_dem)
+        yazilan = gecmis_donemi_yaz(conn, g_tahmin_df, y, d)
+        print(f"      {yazilan} satır gun_tahmini_gecmisi'ne yazıldı.")
+
+
+# Python'un FAZ adları -> PHP `Phase` enum değerleri (src/Enum/Phase.php) --
+# observed_days JSON'ının anahtarları PHP'de doğrudan Phase::value ile
+# eşleşsin diye (kullanıcı kararı: Phase.php Python'daki gibi ikiye ayrıldı).
+FAZ_TO_PHASE_ADI = {
+    'normal_hafta': 'Normal',
+    'ara_sinav_oncesi': 'Ara_Sinav_Oncesi',
+    'final_oncesi': 'Final_Oncesi',
+}
+
+
+def student_profile_gozlem_gunlerini_yaz(tahmin_df):
+    """`tahmin_df`'i (uzun format: ogrenci_no, FAZ, gun_sira, tahmini_gun) her
+    öğrenci için faz->sıralı gün listesi JSON'ına indirger ve
+    `student_profile.observed_days`'e yazar -- CSV'ye YAZMAZ (kullanıcı
+    kararı). Örnek değer:
+        {"Normal": ["Pazartesi", "Çarşamba", "Cuma"], "Ara_Sinav_Oncesi": [...], "Final_Oncesi": [...]}
+
+    `student_profile` satırı henüz yoksa varsayılan bir profille birlikte
+    oluşturulur -- bkz. mesaj_zamanlamasi_hibrit.py:student_profile_gozlem_saatini_yaz().
+
+    Döner: yazılan öğrenci satırı sayısı.
+    """
+    siralanmis = tahmin_df.sort_values(['ogrenci_no', 'FAZ', 'gun_sira'])
+
+    satirlar = []
+    for ogrenci_no, grup in siralanmis.groupby('ogrenci_no'):
+        json_obj = {}
+        for faz, faz_grubu in grup.groupby('FAZ'):
+            phase_adi = FAZ_TO_PHASE_ADI[faz]
+            json_obj[phase_adi] = faz_grubu.sort_values('gun_sira')['tahmini_gun'].tolist()
+        satirlar.append((int(ogrenci_no), json.dumps(json_obj, ensure_ascii=False)))
+
+    sorgu = """
+        INSERT INTO student_profile
+            (student_id, current_state, messages_sent_this_week, updated_at, observed_days)
+        VALUES (%s, 'YENİ', 0, NOW(), %s)
+        ON DUPLICATE KEY UPDATE observed_days = VALUES(observed_days)
+    """
+    with get_connection() as conn, conn.cursor() as cursor:
+        cursor.executemany(sorgu, satirlar)
+        conn.commit()
+
+    return len(satirlar)
+
+
+# =====================================================================
 # ANA AKIŞ
 # =====================================================================
 
-def main(onceki_donem_csv=None):
-    """onceki_donem_csv: bir ÖNCEKİ dönem için bu script'in ürettiği çıktı CSV'sinin
-    yolu (örn. '2024_1_mesaj_zamanlamasi_gun_tahminleri_hibrit.csv'). Verilirse,
-    yeni dönemde henüz GUN_MIN_FAZ_GOZLEM_ESIGI'ye ulaşmamış öğrenci-faz
-    hücreleri için popülasyona düşmeden önce o önceki bireysel sonuç önsel
-    olarak kullanılır (bkz. modül docstring'i, Seçenek C). DB'de şu an tek
-    dönem (2024/2 bahar) olduğu için varsayılan None -- ileride yeni bir dönem
-    eklendiğinde bu script o yeni dönem için çalıştırılırken bahar'ın çıktı
-    CSV'si burada verilir."""
+def main(yil=2024, donem=2):
+    """`yil`/`donem`: bu çalıştırmanın AKTİF dönemi -- `student_profile.observed_days`'e
+    yazılacak (yani "şu an geçerli") sonuç bu dönem için hesaplanır. Seçenek C'nin
+    önsel kaynağı artık CSV DEĞİL, DB'dir (kullanıcı kararı) -- bkz. modül
+    docstring'i ve `gecmis_donemleri_hesapla_ve_yaz()`/`kisi_bazli_son_onselleri_getir()`.
+    """
     engine = get_engine()
 
-    onceki_donem_df = None
-    if onceki_donem_csv is not None:
-        onceki_donem_df = pd.read_csv(onceki_donem_csv)
-        print(f"0) Önceki dönem önseli yüklendi: {onceki_donem_csv} "
-              f"({len(onceki_donem_df)} satır)")
+    with get_connection() as conn:
+        _gecmis_tablosunu_hazirla(conn)
 
-    print("1) Veri yükleniyor...")
-    # DB'de şu an tek dönem var: 2024/2 (bahar) -- pipeline-v2.py ile aynı.
-    mat, _, dem = pipeline.veriyi_yukle(engine, yil=2024, donem=2)
+        print("0) Aktif dönem dışındaki geçmiş dönemler taranıyor "
+              "(gun_tahmini_gecmisi'nde eksik olanlar hesaplanıp yazılıyor)...")
+        gecmis_donemleri_hesapla_ve_yaz(engine, conn, yil, donem)
 
-    print("2) Öznitelikler oluşturuluyor...")
-    mat = pipeline.oznitelik_olustur(mat, pipeline.BAHAR_2024_TAKVIMI)
-    dem = pipeline.demografik_hazirla(dem)
+        print("0b) Kişi bazlı en son önseller DB'den okunuyor...")
+        onceki_donem_df = kisi_bazli_son_onselleri_getir(conn, yil, donem)
+        print(f"    {onceki_donem_df['ogrenci_no'].nunique() if len(onceki_donem_df) else 0} "
+              f"öğrenci için geçmiş dönemden önsel bulundu.")
 
-    print("3) Gün hibrit modeli (öğrenci x faz bazlı Seçenek A/B/C, kategorik top-N) kuruluyor...")
-    tahmin_df = model_kur_ve_tahmin_et_gun_hibrit(mat, dem, onceki_donem_df=onceki_donem_df)
+        print(f"1) Veri yükleniyor ({yil}/{donem})...")
+        takvim = pipeline.TAKVIM_KAYITLARI.get((yil, donem), pipeline.BAHAR_2024_TAKVIMI)
+        mat, _, dem = pipeline.veriyi_yukle(engine, yil=yil, donem=donem)
 
-    dagilim = tahmin_df['yontem'].value_counts()
-    print("\nYöntem dağılımı (gün satırı bazında):")
-    print(dagilim.to_string())
-    toplam = len(tahmin_df)
-    print(f"\n-> %{100 * dagilim.get('secenek_b_bireysel', 0) / toplam:.1f} bireysel veriden, "
-          f"%{100 * dagilim.get('secenek_b_populasyonla_tamamlanmis', 0) / toplam:.1f} "
-          f"bireysel+popülasyonla tamamlanmış, "
-          f"%{100 * dagilim.get('secenek_c_onceki_donem_onseli', 0) / toplam:.1f} "
-          f"önceki dönem önseli, "
-          f"%{100 * dagilim.get('secenek_c_onceki_donem_onseli_populasyonla_tamamlanmis', 0) / toplam:.1f} "
-          f"önceki dönem önseli+popülasyonla tamamlanmış, "
-          f"%{100 * dagilim.get('secenek_a_fallback', 0) / toplam:.1f} tamamen popülasyon "
-          f"fallback (Seçenek A / cold-start) günlerinden oluşuyor.")
+        print("2) Öznitelikler oluşturuluyor...")
+        mat = pipeline.oznitelik_olustur(mat, takvim)
+        dem = pipeline.demografik_hazirla(dem)
 
-    print("\nSonuç örneği:")
-    print(tahmin_df.head(20).to_string(index=False))
+        print("3) Gün hibrit modeli (öğrenci x faz bazlı Seçenek A/B/C, kategorik top-N) kuruluyor...")
+        tahmin_df = model_kur_ve_tahmin_et_gun_hibrit(mat, dem, onceki_donem_df=onceki_donem_df)
 
-    tahmin_df.to_csv('bahar_mesaj_zamanlamasi_gun_tahminleri_hibrit.csv', index=False)
-    print("\nKaydedildi: bahar_mesaj_zamanlamasi_gun_tahminleri_hibrit.csv")
+        dagilim = tahmin_df['yontem'].value_counts()
+        print("\nYöntem dağılımı (gün satırı bazında):")
+        print(dagilim.to_string())
+        toplam = len(tahmin_df)
+        print(f"\n-> %{100 * dagilim.get('secenek_b_bireysel', 0) / toplam:.1f} bireysel veriden, "
+              f"%{100 * dagilim.get('secenek_b_populasyonla_tamamlanmis', 0) / toplam:.1f} "
+              f"bireysel+popülasyonla tamamlanmış, "
+              f"%{100 * dagilim.get('secenek_c_onceki_donem_onseli', 0) / toplam:.1f} "
+              f"geçmiş dönem önseli, "
+              f"%{100 * dagilim.get('secenek_c_onceki_donem_onseli_populasyonla_tamamlanmis', 0) / toplam:.1f} "
+              f"geçmiş dönem önseli+popülasyonla tamamlanmış, "
+              f"%{100 * dagilim.get('secenek_a_fallback', 0) / toplam:.1f} tamamen popülasyon "
+              f"fallback (Seçenek A / cold-start) günlerinden oluşuyor.")
+
+        print("\nSonuç örneği:")
+        print(tahmin_df.head(20).to_string(index=False))
+
+        print(f"\n4) Bu dönemin ({yil}/{donem}) sonucu gun_tahmini_gecmisi'ne yazılıyor "
+              f"(gelecek dönemler için önsel olsun diye)...")
+        gecmis_donemi_yaz(conn, tahmin_df, yil, donem)
+
+    print("\n5) student_profile.observed_days yazılıyor...")
+    yazilan = student_profile_gozlem_gunlerini_yaz(tahmin_df)
+    print(f"Yazıldı: {yazilan} öğrenci satırı.")
 
 
 if __name__ == "__main__":
