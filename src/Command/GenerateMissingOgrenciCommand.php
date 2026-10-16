@@ -25,9 +25,6 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  * Üretilen alanlar:
  *   - cinsiyet: K / E, %50-%50 rastgele.
  *   - dogumTarihi: 01.01.1970 - 31.12.2008 arası rastgele bir tarih.
- *   - calismaSaatiBaslangic / calismaSaatiBitis: 06:00-16:45 arası rastgele bir başlangıç
- *     saati + tam 8 saatlik bir aralık (örn. başlangıç 09:15 ise bitiş 17:15).
- *   - aileSorumlulugu: true / false, %50-%50 rastgele.
  *
  * Not: Bu, gerçek demografik veri yerine geçmez — yalnızca eksik öğrenci kayıtlarını
  * geçici/placeholder veriyle tamamlamak için tasarlandı.
@@ -42,10 +39,6 @@ class GenerateMissingOgrenciCommand extends Command
 
     private const string DOGUM_TARIHI_MIN = '1970-01-01';
     private const string DOGUM_TARIHI_MAX = '2008-12-31';
-
-    private const int CALISMA_SAATI_MIN = 6;
-    private const int CALISMA_SAATI_MAX = 16;
-    private const int CALISMA_SURESI_SAAT = 8;
 
     /** @var string[] */
     private const array KAYNAK_TABLOLAR = ['sinav_sonucu', 'login_log', 'materyal_erisim_log'];
@@ -120,10 +113,8 @@ class GenerateMissingOgrenciCommand extends Command
     {
         $cinsiyet = 1 === random_int(0, 1) ? Cinsiyet::Kadin : Cinsiyet::Erkek;
         $dogumTarihi = $this->randomTarih(self::DOGUM_TARIHI_MIN, self::DOGUM_TARIHI_MAX);
-        [$calismaBaslangic, $calismaBitis] = $this->randomCalismaSaatleri();
-        $aileSorumlulugu = 1 === random_int(0, 1);
 
-        return new Ogrenci($ogrenciNo, $cinsiyet, $dogumTarihi, $calismaBaslangic, $calismaBitis, $aileSorumlulugu);
+        return new Ogrenci($ogrenciNo, $cinsiyet, $dogumTarihi);
     }
 
     private function randomTarih(string $min, string $max): \DateTimeImmutable
@@ -132,24 +123,6 @@ class GenerateMissingOgrenciCommand extends Command
         $maxTs = (new \DateTimeImmutable($max))->getTimestamp();
 
         return (new \DateTimeImmutable())->setTimestamp(random_int($minTs, $maxTs));
-    }
-
-    /**
-     * 06:00 - 16:45 arasında (15 dakikalık dilimlerle) rastgele bir başlangıç saati seçer
-     * ve tam CALISMA_SURESI_SAAT (8) saat sonrasını bitiş olarak döner — böylece başlangıç
-     * en geç 16:45 olsa bile bitiş 24:45'i geçmez.
-     *
-     * @return array{0: \DateTimeImmutable, 1: \DateTimeImmutable}
-     */
-    private function randomCalismaSaatleri(): array
-    {
-        $baslangicSaat = random_int(self::CALISMA_SAATI_MIN, self::CALISMA_SAATI_MAX);
-        $baslangicDakika = [0, 15, 30, 45][random_int(0, 3)];
-
-        $baslangic = new \DateTimeImmutable(sprintf('%02d:%02d:00', $baslangicSaat, $baslangicDakika));
-        $bitis = $baslangic->modify(sprintf('+%d hours', self::CALISMA_SURESI_SAAT));
-
-        return [$baslangic, $bitis];
     }
 
     private function flushAndClear(): void

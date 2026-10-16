@@ -163,21 +163,26 @@ FAZ_TO_OBSERVED_KOLON = {
 
 
 def student_profile_gozlem_saatini_yaz(tahmin_df):
-    """`tahmin_df`'i (ogrenci_no, FAZ, tahmini_saat_hhmm) `student_profile`'ın
-    üç TIME kolonuna (bkz. FAZ_TO_OBSERVED_KOLON) yazar -- CSV'ye YAZMAZ
-    (kullanıcı kararı: "python csv yerine tabloya yazsın").
+    """`tahmin_df`'i (ogrenci_no, FAZ, tahmini_saat_hhmm, yontem) `student_profile`'ın
+    üç TIME kolonuna + üç eşlik eden `*_yontem` kolonuna (bkz. FAZ_TO_OBSERVED_KOLON) yazar
+    -- CSV'ye YAZMAZ (kullanıcı kararı: "python csv yerine tabloya yazsın"). `yontem` kolonu,
+    PHP tarafındaki `MessageTimePriorityResolver`'ın gözlenen saati öğrencinin kendi beyan
+    ettiği tercihin önüne geçirip geçiremeyeceğine karar vermesi için gerekli (SADECE
+    'secenek_b_bireysel' iken geçebilir; 'secenek_a_fallback' popülasyon ortalaması olduğu
+    için öğrenciye özgü sayılmaz).
 
     `student_profile` satırı henüz yoksa (öğrenci PHP tarafında hiç
     görülmediyse) varsayılan bir profille birlikte oluşturulur
     (current_state=YENİ, messages_sent_this_week=0 -- PHP'nin kendi
     `ensureProfilesExist()`'iyle aynı varsayımlar); satır zaten varsa yalnızca
-    gözlem saati kolonları güncellenir, diğer alanlara dokunulmaz.
+    gözlem saati/yöntem kolonları güncellenir, diğer alanlara dokunulmaz.
 
     Döner: yazılan öğrenci satırı sayısı.
     """
-    genis = tahmin_df.pivot(index='ogrenci_no', columns='FAZ', values='tahmini_saat_hhmm')
+    saat_genis = tahmin_df.pivot(index='ogrenci_no', columns='FAZ', values='tahmini_saat_hhmm')
+    yontem_genis = tahmin_df.pivot(index='ogrenci_no', columns='FAZ', values='yontem')
 
-    def _deger(ogrenci_no, faz):
+    def _deger(genis, ogrenci_no, faz):
         if faz not in genis.columns:
             return None
         v = genis.at[ogrenci_no, faz]
@@ -186,23 +191,30 @@ def student_profile_gozlem_saatini_yaz(tahmin_df):
     satirlar = [
         (
             int(ogrenci_no),
-            _deger(ogrenci_no, 'normal_hafta'),
-            _deger(ogrenci_no, 'ara_sinav_oncesi'),
-            _deger(ogrenci_no, 'final_oncesi'),
+            _deger(saat_genis, ogrenci_no, 'normal_hafta'),
+            _deger(saat_genis, ogrenci_no, 'ara_sinav_oncesi'),
+            _deger(saat_genis, ogrenci_no, 'final_oncesi'),
+            _deger(yontem_genis, ogrenci_no, 'normal_hafta'),
+            _deger(yontem_genis, ogrenci_no, 'ara_sinav_oncesi'),
+            _deger(yontem_genis, ogrenci_no, 'final_oncesi'),
         )
-        for ogrenci_no in genis.index
+        for ogrenci_no in saat_genis.index
     ]
 
     sorgu = """
         INSERT INTO student_profile
             (student_id, current_state, messages_sent_this_week, updated_at,
              observed_time_window_normal, observed_time_window_ara_sinav_oncesi,
-             observed_time_window_final_oncesi)
-        VALUES (%s, 'YENİ', 0, NOW(), %s, %s, %s)
+             observed_time_window_final_oncesi, observed_time_window_normal_yontem,
+             observed_time_window_ara_sinav_oncesi_yontem, observed_time_window_final_oncesi_yontem)
+        VALUES (%s, 'YENİ', 0, NOW(), %s, %s, %s, %s, %s, %s)
         ON DUPLICATE KEY UPDATE
             observed_time_window_normal = VALUES(observed_time_window_normal),
             observed_time_window_ara_sinav_oncesi = VALUES(observed_time_window_ara_sinav_oncesi),
-            observed_time_window_final_oncesi = VALUES(observed_time_window_final_oncesi)
+            observed_time_window_final_oncesi = VALUES(observed_time_window_final_oncesi),
+            observed_time_window_normal_yontem = VALUES(observed_time_window_normal_yontem),
+            observed_time_window_ara_sinav_oncesi_yontem = VALUES(observed_time_window_ara_sinav_oncesi_yontem),
+            observed_time_window_final_oncesi_yontem = VALUES(observed_time_window_final_oncesi_yontem)
     """
     with get_connection() as conn, conn.cursor() as cursor:
         cursor.executemany(sorgu, satirlar)
@@ -239,15 +251,12 @@ def main():
           f"etkisine (Seçenek A -- az veri olan kendi intercept'iyle, hiç veri olmayan saf "
           f"popülasyon ortalamasıyla) düşüldü.")
 
-    print("\n4) Çalışma saati filtresi uygulanıyor...")
-    tahmin_df = pipeline.calisma_saati_filtresi_uygula(tahmin_df, dem)
-
     tahmin_df['tahmini_saat_hhmm'] = tahmin_df['tahmini_saat'].apply(pipeline.ondalik_saat_to_hhmm)
 
     print("\nSonuç örneği:")
     print(tahmin_df.head(10).to_string(index=False))
 
-    print("\n5) student_profile.observed_time_window_normal/_ara_sinav_oncesi/_final_oncesi yazılıyor...")
+    print("\n4) student_profile.observed_time_window_normal/_ara_sinav_oncesi/_final_oncesi yazılıyor...")
     yazilan = student_profile_gozlem_saatini_yaz(tahmin_df)
     print(f"Yazıldı: {yazilan} öğrenci satırı.")
 

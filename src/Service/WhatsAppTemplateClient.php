@@ -50,4 +50,30 @@ class WhatsAppTemplateClient
 
         return $response->toArray(false);
     }
+
+    /**
+     * Verilen isimdeki şablonu (TÜM dillerindeki sürümleriyle birlikte) siler — Meta,
+     * zaten APPROVED bir şablonun aynı isimle yeniden oluşturulmasını (içerik güncellemesi)
+     * reddediyor; önce silmek bu kısıtı aşmanın tek yolu. Şablon hiç yoksa Meta bir hata
+     * döner ({@see \App\Command\DeleteTemplatesCommand} bunu zararsız kabul eder).
+     *
+     * @throws TransportExceptionInterface
+     */
+    public function deleteTemplate(string $name): array
+    {
+        $url = sprintf(
+            'https://graph.facebook.com/%s/%s/message_templates?name=%s',
+            $this->apiVersion,
+            $this->wabaId,
+            urlencode($name),
+        );
+
+        $response = $this->httpClient->request('DELETE', $url, [
+            'headers' => [
+                'Authorization' => sprintf('Bearer %s', $this->accessToken),
+            ],
+        ]);
+
+        return $response->toArray(false);
+    }
 }

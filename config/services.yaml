@@ -41,6 +41,10 @@ services:
         arguments:
             $projectDir: '%kernel.project_dir%'
 
+    App\Command\DeleteTemplatesCommand:
+        arguments:
+            $projectDir: '%kernel.project_dir%'
+
     App\Service\MessageGeneratorService:
         arguments:
             $apiKey: '%env(OPENAI_API_KEY)%'

@@ -96,13 +96,16 @@ yerine TEK bir `MIN_FAZ_GOZLEM_ESIGI=4` kullanılıyor.
 > Türetme scripti: `_sim_n_esik.py` (gerçek veriden `cov_re`/`scale` okuyup
 > tabloyu üretir).
 
-### 2.4 Çalışma saati filtresi (sert kısıt, tahminden SONRA)
+### 2.4 Çalışma saati filtresi — KALDIRILDI (2026-10-12, kullanıcı kararı)
 
-`calisma_saati_filtresi_uygula()`: öğrencinin `tahmini_saat`'i kendi bilinen
-çalışma saati bloğuna denk geliyorsa, en yakın sınırın (başlangıcın hemen
-öncesi / bitişin hemen sonrası, hangisi yakınsa) dışına ~3 dakikalık bir
-tampon payıyla kaydırılır. Gece çalışmasını (örn. 22:00-06:00) da doğru
-ele alır.
+`calisma_saati_filtresi_uygula()` ve `ogrenci.calisma_saati_baslangic/bitis`
+kolonları tamamen kaldırıldı — YBS kayıt anketi bu veriyi hiç toplamıyordu
+(gerçek pilotta hep boş kalacaktı), yalnızca sentetik test verisinde rastgele
+dolduruluyordu. Zamanlama artık yalnızca şu ikisine dayanıyor: öğrencinin
+anketten beyan ettiği tercih (`preferred_study_time` — Sabah/Öğle/Akşam) ya
+da "Değişken" derse bu bölümün hesapladığı faz bazlı gözlenen saat
+(`tahmini_saat`), öncelik sırası `MessageTimePriorityResolver`'da (PHP) karar
+veriliyor.
 
 ### 2.5 Çıktı
 

@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\StudentProfile;
+use App\Enum\Phase;
 use App\Enum\StudentState;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -100,14 +101,17 @@ class StudentProfileRepository extends ServiceEntityRepository
     }
 
     /**
-     * Verilen öğrenci id'leri için `messages_sent_this_week` ve `message_frequency_preference`
-     * — haftalık sıklık üst sınırı kontrolü için (bkz. {@see \App\Service\MessageFrequencyPolicy}).
-     * Profili olmayan öğrenciler dizide yer almaz (çağıran taraf messagesSentThisWeek=0,
-     * messageFrequencyPreference=null varsaymalı).
+     * Verilen öğrenci id'leri için `messages_sent_this_week` ve `weekly_hours_available` —
+     * haftalık sıklık üst sınırı kontrolü için (bkz. {@see \App\Service\MessageFrequencyPolicy}).
+     * `weekly_hours_available` YBS Soru 5'ten GELİR ama M1 "zamanım yok" dalındaki "Haftada 1
+     * kısa oturum" seçimiyle de (daha güncel beyan olarak) üzerine yazılabilir — bkz.
+     * {@see \App\Service\EngagementFlowService::zamanHaftadaBirSecildi()}. Profili olmayan
+     * öğrenciler dizide yer almaz (çağıran taraf messagesSentThisWeek=0/weeklyHoursAvailable=null
+     * varsaymalı).
      *
      * @param int[] $ogrenciNolar
      *
-     * @return array<int, array{messagesSentThisWeek: int, messageFrequencyPreference: ?string}>
+     * @return array<int, array{messagesSentThisWeek: int, weeklyHoursAvailable: ?string}>
      */
     public function findFrequencyInfoFor(array $ogrenciNolar): array
     {
@@ -121,14 +125,67 @@ class StudentProfileRepository extends ServiceEntityRepository
         foreach (array_chunk($ogrenciNolar, self::TOPLU_ISLEM_PARCA_BOYUTU) as $parca) {
             $yerTutucular = implode(', ', array_fill(0, count($parca), '?'));
             $rows = $connection->fetchAllAssociative(
-                "SELECT student_id, messages_sent_this_week, message_frequency_preference FROM student_profile WHERE student_id IN ({$yerTutucular})",
+                "SELECT student_id, messages_sent_this_week, weekly_hours_available FROM student_profile WHERE student_id IN ({$yerTutucular})",
                 $parca,
             );
 
             foreach ($rows as $row) {
                 $sonuc[(int) $row['student_id']] = [
                     'messagesSentThisWeek' => (int) $row['messages_sent_this_week'],
-                    'messageFrequencyPreference' => $row['message_frequency_preference'],
+                    'weeklyHoursAvailable' => $row['weekly_hours_available'],
+                ];
+            }
+        }
+
+        return $sonuc;
+    }
+
+    /** {@see self::findMessageTimeInfoFor()}'un `$faz`'a göre okuyacağı gözlem saati/yöntem kolonları. */
+    private const array FAZ_GOZLEM_KOLONLARI = [
+        'Normal' => ['observed_time_window_normal', 'observed_time_window_normal_yontem'],
+        'Ara_Sinav_Oncesi' => ['observed_time_window_ara_sinav_oncesi', 'observed_time_window_ara_sinav_oncesi_yontem'],
+        'Final_Oncesi' => ['observed_time_window_final_oncesi', 'observed_time_window_final_oncesi_yontem'],
+    ];
+
+    /**
+     * Verilen öğrenci id'leri için `preferred_message_time`, `preference_set_at` ve `$faz`'a
+     * karşılık gelen gözlem saati/yöntem kolonları — {@see \App\Service\MessageTimePriorityResolver}'ı
+     * tam `StudentProfile` entity'si hydrate etmeden toplu çağırabilmek için (bkz. diğer
+     * `find*For()` metotları ile aynı desen). `Phase::SinavGunu` için gözlem kolonu yoktur,
+     * bu fazla çağrılırsa `\InvalidArgumentException` fırlatılır.
+     *
+     * @param int[] $ogrenciNolar
+     *
+     * @return array<int, array{preferredMessageTime: ?string, preferenceSetAt: ?string, observedTime: ?string, observedYontem: ?string}>
+     */
+    public function findMessageTimeInfoFor(array $ogrenciNolar, Phase $faz): array
+    {
+        if ([] === $ogrenciNolar) {
+            return [];
+        }
+
+        if (!isset(self::FAZ_GOZLEM_KOLONLARI[$faz->value])) {
+            throw new \InvalidArgumentException(sprintf('%s fazı için gözlem saati kolonu yok.', $faz->value));
+        }
+
+        [$saatKolonu, $yontemKolonu] = self::FAZ_GOZLEM_KOLONLARI[$faz->value];
+
+        $connection = $this->getEntityManager()->getConnection();
+        $sonuc = [];
+
+        foreach (array_chunk($ogrenciNolar, self::TOPLU_ISLEM_PARCA_BOYUTU) as $parca) {
+            $yerTutucular = implode(', ', array_fill(0, count($parca), '?'));
+            $rows = $connection->fetchAllAssociative(
+                "SELECT student_id, preferred_message_time, preference_set_at, {$saatKolonu} AS observed_time, {$yontemKolonu} AS observed_yontem FROM student_profile WHERE student_id IN ({$yerTutucular})",
+                $parca,
+            );
+
+            foreach ($rows as $row) {
+                $sonuc[(int) $row['student_id']] = [
+                    'preferredMessageTime' => $row['preferred_message_time'],
+                    'preferenceSetAt' => $row['preference_set_at'],
+                    'observedTime' => $row['observed_time'],
+                    'observedYontem' => $row['observed_yontem'],
                 ];
             }
         }

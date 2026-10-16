@@ -55,6 +55,54 @@ class WhatsAppClient
     }
 
     /**
+     * Serbest metin + en fazla 3 hızlı-yanıt butonu içeren "interactive" mesaj gönderir —
+     * {@see self::sendTextMessage()} ile AYNI 24 saatlik pencere kuralı geçerlidir, şablon
+     * GEREKMEZ. WhatsApp'ın kendi kısıtı: her buton başlığı en fazla 20 karakter olabilir
+     * (bkz. {@see \App\Enum\WhatsAppTemplate::butonlar()} — tüm değerler bu sınıra göre
+     * kısaltıldı, 2026-10-08).
+     *
+     * @param string[] $buttonLabels 1-3 arası, her biri ≤20 karakter
+     *
+     * @throws TransportExceptionInterface
+     */
+    public function sendInteractiveButtonsMessage(string $to, string $bodyText, array $buttonLabels): array
+    {
+        $url = sprintf(
+            'https://graph.facebook.com/%s/%s/messages',
+            $this->apiVersion,
+            $this->phoneNumberId
+        );
+
+        $buttons = array_map(
+            static fn (int $i, string $label): array => [
+                'type' => 'reply',
+                'reply' => ['id' => 'secenek_' . $i, 'title' => $label],
+            ],
+            array_keys($buttonLabels),
+            array_values($buttonLabels),
+        );
+
+        $response = $this->httpClient->request('POST', $url, [
+            'headers' => [
+                'Authorization' => sprintf('Bearer %s', $this->accessToken),
+                'Content-Type' => 'application/json',
+            ],
+            'json' => [
+                'messaging_product' => 'whatsapp',
+                'to' => $to,
+                'type' => 'interactive',
+                'interactive' => [
+                    'type' => 'button',
+                    'body' => ['text' => $bodyText],
+                    'action' => ['buttons' => $buttons],
+                ],
+            ],
+        ]);
+
+        return $response->toArray(false);
+    }
+
+    /**
      * Onaylı bir şablon (template) mesajı gönderir. 24 saatlik pencere
      * kapalıyken veya konuşmayı ilk siz başlatıyorken bu kullanılmalı.
      */

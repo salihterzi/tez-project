@@ -4,9 +4,10 @@ namespace App\Entity;
 
 use App\Enum\BarrierType;
 use App\Enum\FlowStep;
+use App\Enum\GozlemYontemi;
 use App\Enum\LearningGoal;
-use App\Enum\MessageFrequencyPreference;
 use App\Enum\MotivasyonResponse;
+use App\Enum\Phase;
 use App\Enum\PreferredStudyTime;
 use App\Enum\SocialComparisonOptin;
 use App\Enum\StudentState;
@@ -41,25 +42,26 @@ class StudentProfile
         name: 'preferred_study_time',
         enumType: PreferredStudyTime::class,
         nullable: true,
-        columnDefinition: "ENUM('Sabah','Öğleden sonra','Akşam','Gece','Değişken') DEFAULT NULL",
+        columnDefinition: "ENUM('Sabah','Akşam','Gece','Değişken') DEFAULT NULL",
     )]
     private ?PreferredStudyTime $preferredStudyTime = null;
 
+    /**
+     * YBS kayıt anketi (`YBS_Arastirma_Kayit_Formu (2).docx`) Soru 5: "Haftada eğitime
+     * ortalama kaç gün ayırabilirsiniz?" — 2026-10-05'te yeniden oluşturuldu: önceki tur bu
+     * alanı saat aralığı (`1-2`/`3-5`/`6+`) olarak tasarlamıştı, ama asıl form gün SAYISI
+     * soruyormuş (bkz. {@see WeeklyHoursAvailable}'ın docblock'u) — eski (kullanılmayan,
+     * hiç toplanmamış) değerler kaldırılıp formun gerçek seçenekleriyle değiştirildi. Bu alanı
+     * nasıl kullanacağımız (tempo/içerik önerisi — formun "Kullanım Amacı" sütunu) henüz
+     * kararlaştırılmadı, bkz. `roadmap-faz.md` Faz B.
+     */
     #[ORM\Column(
         name: 'weekly_hours_available',
         enumType: WeeklyHoursAvailable::class,
         nullable: true,
-        columnDefinition: "ENUM('1-2','3-5','6+') DEFAULT NULL",
+        columnDefinition: "ENUM('1 gün','2 gün','3 gün','4 günden fazla') DEFAULT NULL",
     )]
     private ?WeeklyHoursAvailable $weeklyHoursAvailable = null;
-
-    #[ORM\Column(
-        name: 'message_frequency_preference',
-        enumType: MessageFrequencyPreference::class,
-        nullable: true,
-        columnDefinition: "ENUM('1','2','Yalnızca önemli olanlar') DEFAULT NULL",
-    )]
-    private ?MessageFrequencyPreference $messageFrequencyPreference = null;
 
     #[ORM\Column(
         name: 'social_comparison_optin',
@@ -76,6 +78,21 @@ class StudentProfile
         columnDefinition: "ENUM('İyi bir not almak','Alanımla ilgili bilgi edinmek','Kariyerime katkı sağlamak','Zorunlu olduğu için alıyorum') DEFAULT NULL",
     )]
     private ?LearningGoal $learningGoal = null;
+
+    /**
+     * Öğrencinin kesin saat olarak beyan ettiği tercih edilen mesaj saati —
+     * {@see self::$preferredStudyTime}'ın kaba kategorisinden (Sabah/Akşam/Gece/Değişken) ayrı,
+     * tam saat (örn. "21:00"). Set edildiğinde {@see self::$preferenceSetAt} otomatik
+     * güncellenir (bkz. {@see self::setPreferredMessageTime()}) — {@see
+     * \App\Service\MessageTimePriorityResolver}'daki 2 haftalık deneme penceresi buradan
+     * hesaplanır.
+     */
+    #[ORM\Column(name: 'preferred_message_time', type: 'time_immutable', nullable: true)]
+    private ?\DateTimeImmutable $preferredMessageTime = null;
+
+    /** {@see self::$preferredMessageTime}'ın en son ne zaman set edildiği — bkz. o alanın docblock'u. */
+    #[ORM\Column(name: 'preference_set_at', type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $preferenceSetAt = null;
 
     // --- durum makinesi / davranışsal (sık değişir) ---
 
@@ -111,7 +128,7 @@ class StudentProfile
         name: 'pending_flow_step',
         enumType: FlowStep::class,
         nullable: true,
-        columnDefinition: "ENUM('ENGEL_BEKLENIYOR','ZAMAN_TAKIBI_BEKLENIYOR','ZAMAN_GUN_SAATI_BEKLENIYOR','ZAMAN_DONUS_SURESI_BEKLENIYOR','ZORLUK_TAKIBI_BEKLENIYOR','ZORLUK_NOT_BEKLENIYOR','MOTIVASYON_TAKIBI_BEKLENIYOR') DEFAULT NULL",
+        columnDefinition: "ENUM('ENGEL_BEKLENIYOR','ZAMAN_TAKIBI_BEKLENIYOR','ZAMAN_GUN_SAATI_BEKLENIYOR','ZAMAN_DONUS_SURESI_BEKLENIYOR','ZORLUK_TAKIBI_BEKLENIYOR','ZORLUK_NOT_BEKLENIYOR','MOTIVASYON_TAKIBI_BEKLENIYOR','T1_YANITI_BEKLENIYOR','TETIKLEYICI_SECENEK_YANITI_BEKLENIYOR') DEFAULT NULL",
     )]
     private ?FlowStep $pendingFlowStep = null;
 
@@ -163,17 +180,47 @@ class StudentProfile
      * — vize ve final dönemlerinin çalışma saati örüntüsü farklı olabilir. T1-T4 iş kuralları
      * için bu ayrımın önemi yok ({@see \App\Enum\Phase::sinavOncesiMi()} ikisini de aynı
      * "sınav öncesi" davranışına indirger); ayrım yalnızca gözlem verisi için var.
+     *
+     * Her saat kolonunun yanında, o tahminin {@see \App\Enum\GozlemYontemi::SecenekBBireysel}
+     * (öğrencinin kendi etkileşiminden) mi yoksa {@see \App\Enum\GozlemYontemi::SecenekAFallback}
+     * (popülasyon ortalaması) mı türediğini tutan bir `*_yontem` kolonu vardır — bunu da PHP
+     * YAZMAZ, Python aynı turda birlikte yazar. {@see \App\Service\MessageTimePriorityResolver}
+     * gözlenen saatin tercihin önüne geçip geçemeyeceğine bu etikete göre karar verir.
      */
     #[ORM\Column(name: 'observed_time_window_normal', type: 'time_immutable', nullable: true)]
     private ?\DateTimeImmutable $observedTimeWindowNormal = null;
+
+    #[ORM\Column(
+        name: 'observed_time_window_normal_yontem',
+        enumType: GozlemYontemi::class,
+        nullable: true,
+        columnDefinition: "ENUM('secenek_a_fallback','secenek_b_bireysel') DEFAULT NULL",
+    )]
+    private ?GozlemYontemi $observedTimeWindowNormalYontem = null;
 
     /** Ara sınav öncesi fazından hesaplanan gözlem saati — bkz. {@see self::$observedTimeWindowNormal}. */
     #[ORM\Column(name: 'observed_time_window_ara_sinav_oncesi', type: 'time_immutable', nullable: true)]
     private ?\DateTimeImmutable $observedTimeWindowAraSinavOncesi = null;
 
+    #[ORM\Column(
+        name: 'observed_time_window_ara_sinav_oncesi_yontem',
+        enumType: GozlemYontemi::class,
+        nullable: true,
+        columnDefinition: "ENUM('secenek_a_fallback','secenek_b_bireysel') DEFAULT NULL",
+    )]
+    private ?GozlemYontemi $observedTimeWindowAraSinavOncesiYontem = null;
+
     /** Final öncesi fazından hesaplanan gözlem saati — bkz. {@see self::$observedTimeWindowNormal}. */
     #[ORM\Column(name: 'observed_time_window_final_oncesi', type: 'time_immutable', nullable: true)]
     private ?\DateTimeImmutable $observedTimeWindowFinalOncesi = null;
+
+    #[ORM\Column(
+        name: 'observed_time_window_final_oncesi_yontem',
+        enumType: GozlemYontemi::class,
+        nullable: true,
+        columnDefinition: "ENUM('secenek_a_fallback','secenek_b_bireysel') DEFAULT NULL",
+    )]
+    private ?GozlemYontemi $observedTimeWindowFinalOncesiYontem = null;
 
     /**
      * Gün bazlı kişiselleştirme (Python: `mesaj_zamanlamasi_gun_hibrit.py`, faz başına top-N
@@ -254,18 +301,6 @@ class StudentProfile
         return $this;
     }
 
-    public function getMessageFrequencyPreference(): ?MessageFrequencyPreference
-    {
-        return $this->messageFrequencyPreference;
-    }
-
-    public function setMessageFrequencyPreference(?MessageFrequencyPreference $messageFrequencyPreference): static
-    {
-        $this->messageFrequencyPreference = $messageFrequencyPreference;
-
-        return $this;
-    }
-
     public function getSocialComparisonOptin(): ?SocialComparisonOptin
     {
         return $this->socialComparisonOptin;
@@ -288,6 +323,30 @@ class StudentProfile
         $this->learningGoal = $learningGoal;
 
         return $this;
+    }
+
+    public function getPreferredMessageTime(): ?\DateTimeImmutable
+    {
+        return $this->preferredMessageTime;
+    }
+
+    /**
+     * `null` dışında bir değer set edildiğinde {@see self::$preferenceSetAt} otomatik olarak
+     * "şimdi"ye güncellenir (2 haftalık deneme penceresi buradan hesaplanır) — ayrıca elle set
+     * edilmesi gerekmez. `null` set edilirse zaman damgası da temizlenir.
+     */
+    public function setPreferredMessageTime(?\DateTimeImmutable $preferredMessageTime): static
+    {
+        $this->preferredMessageTime = $preferredMessageTime;
+        $this->preferenceSetAt = null !== $preferredMessageTime ? new \DateTimeImmutable() : null;
+        $this->touch();
+
+        return $this;
+    }
+
+    public function getPreferenceSetAt(): ?\DateTimeImmutable
+    {
+        return $this->preferenceSetAt;
     }
 
     public function getCurrentState(): StudentState
@@ -406,6 +465,19 @@ class StudentProfile
         return $this;
     }
 
+    public function getObservedTimeWindowNormalYontem(): ?GozlemYontemi
+    {
+        return $this->observedTimeWindowNormalYontem;
+    }
+
+    public function setObservedTimeWindowNormalYontem(?GozlemYontemi $observedTimeWindowNormalYontem): static
+    {
+        $this->observedTimeWindowNormalYontem = $observedTimeWindowNormalYontem;
+        $this->touch();
+
+        return $this;
+    }
+
     public function getObservedTimeWindowAraSinavOncesi(): ?\DateTimeImmutable
     {
         return $this->observedTimeWindowAraSinavOncesi;
@@ -414,6 +486,19 @@ class StudentProfile
     public function setObservedTimeWindowAraSinavOncesi(?\DateTimeImmutable $observedTimeWindowAraSinavOncesi): static
     {
         $this->observedTimeWindowAraSinavOncesi = $observedTimeWindowAraSinavOncesi;
+        $this->touch();
+
+        return $this;
+    }
+
+    public function getObservedTimeWindowAraSinavOncesiYontem(): ?GozlemYontemi
+    {
+        return $this->observedTimeWindowAraSinavOncesiYontem;
+    }
+
+    public function setObservedTimeWindowAraSinavOncesiYontem(?GozlemYontemi $observedTimeWindowAraSinavOncesiYontem): static
+    {
+        $this->observedTimeWindowAraSinavOncesiYontem = $observedTimeWindowAraSinavOncesiYontem;
         $this->touch();
 
         return $this;
@@ -430,6 +515,45 @@ class StudentProfile
         $this->touch();
 
         return $this;
+    }
+
+    public function getObservedTimeWindowFinalOncesiYontem(): ?GozlemYontemi
+    {
+        return $this->observedTimeWindowFinalOncesiYontem;
+    }
+
+    public function setObservedTimeWindowFinalOncesiYontem(?GozlemYontemi $observedTimeWindowFinalOncesiYontem): static
+    {
+        $this->observedTimeWindowFinalOncesiYontem = $observedTimeWindowFinalOncesiYontem;
+        $this->touch();
+
+        return $this;
+    }
+
+    /**
+     * {@see self::$observedTimeWindowNormal}/`...AraSinavOncesi`/`...FinalOncesi`'i tek bir
+     * `Phase` parametresiyle okumak için — bkz. {@see \App\Service\MessageTimePriorityResolver}.
+     * `Phase::SinavGunu` için gözlem kolonu yok, bu durumda `null` döner.
+     */
+    public function getObservedTimeWindowForPhase(Phase $faz): ?\DateTimeImmutable
+    {
+        return match ($faz) {
+            Phase::Normal => $this->observedTimeWindowNormal,
+            Phase::AraSinavOncesi => $this->observedTimeWindowAraSinavOncesi,
+            Phase::FinalOncesi => $this->observedTimeWindowFinalOncesi,
+            Phase::SinavGunu => null,
+        };
+    }
+
+    /** {@see self::getObservedTimeWindowForPhase()}'in yöntem (secenek_a/secenek_b) karşılığı. */
+    public function getObservedTimeWindowYontemForPhase(Phase $faz): ?GozlemYontemi
+    {
+        return match ($faz) {
+            Phase::Normal => $this->observedTimeWindowNormalYontem,
+            Phase::AraSinavOncesi => $this->observedTimeWindowAraSinavOncesiYontem,
+            Phase::FinalOncesi => $this->observedTimeWindowFinalOncesiYontem,
+            Phase::SinavGunu => null,
+        };
     }
 
     public function getObservedDays(): ?array

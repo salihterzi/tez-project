@@ -109,8 +109,7 @@ def veriyi_yukle(engine, yil, donem):
         WHERE yil = {yil} AND donem = {donem}
     """
     demografik_sorgu = """
-        SELECT ogrenci_no, cinsiyet, dogum_tarihi, calisma_saati_baslangic,
-               calisma_saati_bitis, aile_sorumlulugu
+        SELECT ogrenci_no, cinsiyet, dogum_tarihi
         FROM ogrenci
     """
     mat = pd.read_sql(materyal_sorgu, engine)
@@ -170,23 +169,10 @@ def oznitelik_olustur(mat, takvim):
     return mat
 
 
-def _saate_cevir(deger):
-    """MySQL `TIME` kolonları (calisma_saati_baslangic/bitis) PyMySQL+pandas ile `Timedelta`
-    olarak gelir (örn. `0 days 09:15:00`) — `tahmini_saat` ile aynı ölçekte (0-24 arası
-    float saat) karşılaştırılabilmesi için çevrilir. NaT/NaN ise NaN döner.
-    """
-    if pd.isna(deger):
-        return np.nan
-    return deger.total_seconds() / 3600
-
-
 def demografik_hazirla(dem):
     dem = dem.copy()
     dem['dogum_tarihi'] = pd.to_datetime(dem['dogum_tarihi'])
     dem['yas'] = ((pd.Timestamp.now() - dem['dogum_tarihi']).dt.days / 365.25).round(1)
-    dem['calisma_saati_baslangic'] = dem['calisma_saati_baslangic'].apply(_saate_cevir)
-    dem['calisma_saati_bitis'] = dem['calisma_saati_bitis'].apply(_saate_cevir)
-    # aile_sorumlulugu DB'de 0/1 (tinyint) olarak geliyor; olduğu gibi kullanılabilir.
     return dem
 
 
@@ -447,51 +433,7 @@ def ondalik_saat_to_hhmm(deger):
 
 
 # =====================================================================
-# 5. ÇALIŞMA SAATİ FİLTRESİ (Adım 2 — sert kısıt, tahminden SONRA uygulanır)
-# =====================================================================
-
-def calisma_saati_filtresi_uygula(tahmin_df, dem):
-    """
-    dem içinde calisma_saati_baslangic / calisma_saati_bitis (saat, 0-24 float) varsa,
-    tahmini_saat bu aralığa denk geliyorsa en yakın sınırın (başlangıcın hemen öncesi
-    ya da bitişin hemen sonrası, hangisi daha yakınsa) dışına kaydırılır. Sabit "+3 saat"
-    kaydırma, çalışma bloğu uzun olduğunda (örn. 8 saatlik blok) hâlâ blok içine
-    düşebiliyordu; bu yaklaşım blok uzunluğundan ve gece yarısını sarıp sarmamasından
-    bağımsız olarak her zaman bloğun dışına çıkarır.
-    """
-    df = tahmin_df.merge(dem[['ogrenci_no', 'calisma_saati_baslangic', 'calisma_saati_bitis']],
-                          on='ogrenci_no', how='left')
-
-    def cakisiyor_mu(row):
-        if pd.isna(row['calisma_saati_baslangic']):
-            return False
-        b, s = row['calisma_saati_baslangic'], row['calisma_saati_bitis']
-        t = row['tahmini_saat']
-        if b < s:
-            return b <= t <= s
-        else:  # gece calismasi (örn. 22:00-06:00)
-            return t >= b or t <= s
-
-    df['calisma_saatiyle_cakisiyor'] = df.apply(cakisiyor_mu, axis=1)
-
-    TAMPON_SAAT = 0.05  # ~3 dakika; sınıra tam denk gelmeyi önlemek için küçük pay
-
-    def en_yakin_sinira_kaydir(row):
-        if not row['calisma_saatiyle_cakisiyor']:
-            return row['tahmini_saat']
-        b, s, t = row['calisma_saati_baslangic'], row['calisma_saati_bitis'], row['tahmini_saat']
-        ileri_mesafe = (s - t) % 24   # bitişin hemen sonrasına ileri giderek çıkma mesafesi
-        geri_mesafe = (t - b) % 24    # başlangıcın hemen öncesine geri giderek çıkma mesafesi
-        if ileri_mesafe <= geri_mesafe:
-            return (s + TAMPON_SAAT) % 24
-        return (b - TAMPON_SAAT) % 24
-
-    df['tahmini_saat'] = df.apply(en_yakin_sinira_kaydir, axis=1)
-    return df
-
-
-# =====================================================================
-# 6. COLD-START (Adım 7 — yetersiz davranışsal veri)
+# 5. COLD-START (Adım 7 — yetersiz davranışsal veri)
 # =====================================================================
 
 def cold_start_tahmin(dem, mat, min_gozlem=MIN_GOZLEM_ESIGI, alpha=COLD_START_ALPHA):
@@ -509,11 +451,10 @@ def cold_start_tahmin(dem, mat, min_gozlem=MIN_GOZLEM_ESIGI, alpha=COLD_START_AL
     # yas ve cinsiyet şu an sözde veri: ikisinin de gerçekten anlamlı olup olmadığı
     # her çalıştırmada bu veriden belirlenir, sabit kodlanmaz. Tam modelde (yas +
     # cinsiyet) p-değeri alpha'nın altında kalan terimler nihai modele alınır; hiçbiri
-    # anlamlı değilse yeterli-veri grubunun ortalama erişim saatine düşülür.
-    # aile_sorumlulugu / calisma_saati bilinçli olarak aday değişken DEĞİL: ogrenci
-    # tablosunda dönem bazlı tutulmuyor (tek güncel değer), bu yüzden geçmiş dönem
-    # (mat) davranışını açıklayan bir kovaryat olarak kullanılmaları dönem uyuşmazlığı
-    # yaratır — bugünkü değer, mat'teki dönemde geçerli olan değerle aynı olmayabilir.
+    # anlamlı değilse yeterli-veri grubunun ortalama erişim saatine düşülür. (2026-10-05:
+    # aile_sorumlulugu kolonu hiç kullanılmadığı için kaldırıldı; 2026-10-12: çalışma
+    # saati kolonları/filtresi de kaldırıldı — anket hiç bu veriyi toplamıyordu, gerçek
+    # pilotta hep boş kalacaktı; bkz. proje notları.)
     tam_model = smf.ols("ort_saat ~ yas + C(cinsiyet)", egitim).fit()
     terimler = []
     if tam_model.pvalues.get('yas', 1.0) < alpha:
@@ -581,10 +522,6 @@ def main(yil=2024, donem=2, takvim=BAHAR_2024_TAKVIMI):
         print("6) Seçenek A tüm kayıtlı öğrencileri (dem) zaten kapsıyor — "
               "ayrı bir cold-start adımı atlanıyor.")
         tahmin_df = model_kur_ve_tahmin_et(mat, dem)
-
-    # Çalışma saati filtresi tüm tahmin_df'e uygulanır.
-    print("7) Çalışma saati filtresi uygulanıyor...")
-    tahmin_df = calisma_saati_filtresi_uygula(tahmin_df, dem)
 
     tahmin_df['tahmini_saat_hhmm'] = tahmin_df['tahmini_saat'].apply(ondalik_saat_to_hhmm)
 

@@ -43,34 +43,10 @@ class Ogrenci
     #[ORM\Column(name: 'telefon_numarasi', length: 20, nullable: true)]
     private ?string $telefonNumarasi = null;
 
-    /**
-     * Öğrencinin (çalışıyorsa) iş/çalışma saatinin başlangıcı. Tarihsiz, yalnızca saat
-     * bilgisi tutulur. Bilinmiyorsa veya öğrenci çalışmıyorsa null.
-     */
-    #[ORM\Column(name: 'calisma_saati_baslangic', type: 'time_immutable', nullable: true)]
-    private ?\DateTimeImmutable $calismaSaatiBaslangic = null;
-
-    /**
-     * Öğrencinin (çalışıyorsa) iş/çalışma saatinin bitişi. Tarihsiz, yalnızca saat
-     * bilgisi tutulur. Bilinmiyorsa veya öğrenci çalışmıyorsa null.
-     */
-    #[ORM\Column(name: 'calisma_saati_bitis', type: 'time_immutable', nullable: true)]
-    private ?\DateTimeImmutable $calismaSaatiBitis = null;
-
-    /**
-     * Öğrencinin bakmakla yükümlü olduğu biri (aile sorumluluğu) olup olmadığı.
-     * Bilinmiyorsa null.
-     */
-    #[ORM\Column(name: 'aile_sorumlulugu', nullable: true)]
-    private ?bool $aileSorumlulugu = null;
-
     public function __construct(
         int $ogrenciNo,
         Cinsiyet $cinsiyet,
         \DateTimeImmutable $dogumTarihi,
-        ?\DateTimeImmutable $calismaSaatiBaslangic = null,
-        ?\DateTimeImmutable $calismaSaatiBitis = null,
-        ?bool $aileSorumlulugu = null,
         ?string $ad = null,
         ?string $soyad = null,
         ?string $telefonNumarasi = null,
@@ -78,9 +54,6 @@ class Ogrenci
         $this->ogrenciNo = $ogrenciNo;
         $this->cinsiyet = $cinsiyet;
         $this->dogumTarihi = $dogumTarihi;
-        $this->calismaSaatiBaslangic = $calismaSaatiBaslangic;
-        $this->calismaSaatiBitis = $calismaSaatiBitis;
-        $this->aileSorumlulugu = $aileSorumlulugu;
         $this->ad = $ad;
         $this->soyad = $soyad;
         $this->telefonNumarasi = $telefonNumarasi;
@@ -115,6 +88,12 @@ class Ogrenci
         return $this;
     }
 
+    /** Doğum tarihinden hesaplanan güncel yaş (tam yıl). */
+    public function getYas(): int
+    {
+        return $this->dogumTarihi->diff(new \DateTimeImmutable())->y;
+    }
+
     public function getAd(): ?string
     {
         return $this->ad;
@@ -147,42 +126,6 @@ class Ogrenci
     public function setTelefonNumarasi(?string $telefonNumarasi): static
     {
         $this->telefonNumarasi = $telefonNumarasi;
-
-        return $this;
-    }
-
-    public function getCalismaSaatiBaslangic(): ?\DateTimeImmutable
-    {
-        return $this->calismaSaatiBaslangic;
-    }
-
-    public function setCalismaSaatiBaslangic(?\DateTimeImmutable $calismaSaatiBaslangic): static
-    {
-        $this->calismaSaatiBaslangic = $calismaSaatiBaslangic;
-
-        return $this;
-    }
-
-    public function getCalismaSaatiBitis(): ?\DateTimeImmutable
-    {
-        return $this->calismaSaatiBitis;
-    }
-
-    public function setCalismaSaatiBitis(?\DateTimeImmutable $calismaSaatiBitis): static
-    {
-        $this->calismaSaatiBitis = $calismaSaatiBitis;
-
-        return $this;
-    }
-
-    public function getAileSorumlulugu(): ?bool
-    {
-        return $this->aileSorumlulugu;
-    }
-
-    public function setAileSorumlulugu(?bool $aileSorumlulugu): static
-    {
-        $this->aileSorumlulugu = $aileSorumlulugu;
 
         return $this;
     }
