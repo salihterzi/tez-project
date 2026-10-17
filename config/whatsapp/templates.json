@@ -210,7 +210,7 @@
     ]
   },
   {
-    "name": "m1_acilis_t2_v2_gb",
+    "name": "m1_acilis_t2_v3_gb",
     "language": "tr",
     "category": "MARKETING",
     "components": [
@@ -245,7 +245,7 @@
     ]
   },
   {
-    "name": "m1_acilis_t2_v2_gy",
+    "name": "m1_acilis_t2_v3_gy",
     "language": "tr",
     "category": "MARKETING",
     "components": [
@@ -280,13 +280,13 @@
     ]
   },
   {
-    "name": "m1_acilis_t2_v2_ib",
+    "name": "m1_acilis_t2_v3_ib",
     "language": "tr",
     "category": "MARKETING",
     "components": [
       {
         "type": "BODY",
-        "text": "Merhaba {{1}}, bir süredir hareketlilik tespit edilmedi. Sizi en çok ne zorladığını belirtmeniz yeterlidir.",
+        "text": "Merhaba {{1}}, bir süredir hareketlilik fark edilmedi. Sizi en çok ne zorladığını belirtmeniz yeterlidir.",
         "example": {
           "body_text": [
             [
@@ -315,7 +315,7 @@
     ]
   },
   {
-    "name": "m1_acilis_t2_v2_iy",
+    "name": "m1_acilis_t2_v3_iy",
     "language": "tr",
     "category": "MARKETING",
     "components": [
@@ -350,13 +350,13 @@
     ]
   },
   {
-    "name": "m1_acilis_t2_v2_yb",
+    "name": "m1_acilis_t2_v3_yb",
     "language": "tr",
     "category": "MARKETING",
     "components": [
       {
         "type": "BODY",
-        "text": "Merhaba {{1}}, bir süredir hareketlilik tespit edilmedi. Sizi en çok ne zorladığını belirtmeniz yeterli.",
+        "text": "Merhaba {{1}}, bir süredir hareketlilik fark edilmedi. Sizi en çok ne zorladığını belirtmeniz yeterli.",
         "example": {
           "body_text": [
             [
@@ -385,7 +385,7 @@
     ]
   },
   {
-    "name": "m1_acilis_t2_v2_yy",
+    "name": "m1_acilis_t2_v3_yy",
     "language": "tr",
     "category": "MARKETING",
     "components": [
@@ -420,7 +420,7 @@
     ]
   },
   {
-    "name": "m1_acilis_t3_v2_gb",
+    "name": "m1_acilis_t3_v3_gb",
     "language": "tr",
     "category": "MARKETING",
     "components": [
@@ -455,7 +455,7 @@
     ]
   },
   {
-    "name": "m1_acilis_t3_v2_gy",
+    "name": "m1_acilis_t3_v3_gy",
     "language": "tr",
     "category": "MARKETING",
     "components": [
@@ -490,13 +490,13 @@
     ]
   },
   {
-    "name": "m1_acilis_t3_v2_ib",
+    "name": "m1_acilis_t3_v3_ib",
     "language": "tr",
     "category": "MARKETING",
     "components": [
       {
         "type": "BODY",
-        "text": "Merhaba {{1}}, bu hafta bir tempo düşüşü tespit edildi. Sizi en çok ne zorladığını belirtmeniz yeterlidir.",
+        "text": "Merhaba {{1}}, bu hafta bir tempo düşüşü fark edildi. Sizi en çok ne zorladığını belirtmeniz yeterlidir.",
         "example": {
           "body_text": [
             [
@@ -525,7 +525,7 @@
     ]
   },
   {
-    "name": "m1_acilis_t3_v2_iy",
+    "name": "m1_acilis_t3_v3_iy",
     "language": "tr",
     "category": "MARKETING",
     "components": [
@@ -560,13 +560,13 @@
     ]
   },
   {
-    "name": "m1_acilis_t3_v2_yb",
+    "name": "m1_acilis_t3_v3_yb",
     "language": "tr",
     "category": "MARKETING",
     "components": [
       {
         "type": "BODY",
-        "text": "Merhaba {{1}}, bu hafta bir tempo düşüşü tespit edildi. Sizi en çok ne zorladığını belirtmeniz yeterli.",
+        "text": "Merhaba {{1}}, bu hafta bir tempo düşüşü fark edildi. Sizi en çok ne zorladığını belirtmeniz yeterli.",
         "example": {
           "body_text": [
             [
@@ -595,7 +595,7 @@
     ]
   },
   {
-    "name": "m1_acilis_t3_v2_yy",
+    "name": "m1_acilis_t3_v3_yy",
     "language": "tr",
     "category": "MARKETING",
     "components": [
@@ -630,7 +630,7 @@
     ]
   },
   {
-    "name": "m1_acilis_t4_v2_gb",
+    "name": "m1_acilis_t4_v3_gb",
     "language": "tr",
     "category": "MARKETING",
     "components": [
@@ -665,7 +665,7 @@
     ]
   },
   {
-    "name": "m1_acilis_t4_v2_gy",
+    "name": "m1_acilis_t4_v3_gy",
     "language": "tr",
     "category": "MARKETING",
     "components": [
@@ -700,13 +700,13 @@
     ]
   },
   {
-    "name": "m1_acilis_t4_v2_ib",
+    "name": "m1_acilis_t4_v3_ib",
     "language": "tr",
     "category": "MARKETING",
     "components": [
       {
         "type": "BODY",
-        "text": "Merhaba {{1}}, genel ilerlemenizde bir yavaşlama tespit edildi. Sizi en çok ne zorladığını belirtmeniz yeterlidir.",
+        "text": "Merhaba {{1}}, genel ilerlemenizde bir yavaşlama fark edildi. Sizi en çok ne zorladığını belirtmeniz yeterlidir.",
         "example": {
           "body_text": [
             [
@@ -735,7 +735,7 @@
     ]
   },
   {
-    "name": "m1_acilis_t4_v2_iy",
+    "name": "m1_acilis_t4_v3_iy",
     "language": "tr",
     "category": "MARKETING",
     "components": [
@@ -770,13 +770,13 @@
     ]
   },
   {
-    "name": "m1_acilis_t4_v2_yb",
+    "name": "m1_acilis_t4_v3_yb",
     "language": "tr",
     "category": "MARKETING",
     "components": [
       {
         "type": "BODY",
-        "text": "Merhaba {{1}}, genel ilerlemenizde bir yavaşlama tespit edildi. Sizi en çok ne zorladığını belirtmeniz yeterli.",
+        "text": "Merhaba {{1}}, genel ilerlemenizde bir yavaşlama fark edildi. Sizi en çok ne zorladığını belirtmeniz yeterli.",
         "example": {
           "body_text": [
             [
@@ -805,7 +805,7 @@
     ]
   },
   {
-    "name": "m1_acilis_t4_v2_yy",
+    "name": "m1_acilis_t4_v3_yy",
     "language": "tr",
     "category": "MARKETING",
     "components": [
@@ -2250,7 +2250,7 @@
     ]
   },
   {
-    "name": "tetikleyici_t2_normal_v3_v2_gb",
+    "name": "tetikleyici_t2_normal_v3_v3_gb",
     "language": "tr",
     "category": "MARKETING",
     "components": [
@@ -2285,7 +2285,7 @@
     ]
   },
   {
-    "name": "tetikleyici_t2_normal_v3_v2_gy",
+    "name": "tetikleyici_t2_normal_v3_v3_gy",
     "language": "tr",
     "category": "MARKETING",
     "components": [
@@ -2320,13 +2320,13 @@
     ]
   },
   {
-    "name": "tetikleyici_t2_normal_v3_v2_ib",
+    "name": "tetikleyici_t2_normal_v3_v3_ib",
     "language": "tr",
     "category": "MARKETING",
     "components": [
       {
         "type": "BODY",
-        "text": "Merhaba {{1}}, derslerinizde hareketsizlik tespit edildi. Sizi en çok ne zorladığını belirtmeniz yeterlidir.",
+        "text": "Merhaba {{1}}, derslerinizde hareketsizlik fark edildi. Sizi en çok ne zorladığını belirtmeniz yeterlidir.",
         "example": {
           "body_text": [
             [
@@ -2355,7 +2355,7 @@
     ]
   },
   {
-    "name": "tetikleyici_t2_normal_v3_v2_iy",
+    "name": "tetikleyici_t2_normal_v3_v3_iy",
     "language": "tr",
     "category": "MARKETING",
     "components": [
@@ -2390,13 +2390,13 @@
     ]
   },
   {
-    "name": "tetikleyici_t2_normal_v3_v2_yb",
+    "name": "tetikleyici_t2_normal_v3_v3_yb",
     "language": "tr",
     "category": "MARKETING",
     "components": [
       {
         "type": "BODY",
-        "text": "Merhaba {{1}}, derslerinizde hareketsizlik tespit edildi. Sizi en çok ne zorladığını belirtmeniz yeterli.",
+        "text": "Merhaba {{1}}, derslerinizde hareketsizlik fark edildi. Sizi en çok ne zorladığını belirtmeniz yeterli.",
         "example": {
           "body_text": [
             [
@@ -2425,7 +2425,7 @@
     ]
   },
   {
-    "name": "tetikleyici_t2_normal_v3_v2_yy",
+    "name": "tetikleyici_t2_normal_v3_v3_yy",
     "language": "tr",
     "category": "MARKETING",
     "components": [
@@ -3270,7 +3270,7 @@
     ]
   },
   {
-    "name": "tetikleyici_t3_normal_v2_v2_gb",
+    "name": "tetikleyici_t3_normal_v2_v3_gb",
     "language": "tr",
     "category": "MARKETING",
     "components": [
@@ -3305,7 +3305,7 @@
     ]
   },
   {
-    "name": "tetikleyici_t3_normal_v2_v2_gy",
+    "name": "tetikleyici_t3_normal_v2_v3_gy",
     "language": "tr",
     "category": "MARKETING",
     "components": [
@@ -3340,13 +3340,13 @@
     ]
   },
   {
-    "name": "tetikleyici_t3_normal_v2_v2_ib",
+    "name": "tetikleyici_t3_normal_v2_v3_ib",
     "language": "tr",
     "category": "MARKETING",
     "components": [
       {
         "type": "BODY",
-        "text": "Merhaba {{1}}, bu hafta daha az hareketlilik gözlendi. Durumunuzu belirtmeniz yeterlidir.",
+        "text": "Merhaba {{1}}, bu hafta daha az hareketlilik fark edildi. Durumunuzu belirtmeniz yeterlidir.",
         "example": {
           "body_text": [
             [
@@ -3375,77 +3375,7 @@
     ]
   },
   {
-    "name": "tetikleyici_t3_normal_v2_v2_iy",
-    "language": "tr",
-    "category": "MARKETING",
-    "components": [
-      {
-        "type": "BODY",
-        "text": "Merhaba {{1}}, bu hafta biraz daha sakin geçti. Her şey yolunda mı, paylaşmak ister misiniz?",
-        "example": {
-          "body_text": [
-            [
-              "Ahmet Yılmaz"
-            ]
-          ]
-        }
-      },
-      {
-        "type": "BUTTONS",
-        "buttons": [
-          {
-            "type": "QUICK_REPLY",
-            "text": "İyi, devam ediyorum"
-          },
-          {
-            "type": "QUICK_REPLY",
-            "text": "Yoğunum"
-          },
-          {
-            "type": "QUICK_REPLY",
-            "text": "Destek lazım"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "name": "tetikleyici_t3_normal_v2_v2_yb",
-    "language": "tr",
-    "category": "MARKETING",
-    "components": [
-      {
-        "type": "BODY",
-        "text": "Merhaba {{1}}, bu hafta daha az hareketlilik gözlendi. Durumunuzu belirtmeniz yeterli.",
-        "example": {
-          "body_text": [
-            [
-              "Ahmet Yılmaz"
-            ]
-          ]
-        }
-      },
-      {
-        "type": "BUTTONS",
-        "buttons": [
-          {
-            "type": "QUICK_REPLY",
-            "text": "İyi, devam ediyorum"
-          },
-          {
-            "type": "QUICK_REPLY",
-            "text": "Yoğunum"
-          },
-          {
-            "type": "QUICK_REPLY",
-            "text": "Destek lazım"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "name": "tetikleyici_t3_normal_v2_v2_yy",
+    "name": "tetikleyici_t3_normal_v2_v3_iy",
     "language": "tr",
     "category": "MARKETING",
     "components": [
@@ -3480,7 +3410,77 @@
     ]
   },
   {
-    "name": "tetikleyici_t3_normal_v3_v2_gb",
+    "name": "tetikleyici_t3_normal_v2_v3_yb",
+    "language": "tr",
+    "category": "MARKETING",
+    "components": [
+      {
+        "type": "BODY",
+        "text": "Merhaba {{1}}, bu hafta daha az hareketlilik fark edildi. Durumunuzu belirtmeniz yeterli.",
+        "example": {
+          "body_text": [
+            [
+              "Ahmet Yılmaz"
+            ]
+          ]
+        }
+      },
+      {
+        "type": "BUTTONS",
+        "buttons": [
+          {
+            "type": "QUICK_REPLY",
+            "text": "İyi, devam ediyorum"
+          },
+          {
+            "type": "QUICK_REPLY",
+            "text": "Yoğunum"
+          },
+          {
+            "type": "QUICK_REPLY",
+            "text": "Destek lazım"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "tetikleyici_t3_normal_v2_v3_yy",
+    "language": "tr",
+    "category": "MARKETING",
+    "components": [
+      {
+        "type": "BODY",
+        "text": "Merhaba {{1}}, bu hafta biraz daha sakin geçti. Her şey yolunda mı, paylaşmak ister misiniz?",
+        "example": {
+          "body_text": [
+            [
+              "Ahmet Yılmaz"
+            ]
+          ]
+        }
+      },
+      {
+        "type": "BUTTONS",
+        "buttons": [
+          {
+            "type": "QUICK_REPLY",
+            "text": "İyi, devam ediyorum"
+          },
+          {
+            "type": "QUICK_REPLY",
+            "text": "Yoğunum"
+          },
+          {
+            "type": "QUICK_REPLY",
+            "text": "Destek lazım"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "tetikleyici_t3_normal_v3_v3_gb",
     "language": "tr",
     "category": "MARKETING",
     "components": [
@@ -3515,7 +3515,7 @@
     ]
   },
   {
-    "name": "tetikleyici_t3_normal_v3_v2_gy",
+    "name": "tetikleyici_t3_normal_v3_v3_gy",
     "language": "tr",
     "category": "MARKETING",
     "components": [
@@ -3550,13 +3550,13 @@
     ]
   },
   {
-    "name": "tetikleyici_t3_normal_v3_v2_ib",
+    "name": "tetikleyici_t3_normal_v3_v3_ib",
     "language": "tr",
     "category": "MARKETING",
     "components": [
       {
         "type": "BODY",
-        "text": "Merhaba {{1}}, geçen haftaya kıyasla bir yavaşlama tespit edildi. Durumunuzu belirtmeniz yeterlidir.",
+        "text": "Merhaba {{1}}, geçen haftaya kıyasla bir yavaşlama fark edildi. Durumunuzu belirtmeniz yeterlidir.",
         "example": {
           "body_text": [
             [
@@ -3585,13 +3585,13 @@
     ]
   },
   {
-    "name": "tetikleyici_t3_normal_v3_v2_iy",
+    "name": "tetikleyici_t3_normal_v3_v3_iy",
     "language": "tr",
     "category": "MARKETING",
     "components": [
       {
         "type": "BODY",
-        "text": "Merhaba {{1}}, geçen haftaya göre bir miktar yavaşlama gözlendi, bu gayet doğal olabilir. Nasıl gidiyor, paylaşmak ister misiniz?",
+        "text": "Merhaba {{1}}, geçen haftaya göre bir miktar yavaşlama fark edildi, bu gayet doğal olabilir. Nasıl gidiyor, paylaşmak ister misiniz?",
         "example": {
           "body_text": [
             [
@@ -3620,13 +3620,13 @@
     ]
   },
   {
-    "name": "tetikleyici_t3_normal_v3_v2_yb",
+    "name": "tetikleyici_t3_normal_v3_v3_yb",
     "language": "tr",
     "category": "MARKETING",
     "components": [
       {
         "type": "BODY",
-        "text": "Merhaba {{1}}, geçen haftaya kıyasla bir yavaşlama tespit edildi. Durumunuzu belirtmeniz yeterli.",
+        "text": "Merhaba {{1}}, geçen haftaya kıyasla bir yavaşlama fark edildi. Durumunuzu belirtmeniz yeterli.",
         "example": {
           "body_text": [
             [
@@ -3655,13 +3655,13 @@
     ]
   },
   {
-    "name": "tetikleyici_t3_normal_v3_v2_yy",
+    "name": "tetikleyici_t3_normal_v3_v3_yy",
     "language": "tr",
     "category": "MARKETING",
     "components": [
       {
         "type": "BODY",
-        "text": "Merhaba {{1}}, geçen haftaya göre bir miktar yavaşlama gözlendi. Nasıl gidiyor, paylaşmak ister misiniz?",
+        "text": "Merhaba {{1}}, geçen haftaya göre bir miktar yavaşlama fark edildi. Nasıl gidiyor, paylaşmak ister misiniz?",
         "example": {
           "body_text": [
             [
@@ -3690,7 +3690,7 @@
     ]
   },
   {
-    "name": "tetikleyici_t3_sinav_oncesi_v1_v2_gb",
+    "name": "tetikleyici_t3_sinav_oncesi_v1_v3_gb",
     "language": "tr",
     "category": "MARKETING",
     "components": [
@@ -3721,7 +3721,7 @@
     ]
   },
   {
-    "name": "tetikleyici_t3_sinav_oncesi_v1_v2_gy",
+    "name": "tetikleyici_t3_sinav_oncesi_v1_v3_gy",
     "language": "tr",
     "category": "MARKETING",
     "components": [
@@ -3752,13 +3752,13 @@
     ]
   },
   {
-    "name": "tetikleyici_t3_sinav_oncesi_v1_v2_ib",
+    "name": "tetikleyici_t3_sinav_oncesi_v1_v3_ib",
     "language": "tr",
     "category": "MARKETING",
     "components": [
       {
         "type": "BODY",
-        "text": "Merhaba {{1}}, bu hafta tempo değişikliği tespit edildi. Materyallere göz atmak ister misiniz?",
+        "text": "Merhaba {{1}}, bu hafta tempo değişikliği fark edildi. Materyallere göz atmak ister misiniz?",
         "example": {
           "body_text": [
             [
@@ -3783,13 +3783,13 @@
     ]
   },
   {
-    "name": "tetikleyici_t3_sinav_oncesi_v1_v2_iy",
+    "name": "tetikleyici_t3_sinav_oncesi_v1_v3_iy",
     "language": "tr",
     "category": "MARKETING",
     "components": [
       {
         "type": "BODY",
-        "text": "Merhaba {{1}}, bu hafta temponuzda bir değişiklik gözlendi, muhtemelen sınav hazırlığındasınızdır. Materyallere göz atmak ister misiniz?",
+        "text": "Merhaba {{1}}, bu hafta temponuzda bir değişiklik fark edildi, muhtemelen sınav hazırlığındasınızdır. Materyallere göz atmak ister misiniz?",
         "example": {
           "body_text": [
             [
@@ -3814,13 +3814,13 @@
     ]
   },
   {
-    "name": "tetikleyici_t3_sinav_oncesi_v1_v2_yb",
+    "name": "tetikleyici_t3_sinav_oncesi_v1_v3_yb",
     "language": "tr",
     "category": "MARKETING",
     "components": [
       {
         "type": "BODY",
-        "text": "Merhaba {{1}}, bu hafta tempo değişikliği tespit edildi. Materyallere göz atmak ister misiniz?",
+        "text": "Merhaba {{1}}, bu hafta tempo değişikliği fark edildi. Materyallere göz atmak ister misiniz?",
         "example": {
           "body_text": [
             [
@@ -3845,13 +3845,13 @@
     ]
   },
   {
-    "name": "tetikleyici_t3_sinav_oncesi_v1_v2_yy",
+    "name": "tetikleyici_t3_sinav_oncesi_v1_v3_yy",
     "language": "tr",
     "category": "MARKETING",
     "components": [
       {
         "type": "BODY",
-        "text": "Merhaba {{1}}, bu hafta temponuzda bir değişiklik gözlendi, muhtemelen sınav hazırlığındasınızdır. Materyallere göz atmak ister misiniz?",
+        "text": "Merhaba {{1}}, bu hafta temponuzda bir değişiklik fark edildi, muhtemelen sınav hazırlığındasınızdır. Materyallere göz atmak ister misiniz?",
         "example": {
           "body_text": [
             [
@@ -4278,7 +4278,7 @@
     ]
   },
   {
-    "name": "tetikleyici_t4_normal_v1_v2_gb",
+    "name": "tetikleyici_t4_normal_v1_v3_gb",
     "language": "tr",
     "category": "MARKETING",
     "components": [
@@ -4309,7 +4309,7 @@
     ]
   },
   {
-    "name": "tetikleyici_t4_normal_v1_v2_gy",
+    "name": "tetikleyici_t4_normal_v1_v3_gy",
     "language": "tr",
     "category": "MARKETING",
     "components": [
@@ -4340,13 +4340,13 @@
     ]
   },
   {
-    "name": "tetikleyici_t4_normal_v1_v2_ib",
+    "name": "tetikleyici_t4_normal_v1_v3_ib",
     "language": "tr",
     "category": "MARKETING",
     "components": [
       {
         "type": "BODY",
-        "text": "Merhaba {{1}}, öğrenme materyalleriyle diğer öğrencilere kıyasla daha az etkileşimde bulunduğunuz tespit edildi. E-kampüs'e girmek isteyip istemediğinizi belirtmeniz yeterlidir.",
+        "text": "Merhaba {{1}}, öğrenme materyalleriyle diğer öğrencilere kıyasla daha az etkileşimde bulunduğunuz fark edildi. E-kampüs'e girmek isteyip istemediğinizi belirtmeniz yeterlidir.",
         "example": {
           "body_text": [
             [
@@ -4371,7 +4371,7 @@
     ]
   },
   {
-    "name": "tetikleyici_t4_normal_v1_v2_iy",
+    "name": "tetikleyici_t4_normal_v1_v3_iy",
     "language": "tr",
     "category": "MARKETING",
     "components": [
@@ -4402,13 +4402,13 @@
     ]
   },
   {
-    "name": "tetikleyici_t4_normal_v1_v2_yb",
+    "name": "tetikleyici_t4_normal_v1_v3_yb",
     "language": "tr",
     "category": "MARKETING",
     "components": [
       {
         "type": "BODY",
-        "text": "Merhaba {{1}}, öğrenme materyalleriyle diğer öğrencilere kıyasla daha az etkileşimde bulunduğunuz tespit edildi. E-kampüs'e girmek isteyip istemediğinizi belirtmeniz yeterli.",
+        "text": "Merhaba {{1}}, öğrenme materyalleriyle diğer öğrencilere kıyasla daha az etkileşimde bulunduğunuz fark edildi. E-kampüs'e girmek isteyip istemediğinizi belirtmeniz yeterli.",
         "example": {
           "body_text": [
             [
@@ -4433,7 +4433,7 @@
     ]
   },
   {
-    "name": "tetikleyici_t4_normal_v1_v2_yy",
+    "name": "tetikleyici_t4_normal_v1_v3_yy",
     "language": "tr",
     "category": "MARKETING",
     "components": [

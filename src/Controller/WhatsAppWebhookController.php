@@ -4,10 +4,13 @@ namespace App\Controller;
 
 use App\Conversation\ConversationPrompt;
 use App\Entity\ConversationMessage;
+use App\Entity\Ogrenci;
+use App\Entity\StudentProfile;
 use App\Repository\OgrenciRepository;
 use App\Repository\SentMessageLogRepository;
 use App\Repository\StudentProfileRepository;
 use App\Service\ConversationManager;
+use App\Service\EngagementFlowMessages;
 use App\Service\MessageGeneratorService;
 use App\Service\PersonaResolver;
 use App\Service\WebhookYanitRouter;
@@ -281,6 +284,18 @@ class WhatsAppWebhookController extends AbstractController
         }
 
         if (null === $profil->getPendingFlowStep()) {
+            // 2026-10-16 (kullanıcı kararı): "mesaj göndermeyin" artık otomatik geri dönmüyor
+            // (bkz. EngagementFlowService::SESSIZLIK_SURESIZ_GUN) -- öğrencinin kendi isteğiyle
+            // geri dönebilmesi için, bekleyen akışı yokken VE hâlâ susturulmuşken "Merhaba"
+            // yazması, 7/14 günlük kısa süreli "ara ver"lerde de süresi dolmadan geri dönmek
+            // için aynı şekilde çalışır (silence_until kaynağından bağımsız, tek mekanizma).
+            if ($this->isReactivationMessage($text) && null !== $profil->getSilenceUntil()
+                && $profil->getSilenceUntil() > $simdi) {
+                $this->susturulmusOgrenciyiYenidenEtkinlestir($profil, $ogrenci, $from);
+
+                return;
+            }
+
             $this->logger->info('Karar ağacı: öğrenci için bekleyen bir senaryo yok, yanıt yoksayıldı.', [
                 'ogrenciNo' => $ogrenci->getOgrenciNo(),
                 'metin' => $text,
@@ -351,6 +366,64 @@ class WhatsAppWebhookController extends AbstractController
             'yeniAdim' => $sonuc->nextStep?->value,
             'siradakiMesaj' => $sonuc->message,
             'mantiksalNokta' => $sablonAdi,
+            'wamid' => $wamid,
+        ]);
+    }
+
+    /** Susturulmuş bir öğrencinin mesajları kendi isteğiyle yeniden başlatmak için yazması gereken kelime. */
+    private const string YENIDEN_ETKINLESTIRME_KELIMESI = 'merhaba';
+
+    /**
+     * Gelen metin (baştaki/sondaki boşluk ve yaygın noktalama işaretleri atılıp küçük harfe
+     * çevrilerek) tam olarak {@see self::YENIDEN_ETKINLESTIRME_KELIMESI}'ye eşitse true döner.
+     * Gerçek bir buton tıklaması değil, öğrencinin serbestçe yazdığı bir metin olduğu için
+     * (enum'lardaki `fromButonMetni()` metotlarının aksine) kasıtlı olarak esnek eşleşiyor.
+     */
+    private function isReactivationMessage(string $text): bool
+    {
+        return self::YENIDEN_ETKINLESTIRME_KELIMESI === mb_strtolower(trim($text, " \t\n\r\0\x0B!.?"));
+    }
+
+    /**
+     * Susturulmuş (silence_until gelecekte) bir öğrenci, bekleyen akışı yokken "Merhaba"
+     * yazarsa mesajları kendi isteğiyle yeniden başlatır (2026-10-16, kullanıcı kararı --
+     * "mesaj göndermeyin" artık otomatik geri dönmüyor, bu dal onun karşılığı). Önce gönder
+     * sonra kaydet kuralı burada da geçerli: onay mesajı başarıyla gönderilmeden
+     * `silence_until` temizlenmez. `current_state` elle `AKTİF`'e çekilmiyor -- her gece
+     * `belirleDurum()` zaten sıfırdan hesaplıyor, `silence_until` temizlenince FSM kendi
+     * akışında doğru durumu bulur.
+     */
+    private function susturulmusOgrenciyiYenidenEtkinlestir(StudentProfile $profil, Ogrenci $ogrenci, string $from): void
+    {
+        $persona = $this->personaResolver->resolve($ogrenci);
+        $mesaj = EngagementFlowMessages::yenidenEtkinlesti($persona);
+
+        try {
+            $waResponse = $this->whatsAppClient->sendTextMessage($from, $mesaj);
+        } catch (\Throwable $e) {
+            $this->logger->error('Karar ağacı: yeniden etkinleştirme mesajı gönderimi başarısız (istisna) -- silence_until temizlenmedi.', [
+                'exception' => $e,
+                'ogrenciNo' => $ogrenci->getOgrenciNo(),
+            ]);
+
+            return;
+        }
+
+        $wamid = $waResponse['messages'][0]['id'] ?? null;
+        if (null === $wamid) {
+            $this->logger->error('Karar ağacı: yeniden etkinleştirme mesajı gönderimi başarısız (beklenmeyen WhatsApp yanıtı) -- silence_until temizlenmedi.', [
+                'ogrenciNo' => $ogrenci->getOgrenciNo(),
+                'whatsappYaniti' => $waResponse,
+            ]);
+
+            return;
+        }
+
+        $profil->setSilenceUntil(null);
+        $this->studentProfileRepository->getEntityManager()->flush();
+
+        $this->logger->info('Karar ağacı: öğrenci "Merhaba" yazarak susturmayı kendi isteğiyle sonlandırdı.', [
+            'ogrenciNo' => $ogrenci->getOgrenciNo(),
             'wamid' => $wamid,
         ]);
     }

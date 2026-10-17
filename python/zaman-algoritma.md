@@ -117,6 +117,88 @@ Ara Sınav Öncesi / Final Öncesi) `tahmini_saat_hhmm`'i doğrudan PHP tarafın
 kararı). `student_profile` satırı yoksa varsayılan bir profille (current_state=
 YENİ) birlikte oluşturulur; satır zaten varsa yalnızca bu üç kolon güncellenir.
 
+### 2.6 Hassasiyet harmanı — önceki dönem önseli (2026-10-16, kullanıcı kararı)
+
+Bölüm 2.2'deki Seçenek A/B kararı, gün modelinin Seçenek C'sinin (bkz. §3.2)
+bir eşdeğerine sahip DEĞİLDİ — `yontem='secenek_a_fallback'` çıkan bir
+öğrenci-faz, önceki dönemde o öğrenci için güçlü bir bireysel sinyal olsa bile
+hiç kullanmıyordu. Bu, sürekli/dairesel regresyona özgü bir **hassasiyet
+harmanı** ile dolduruldu:
+
+```
+λ_önceki = n_önceki / (n_önceki + w)
+kalan_belirsizlik = τ²(faz)·(1 − λ_önceki) + Q
+precision_önceki = 1 / kalan_belirsizlik
+n₀ = σ² · precision_önceki
+ağırlık_mevcut(n) = n / (n + n₀)
+tahmin = ağırlık_mevcut·tahmin_mevcut + (1 − ağırlık_mevcut)·tahmin_önceki   (sin/cos ayrı ayrı)
+```
+
+- **`Q` (dönem geçişi belirsizliği):** öğrencinin GERÇEK tercihinin (iş durumu,
+  ders programı değişebilir) dönemler arası ne kadar kayabileceği — sınırsız
+  geçmiş veri sınırsız güvene dönüşmesin diye `n₀`'a bir TAVAN (`n₀ₘₐₓ=σ²/Q`)
+  koyar. Kodda `Q = τ²(faz)·Q_ORANI` olarak tutuluyor (sin/cos ve faz başına
+  otomatik ölçeklensin diye) — **`Q_ORANI` henüz AMPİRİK türetilmedi**, şu an
+  `1/3` örnek/placeholder değeri (bkz. §2.7).
+- **Her zaman çalışır, sadece eşik altındayken değil** — n_mevcut=0 dahil her
+  durumda devreye girer; ağırlık formülü n_mevcut büyüdükçe önceki dönemin
+  etkisini kendiliğinden söndürür, kademesiz/sürekli bir geçiş (gün modelinin
+  sert n=9→10 eşiğinin aksine).
+- **`yöntem` etiketi:** `n_mevcut≥MIN_FAZ_GOZLEM_ESIGI` VEYA önceki dönemde
+  gerçek bireysel sonuç varsa `secenek_b_bireysel`; aksi halde
+  `secenek_a_fallback`. İki eşik de DEĞİŞMİYOR, sadece VEYA ile birleşiyor.
+- **Önsel kaynağı DB'dir** — gün modelindeki `gun_tahmini_gecmisi` ile BİREBİR
+  aynı desen: `saat_tahmini_gecmisi` tablosu, öğrenci × (yıl, dönem) × FAZ
+  bazında geçmiş TÜM sonuçları (+ gün modelinden farklı olarak `n_gözlem`'i de,
+  λ_önceki için gerekli) biriktirir. **Doctrine şemasının parçası DEĞİL** —
+  PHP hiç okumuyor/yazmıyor, Python kendi şemasını kendi yönetir (`CREATE
+  TABLE IF NOT EXISTS`), ayrı bir migration gerekmez. `main()` her
+  çalıştığında: eksik geçmiş dönemleri geriye dönük hesaplayıp yazar, kişi
+  bazlı en son önseli (aradaki boş dönem fark etmeksizin, gün modeliyle aynı
+  kural) okur, aktif dönemin sonucunu da hesaplanır hesaplanmaz aynı tabloya
+  ekler.
+- **İlk dönem öğrencisi:** önceki dönem diye bir şey olmadığından harman hiç
+  devreye girmez, bugünküyle (2.2) birebir aynı Seçenek A/B akışı çalışır.
+
+### 2.7 `Q_ORANI`'yı ampirik türetme (henüz yapılamıyor — ikinci dönem gerekiyor)
+
+`MIN_FAZ_GOZLEM_ESIGI`/`GUN_MIN_FAZ_GOZLEM_ESIGI` gibi, `Q_ORANI` da keyfi
+kalmamalı — ama `Q`, DÖNEMLER ARASI bir büyüklük olduğu için türetilmesi en az
+**1 tamamlanmış dönem geçişi** gerektiriyor (DB'de şu an 2024/2 bahar dışında
+dönem olmadığı için 0 geçiş var). İkinci gerçek dönem verisi geldiğinde:
+
+1. **Takvim kaydını ekle** — `mesaj_zamanlamasi_pipeline-v2.py:TAKVIM_KAYITLARI`'na
+   yeni `(yil, donem) -> DonemTakvimi` girdisi (yorum satırı zaten bunu
+   hatırlatıyor).
+2. **Saat modelini yeni dönem için çalıştır** (varsayılan `main()` hâlâ
+   2024/2'yi hedeflediği için elle dönem vermek gerekiyor):
+   ```bash
+   docker compose exec python python -c "
+   import mesaj_zamanlamasi_hibrit as m
+   m.main(yil=2025, donem=1)
+   "
+   ```
+   Bu, eksik geçmiş dönemleri `saat_tahmini_gecmisi`'ye geriye dönük yazar VE
+   yeni dönemin kendi sonucunu da oraya ekler — 3. adımın ihtiyaç duyduğu her
+   şeyi hazırlar.
+3. **`_sim_q_esik.py`'de `AKTIF_DONEM = (2025, 1)` doldur**, çalıştır:
+   ```bash
+   docker compose exec python python _sim_q_esik.py
+   ```
+   Bu, veri-zengin (n≥40) öğrencilerin AKTIF_DONEM'deki tüm verisinden
+   "gerçek" saati çıkarır, önceki dönemin bilinen sonucuyla aday `Q_ORANI`ları
+   (0, 1/10, 1/5, 1/3, 1/2, 1, 2) × aday `n`'lerde (alt-örnekleme, 50 tekrar)
+   dener, her FAZ için ortalama dairesel hatayı en düşük yapan `Q_ORANI`'yı
+   raporlar.
+4. **Sonucu `mesaj_zamanlamasi_hibrit.py`'deki `Q_ORANI` sabitine yaz**,
+   üstündeki "henüz ampirik türetilmedi" notunu kaldır.
+5. **(Önerilir) Üçüncü dönem gelince tekrarla** — `AKTIF_DONEM`'i bir sonraki
+   dönemle değiştirip aynı scripti tekrar çalıştır; iki geçişten çıkan
+   `Q_ORANI` birbirine yakınsa sabit kararlı (bu projenin "tek okumaya
+   güvenme" prensibiyle aynı gerekçe, bkz. §3.3/§2.3).
+
+> Türetme scripti: `_sim_q_esik.py` (bkz. §7).
+
 ---
 
 ## 3. Gün algoritması (`mesaj_zamanlamasi_gun_hibrit.py`)
@@ -222,12 +304,18 @@ CSV'ye YAZILMAZ — `student_profile_gozlem_gunlerini_yaz()`, UZUN formattaki
 ```json
 {"Normal": ["Pazartesi", "Çarşamba", "Cuma"], "Ara_Sinav_Oncesi": ["Salı", "Perşembe"], "Final_Oncesi": ["Pazar"]}
 ```
-Not: `main(onceki_donem_csv=...)` parametresi (Seçenek C, §3.2) hâlâ bir CSV
-DOSYASI okur — bu, kendi OKUDUĞU girdi kaynağı, öğrencinin bir önceki dönemin
-kendi çıktısından beslenmesi; yukarıdaki DB'ye YAZMA değişikliğiyle ilgisi
-yok. DB'de şu an tek dönem olduğu için bugün kullanılmıyor; ileride yeni bir
-dönem eklendiğinde bu önsel mekanizmanın kaynağının (CSV mi, DB'de saklanan
-önceki `observed_days` mi) yeniden değerlendirilmesi gerekebilir.
+**Not (güncellendi — artık CSV DEĞİL, DB):** Seçenek C'nin (§3.2) önsel
+kaynağı `gun_tahmini_gecmisi` tablosudur — öğrenci × (yıl, dönem) × FAZ
+bazında geçmiş TÜM sonuçları biriktiren, Python'un `CREATE TABLE IF NOT
+EXISTS` ile kendi yönettiği (Doctrine'in parçası olmayan, PHP'nin hiç
+dokunmadığı) bir tablo. `main(yil=2024, donem=2)` her çalıştığında: aktif
+dönem dışındaki, veri tabanında görülen ama bu tabloda kaydı olmayan her
+dönemi otomatik geriye dönük hesaplayıp yazar (`gecmis_donemleri_hesapla_ve_yaz()`),
+kişi bazlı en son önseli (sırf bir önceki dönem değil, bireysel sinyalin
+kanıtlandığı EN SON dönem) oradan okur (`kisi_bazli_son_onselleri_getir()`),
+ve aktif dönemin sonucunu da hesaplanır hesaplanmaz aynı tabloya ekler
+(`gecmis_donemi_yaz()`) — ayrı bir elle-CSV-snapshot-alma adımına gerek yok.
+Saat modeli de (§2.6) aynı deseni `saat_tahmini_gecmisi` ile taklit ediyor.
 
 ---
 
@@ -261,23 +349,28 @@ ayrı bir CSV `merge` scriptine ihtiyaç kalmadı.
 ```bash
 docker compose up -d python
 
-# Saat tahmini
+# Saat tahmini (aktif dönem varsayılan 2024/2; hassasiyet harmanı + geçmiş
+# dönem taraması otomatik çalışır, bkz. §2.6)
 docker compose exec python python mesaj_zamanlamasi_hibrit.py
 
-# Gün tahmini
+# Gün tahmini (aktif dönem varsayılan 2024/2; Seçenek C + geçmiş dönem
+# taraması otomatik çalışır, bkz. §3.5)
 docker compose exec python python mesaj_zamanlamasi_gun_hibrit.py
 
-# Gün tahmini + Seçenek C (opsiyonel: önceki dönemin gün çıktısını AYRICA bir
-# CSV'ye kaydetmiş olman gerekir -- artık otomatik üretilmiyor, bkz. §3.5 notu)
+# İkinci bir dönem eklendiğinde: aktif dönemi elle belirtmek için (ikisi de
+# aynı imza, varsayılan main(yil=2024, donem=2))
 docker compose exec python python -c "
-import mesaj_zamanlamasi_gun_hibrit as m
-m.main(onceki_donem_csv='onceki_donem_gun_tahminleri.csv')
+import mesaj_zamanlamasi_hibrit as m
+m.main(yil=2025, donem=1)
 "
 ```
 
-`onceki_donem_csv` verilmezse (varsayılan `None`), Seçenek C hiç tetiklenmez
-— DB'de şu an tek dönem (2024/2 bahar) olduğu için bugün bu parametre
-kullanılmıyor; yeni bir dönem eklendiğinde devreye girecek.
+Seçenek C / hassasiyet harmanı için ayrıca elle bir CSV hazırlamana gerek
+YOK — her iki script de kendi geçmiş dönem tablosunu (`gun_tahmini_gecmisi` /
+`saat_tahmini_gecmisi`) otomatik dolduruyor ve okuyor (bkz. §2.6/§3.5).
+DB'de şu an tek dönem (2024/2 bahar) olduğu için bu önsel mekanizmaları
+pratikte henüz tetiklenmiyor; ikinci dönem eklendiğinde kendiliğinden
+devreye girecek.
 
 ---
 
@@ -288,6 +381,9 @@ kullanılmıyor; yeni bir dönem eklendiğinde devreye girecek.
 - `_sim_gun_esik.py` — gün modelinin `GUN_MIN_FAZ_GOZLEM_ESIGI=10`'unu
   ampirik alt-örneklemeyle türetir, popülasyon baseline/crossover analizini
   içerir.
+- `_sim_q_esik.py` — hassasiyet harmanının `Q_ORANI`'sını, iki gerçek dönem
+  arasındaki geçişle ampirik olarak türetir (bkz. §2.7). İkinci gerçek dönem
+  verisi gelene kadar ÇALIŞTIRILAMAZ.
 - `_sim_2572_gun.py` / `_sim_2572_gun_secenekc.py` — öğrenci 2572 üzerinden,
   veri arttıkça (ve Seçenek C aktif/pasifken) tahminin nasıl değiştiğini
   somut gösterir.

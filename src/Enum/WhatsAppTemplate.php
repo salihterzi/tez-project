@@ -38,9 +38,13 @@ enum WhatsAppTemplate: string
     case T1DahaSonraKapanis = 't1_daha_sonra_kapanis';
 
     // --- Bölüm 2: M1 açılışı (tetikleyiciye göre 3 versiyon) ---
-    case M1AcilisT2 = 'm1_acilis_t2_v2';
-    case M1AcilisT3 = 'm1_acilis_t3_v2';
-    case M1AcilisT4 = 'm1_acilis_t4_v2';
+    // `_v3` (2026-10-17, "daha insancıl mesajlaşma" kriterleri): YB/İB metinlerindeki
+    // "tespit edildi/edilmedi" → "fark edildi/edilmedi" (klinik/gözetim hissi veren pasif
+    // kalıp düzeltmesi) — Meta APPROVED şablonun içeriği yerinde değiştirilemediği için
+    // isim değişti, eski `..._v2_*` Meta'da yetim kaldı (zararsız, silindi).
+    case M1AcilisT2 = 'm1_acilis_t2_v3';
+    case M1AcilisT3 = 'm1_acilis_t3_v3';
+    case M1AcilisT4 = 'm1_acilis_t4_v3';
 
     // --- Bölüm 2 / DAL 1: Zaman ---
     case ZamanTakip = 'm1_zaman_takip';
@@ -72,7 +76,8 @@ enum WhatsAppTemplate: string
     // --- Bölüm 3: T2 ---
     case T2NormalV1 = 'tetikleyici_t2_normal_v1_v2';
     case T2NormalV2 = 'tetikleyici_t2_normal_v2_v2';
-    case T2NormalV3 = 'tetikleyici_t2_normal_v3_v2';
+    // `_v3` (2026-10-17): "tespit edildi" → "fark edildi" düzeltmesi (bkz. M1AcilisT2 notu).
+    case T2NormalV3 = 'tetikleyici_t2_normal_v3_v3';
     // `_v3` (2026-10-10): V1/V2/V4'ün metninde literal "{sınav}" harfiyen gönderiliyordu (gerçek
     // bir Meta parametresi DEĞİLDİ) — düzeltme gerçek bir {{2}} parametresi ekliyor, Meta APPROVED
     // şablonun içeriği/parametre sayısı yerinde değiştirilemediği için isim değişti (bkz. proje
@@ -88,15 +93,17 @@ enum WhatsAppTemplate: string
     // şablonun içeriği/parametre sayısı yerinde değiştirilemediği için isim değişti, eski
     // `tetikleyici_t3_normal_v1_v2_*` Meta'da yetim kaldı (zararsız).
     case T3NormalV1 = 'tetikleyici_t3_normal_v1_v3';
-    case T3NormalV2 = 'tetikleyici_t3_normal_v2_v2';
-    case T3NormalV3 = 'tetikleyici_t3_normal_v3_v2';
-    case T3SinavOncesiV1 = 'tetikleyici_t3_sinav_oncesi_v1_v2';
+    // `_v3` (2026-10-17): "tespit edildi"/"gözlendi" → "fark edildi" düzeltmesi (bkz. M1AcilisT2 notu).
+    case T3NormalV2 = 'tetikleyici_t3_normal_v2_v3';
+    case T3NormalV3 = 'tetikleyici_t3_normal_v3_v3';
+    case T3SinavOncesiV1 = 'tetikleyici_t3_sinav_oncesi_v1_v3';
     case T3SinavOncesiV2 = 'tetikleyici_t3_sinav_oncesi_v2_v2';
     // `_v3` (2026-10-10): aynı literal-"{sınav}" hatası, bkz. T2SinavOncesiV1/V2/V4 notu.
     case T3SinavOncesiV3 = 'tetikleyici_t3_sinav_oncesi_v3_v3';
 
     // --- Bölüm 3: T4 (eski seçenekler docx'te kaldırıldı — bkz. proje kararı 2026-09-29/30) ---
-    case T4NormalV1Norm = 'tetikleyici_t4_normal_v1_v2';
+    // `_v3` (2026-10-17): "tespit edildi" → "fark edildi" düzeltmesi (bkz. M1AcilisT2 notu).
+    case T4NormalV1Norm = 'tetikleyici_t4_normal_v1_v3';
     case T4NormalV2Notr = 'tetikleyici_t4_normal_v2_v2';
     case T4SinavOncesiV1 = 'tetikleyici_t4_sinav_oncesi_v1_v2';
     case T4SinavOncesiV2 = 'tetikleyici_t4_sinav_oncesi_v2_v2';

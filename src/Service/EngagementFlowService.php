@@ -44,8 +44,14 @@ class EngagementFlowService
     /** last_barrier_type kaç hafta geçerli sayılır (kullanıcı tarafından netleştirilmedi — varsayılan). */
     public const int BARRIER_GECERLILIK_HAFTASI = 4;
 
-    /** "Şimdilik mesaj göndermeyin" seçildiğinde silence_until kaç gün ileriye ayarlanır. */
-    private const int SESSIZLIK_MESAJ_GONDERME_GUN = 180;
+    /**
+     * "Şimdilik mesaj göndermeyin" seçildiğinde `silence_until` kaç gün ileriye ayarlanır
+     * (2026-10-16, kullanıcı kararı: artık otomatik geri dönüş YOK — eskiden 180 gündü,
+     * şimdi fiilen süresiz sayılacak kadar uzun bir değer). Geri dönüş otomatik değil,
+     * öğrencinin kendi isteğiyle (bkz. `WhatsAppWebhookController::handleKararAgaciYaniti()`'teki
+     * "Merhaba" ile yeniden etkinleştirme dalı) oluyor.
+     */
+    private const int SESSIZLIK_SURESIZ_GUN = 36500;
 
     /**
      * M1, yalnızca T2/T3/T4 tetiklendiğinde, Normal fazdayken, öğrencinin geçerli bir
@@ -208,7 +214,7 @@ class EngagementFlowService
         $gun = match ($yanit) {
             ZamanDonusSuresi::BirHafta => 7,
             ZamanDonusSuresi::IkiHafta => 14,
-            ZamanDonusSuresi::MesajGonderilmesin => self::SESSIZLIK_MESAJ_GONDERME_GUN,
+            ZamanDonusSuresi::MesajGonderilmesin => self::SESSIZLIK_SURESIZ_GUN,
         };
 
         $profile->setSilenceUntil($now->modify(sprintf('+%d days', $gun)));
@@ -308,7 +314,7 @@ class EngagementFlowService
         return match ($yanit) {
             Hatirlatma72SaatResponse::Evet => new FlowOutcome(EngagementFlowMessages::kapanisK1($persona), null, WhatsAppTemplate::KapanisK1),
             Hatirlatma72SaatResponse::BirHaftaSonra => $this->hatirlatma72SaatSonraErtelendi($profile, $simdi, 7, $persona),
-            Hatirlatma72SaatResponse::MesajGonderilmesin => $this->hatirlatma72SaatSonraErtelendi($profile, $simdi, self::SESSIZLIK_MESAJ_GONDERME_GUN, $persona),
+            Hatirlatma72SaatResponse::MesajGonderilmesin => $this->hatirlatma72SaatSonraErtelendi($profile, $simdi, self::SESSIZLIK_SURESIZ_GUN, $persona),
         };
     }
 

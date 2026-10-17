@@ -26,25 +26,25 @@ final class EngagementFlowMessages
                 Persona::GencYakinlik => "Selam {$ad}, bir süredir seni göremeyince nasıl olduğunu sormak istedim, umarım her şey yolundadır 🙂 Konuşmak istersen buradayım — seni şu an en çok ne zorluyor?",
                 Persona::GencBilgi => "Selam {$ad}, sistemde bir süredir hareketin yok. Seni en çok ne zorluyor, aşağıdan seç:",
                 Persona::YetiskinYakinlik => "Merhaba {$ad}, bir süredir sizi göremedik — bu gayet normal olabilir, herkesin yoğun dönemleri olur. Sizi şu an en çok ne zorluyor, paylaşmak ister misiniz?",
-                Persona::YetiskinBilgi => "Merhaba {$ad}, bir süredir hareketlilik tespit edilmedi. Sizi en çok ne zorladığını belirtmeniz yeterli.",
+                Persona::YetiskinBilgi => "Merhaba {$ad}, bir süredir hareketlilik fark edilmedi. Sizi en çok ne zorladığını belirtmeniz yeterli.",
                 Persona::IleriYasYakinlik => "Merhaba {$ad}, bir süredir sizi göremedik — bu gayet normal olabilir, herkesin kendine ayırdığı zaman değişebilir. Sizi şu an en çok ne zorluyor, paylaşmak ister misiniz?",
-                Persona::IleriYasBilgi => "Merhaba {$ad}, bir süredir hareketlilik tespit edilmedi. Sizi en çok ne zorladığını belirtmeniz yeterlidir.",
+                Persona::IleriYasBilgi => "Merhaba {$ad}, bir süredir hareketlilik fark edilmedi. Sizi en çok ne zorladığını belirtmeniz yeterlidir.",
             },
             EngagementTrigger::T3 => match ($persona) {
                 Persona::GencYakinlik => "Selam {$ad}, bu hafta biraz farklıydın, nasılsın diye sormak istedim 🙂 Seni şu an en çok ne zorluyor?",
                 Persona::GencBilgi => "Selam {$ad}, bu hafta tempon geçen haftaya göre düştü. Seni en çok ne zorluyor?",
                 Persona::YetiskinYakinlik => "Merhaba {$ad}, bu hafta temponuzda bir değişiklik oldu — bu gayet normal olabilir. Sizi şu an en çok ne zorluyor, paylaşmak ister misiniz?",
-                Persona::YetiskinBilgi => "Merhaba {$ad}, bu hafta bir tempo düşüşü tespit edildi. Sizi en çok ne zorladığını belirtmeniz yeterli.",
+                Persona::YetiskinBilgi => "Merhaba {$ad}, bu hafta bir tempo düşüşü fark edildi. Sizi en çok ne zorladığını belirtmeniz yeterli.",
                 Persona::IleriYasYakinlik => "Merhaba {$ad}, bu hafta temponuzda bir değişiklik oldu — bu gayet normal olabilir, herkesin kendi ritmi vardır. Sizi şu an en çok ne zorluyor, paylaşmak ister misiniz?",
-                Persona::IleriYasBilgi => "Merhaba {$ad}, bu hafta bir tempo düşüşü tespit edildi. Sizi en çok ne zorladığını belirtmeniz yeterlidir.",
+                Persona::IleriYasBilgi => "Merhaba {$ad}, bu hafta bir tempo düşüşü fark edildi. Sizi en çok ne zorladığını belirtmeniz yeterlidir.",
             },
             EngagementTrigger::T4 => match ($persona) {
                 Persona::GencYakinlik => "Selam {$ad}, genel gidişatına bakınca nasılsın diye sormak istedim, umarım iyisindir 🙂 Seni şu an en çok ne zorluyor?",
                 Persona::GencBilgi => "Selam {$ad}, genel ilerlemende bir yavaşlama var. Seni en çok ne zorluyor?",
                 Persona::YetiskinYakinlik => "Merhaba {$ad}, genel ilerlemenizde bir yavaşlama gözlemledik — bu gayet normal olabilir. Sizi şu an en çok ne zorluyor, paylaşmak ister misiniz?",
-                Persona::YetiskinBilgi => "Merhaba {$ad}, genel ilerlemenizde bir yavaşlama tespit edildi. Sizi en çok ne zorladığını belirtmeniz yeterli.",
+                Persona::YetiskinBilgi => "Merhaba {$ad}, genel ilerlemenizde bir yavaşlama fark edildi. Sizi en çok ne zorladığını belirtmeniz yeterli.",
                 Persona::IleriYasYakinlik => "Merhaba {$ad}, genel ilerlemenizde bir yavaşlama gözlemledik — bu gayet normal olabilir, kendi önceliklerinizi belirlemek sizin elinizde. Sizi şu an en çok ne zorluyor, paylaşmak ister misiniz?",
-                Persona::IleriYasBilgi => "Merhaba {$ad}, genel ilerlemenizde bir yavaşlama tespit edildi. Sizi en çok ne zorladığını belirtmeniz yeterlidir.",
+                Persona::IleriYasBilgi => "Merhaba {$ad}, genel ilerlemenizde bir yavaşlama fark edildi. Sizi en çok ne zorladığını belirtmeniz yeterlidir.",
             },
             EngagementTrigger::T1 => throw new \LogicException('M1, T1 tetikleyicisinden asla başlatılmaz.'),
         };
@@ -156,12 +156,28 @@ final class EngagementFlowMessages
     public static function zamanDonusKapanis(Persona $persona): string
     {
         return match ($persona) {
-            Persona::GencYakinlik => 'Tamam, belirlediğin zamanda tekrar yazarım 🙂 İstersen daha önce de buradayım.',
-            Persona::GencBilgi => 'Tamam, belirttiğin zamanda tekrar iletişime geçilecek.',
-            Persona::YetiskinYakinlik => 'Anlaşıldı, belirttiğiniz zamanda tekrar sizinle iletişime geçeceğiz — istediğiniz an da buradayız.',
-            Persona::YetiskinBilgi => 'Anlaşıldı, belirttiğiniz zamanda tekrar ulaşılacaktır.',
-            Persona::IleriYasYakinlik => 'Anlaşıldı, belirttiğiniz zamanda tekrar sizinle iletişime geçeceğiz — istediğiniz an da buradayız.',
-            Persona::IleriYasBilgi => 'Anlaşıldı, belirttiğiniz zamanda tekrar ulaşılacaktır.',
+            Persona::GencYakinlik => 'Tamam, belirlediğin zamanda tekrar yazarım 🙂 İstersen daha önce de "Merhaba" yazman yeterli, hemen devam ederiz.',
+            Persona::GencBilgi => 'Tamam, belirttiğin zamanda tekrar iletişime geçilecek. İstersen daha önce "Merhaba" yazarak da mesajları yeniden başlatabilirsin.',
+            Persona::YetiskinYakinlik => 'Anlaşıldı, belirttiğiniz zamanda tekrar sizinle iletişime geçeceğiz. İstediğiniz an "Merhaba" yazmanız, mesajların yeniden başlaması için yeterli.',
+            Persona::YetiskinBilgi => 'Anlaşıldı, belirttiğiniz zamanda tekrar ulaşılacaktır. İsterseniz daha önce "Merhaba" yazarak mesajları yeniden başlatabilirsiniz.',
+            Persona::IleriYasYakinlik => 'Anlaşıldı, belirttiğiniz zamanda tekrar sizinle iletişime geçeceğiz. İstediğiniz an "Merhaba" yazmanız, mesajların yeniden başlaması için yeterli.',
+            Persona::IleriYasBilgi => 'Anlaşıldı, belirttiğiniz zamanda tekrar ulaşılacaktır. İsterseniz daha önce "Merhaba" yazarak mesajları yeniden başlatabilirsiniz.',
+        };
+    }
+
+    /**
+     * Susturulmuş bir öğrenci "Merhaba" yazarak mesajları kendi isteğiyle yeniden
+     * başlattığında gönderilen onay metni (2026-10-16, kullanıcı kararı).
+     */
+    public static function yenidenEtkinlesti(Persona $persona): string
+    {
+        return match ($persona) {
+            Persona::GencYakinlik => 'Merhaba! Seni tekrar mesaj listesine ekledim, hoş geldin 🙂',
+            Persona::GencBilgi => 'Merhaba, mesajlar yeniden başlatıldı.',
+            Persona::YetiskinYakinlik => 'Merhaba, sizi yeniden mesaj listesine ekledik, tekrar aramızda olmanıza memnun olduk.',
+            Persona::YetiskinBilgi => 'Merhaba, mesajlar yeniden başlatılmıştır.',
+            Persona::IleriYasYakinlik => 'Merhaba, sizi yeniden mesaj listesine ekledik, tekrar aramızda olmanıza memnun olduk.',
+            Persona::IleriYasBilgi => 'Merhaba, mesajlar yeniden başlatılmıştır.',
         };
     }
 
