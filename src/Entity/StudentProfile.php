@@ -245,6 +245,29 @@ class StudentProfile
     #[ORM\Column(name: 'messages_sent_this_week', type: 'smallint')]
     private int $messagesSentThisWeek = 0;
 
+    /**
+     * O öğrenciyle o GÜN (yön -- gelen/giden, tür -- proaktif/reaktif fark etmez) karşılıklı
+     * gönderilen TOPLAM mesaj sayısı (2026-10-18, kullanıcı kararı; aynı gün genişletildi:
+     * önce sadece reaktif akış yanıtlarını kapsıyordu, artık öğrencinin gelen mesajları VE
+     * proaktif M1/T1-T4 gönderimi de dahil). İSTİSNALAR: Sınav Günü / 72 saat hatırlatması
+     * (zorunlu bilgilendirme kanalı, {@see \App\Enum\MessageChannel}) VE "Merhaba" ile
+     * susturmayı kendi isteğiyle kaldırma alışverişi ({@see \App\Controller\WhatsAppWebhookController::susturulmusOgrenciyiYenidenEtkinlestir()})
+     * -- bunların hiçbiri bu sayaca dahil değil. {@see self::$messagesSentThisWeek}'ten KASITLI olarak AYRI: o sayaç SADECE
+     * proaktif gönderimi sayıp YENİ bir T1-T4 kararını haftalık olarak sınırlıyor
+     * ({@see \App\Service\MessageFrequencyPolicy}); bu alan ise bir GÜNDE o öğrenciyle toplam
+     * ne kadar mesaj trafiği oluştuğunu (aşırı uzun/sık bir diyaloğa sürüklenme riskini)
+     * sınırlıyor -- ikisi birbirinin yerine geçmez, İKİSİ DE ayrı ayrı uygulanır. Haftalık
+     * sayaçla AYNI "tazeleme" deseni (bkz. {@see self::recordMessageSent()}) kullanılır, ama
+     * hafta değil GÜN karşılaştırılır. Sınır değeri (10) ve uygulanma noktaları
+     * {@see \App\Controller\WhatsAppWebhookController} ve {@see \App\Command\DispatchScheduledMessagesCommand}'da.
+     */
+    #[ORM\Column(name: 'daily_message_count', type: 'smallint')]
+    private int $dailyMessageCount = 0;
+
+    /** {@see self::$dailyMessageCount}'ın en son ne zaman artırıldığı -- gün karşılaştırması bu alana göre yapılır. */
+    #[ORM\Column(name: 'daily_message_at', type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $dailyMessageAt = null;
+
     #[ORM\Column(name: 'updated_at', type: 'datetime_immutable')]
     private \DateTimeImmutable $updatedAt;
 
@@ -609,15 +632,14 @@ class StudentProfile
     }
 
     /**
-     * GERÇEK bir kişiselleştirilmiş mesaj gönderildiğinde çağrılmalı (zorunlu bilgilendirme
-     * DEĞİL — bkz. {@see \App\Enum\MessageChannel}). `messages_sent_this_week`'i ISO hafta
-     * (Pazartesi başlangıç) bazında kendiliğinden sıfırlayıp artırır — ayrı bir haftalık
-     * "sıfırlama" job'ına gerek yok: önceki gönderim farklı bir ISO haftadaysa (ya da hiç
-     * gönderim yoksa) sayaç önce 0'a döner, sonra 1 artırılır.
-     *
-     * Not: Şu an hiçbir yerden ÇAĞRILMIYOR — gerçek WhatsApp gönderimi henüz bağlı değil
-     * (bkz. proje notları). Gerçek gönderim kodu yazılınca, başarılı her gönderimden sonra
-     * bu metot çağrılmalı.
+     * GERÇEK bir PROAKTİF kişiselleştirilmiş mesaj (M1/T1-T4 varyantı) gönderildiğinde
+     * çağrılmalı (zorunlu bilgilendirme DEĞİL — bkz. {@see \App\Enum\MessageChannel}).
+     * `messages_sent_this_week`'i ISO hafta (Pazartesi başlangıç) bazında kendiliğinden
+     * sıfırlayıp artırır — ayrı bir haftalık "sıfırlama" job'ına gerek yok: önceki gönderim
+     * farklı bir ISO haftadaysa (ya da hiç gönderim yoksa) sayaç önce 0'a döner, sonra 1 artırılır.
+     * Bu, YENİ bir T1-T4 kararının haftalık sıklık sınırı için kullanılır
+     * ({@see \App\Service\MessageFrequencyPolicy}) — {@see self::$dailyMessageCount}'tan
+     * (günlük TOPLAM trafik sınırı) KASITLI olarak ayrı, ikisi de ayrı ayrı uygulanır.
      */
     public function recordMessageSent(\DateTimeImmutable $simdi): static
     {
@@ -626,6 +648,38 @@ class StudentProfile
 
         $this->messagesSentThisWeek = ($ayniHaftaMi ? $this->messagesSentThisWeek : 0) + 1;
         $this->lastMessageSentAt = $simdi;
+        $this->touch();
+
+        return $this;
+    }
+
+    /**
+     * Öğrenciyle bugün (GÜN bazında, `$simdi`'nin tarihine göre) kaç mesaj (yön/tür fark
+     * etmez — gelen, giden, proaktif, reaktif) ALINIP/GÖNDERİLDİĞİNİ döner -- `$simdi` farklı
+     * bir güne denk geliyorsa (ya da hiç kayıt yoksa) 0 döner, sayaç DURUMU DEĞİŞTİRMEZ (salt
+     * okunur) — {@see \App\Controller\WhatsAppWebhookController}'ın yeni bir mesaj
+     * göndermeden/işlemeden ÖNCE günlük sınıra ulaşılıp ulaşılmadığını kontrol etmesi için.
+     */
+    public function gunlukMesajSayisi(\DateTimeImmutable $simdi): int
+    {
+        $bugunMu = null !== $this->dailyMessageAt
+            && $this->dailyMessageAt->format('Y-m-d') === $simdi->format('Y-m-d');
+
+        return $bugunMu ? $this->dailyMessageCount : 0;
+    }
+
+    /**
+     * Öğrenciyle bugün bir mesaj alınıp/gönderildiğinde (yön/tür fark etmez — öğrencinin
+     * gelen mesajı, sistemin proaktif M1/T1-T4 gönderimi, ya da reaktif akış yanıtı) çağrılmalı
+     * — Sınav Günü/72 saat hatırlatması İSTİSNA (bkz. {@see self::$dailyMessageCount}'un
+     * docblock'u), onlarda ÇAĞRILMAZ. `daily_message_count`'u GÜN bazında kendiliğinden
+     * sıfırlayıp artırır ({@see self::recordMessageSent()}'in haftalık sıfırlama deseniyle
+     * AYNI mantık, sadece gün karşılaştırması).
+     */
+    public function gunlukMesajiKaydet(\DateTimeImmutable $simdi): static
+    {
+        $this->dailyMessageCount = $this->gunlukMesajSayisi($simdi) + 1;
+        $this->dailyMessageAt = $simdi;
         $this->touch();
 
         return $this;

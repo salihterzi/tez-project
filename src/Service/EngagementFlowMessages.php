@@ -181,6 +181,23 @@ final class EngagementFlowMessages
         };
     }
 
+    /**
+     * Öğrenci bir günde günlük reaktif mesaj sınırına (10, bkz.
+     * {@see \App\Controller\WhatsAppWebhookController}) ulaştığında, akışı nazikçe
+     * sonlandırmak için gönderilen kapanış metni (2026-10-18, kullanıcı kararı).
+     */
+    public static function gunlukMesajSiniriKapanis(Persona $persona): string
+    {
+        return match ($persona) {
+            Persona::GencYakinlik => 'Bugünlük mesajlaşma sınırımıza ulaştık 🙂 Yarın buradan devam edebiliriz, görüşmek üzere!',
+            Persona::GencBilgi => 'Bugünlük mesajlaşma sınırına ulaşıldı. Yarın devam edilebilir.',
+            Persona::YetiskinYakinlik => 'Bugün için mesajlaşma sınırımıza ulaştık. Yarın tekrar buradayız, görüşmek üzere.',
+            Persona::YetiskinBilgi => 'Bugün için mesajlaşma sınırına ulaşılmıştır. Yarın devam edilebilir.',
+            Persona::IleriYasYakinlik => 'Bugün için mesajlaşma sınırımıza ulaştık. Yarın tekrar buradayız, görüşmek üzere.',
+            Persona::IleriYasBilgi => 'Bugün için mesajlaşma sınırına ulaşılmıştır. Yarın devam edilebilir.',
+        };
+    }
+
     // --- DAL 2: Zorluk (eğitmen/destek yönlendirmesi YOK) ---------------------------------
 
     public static function zorlukTakip(Persona $persona): string

@@ -125,20 +125,31 @@ def _top_n_gun(seri, n):
     return sayimlar['gun_index'].head(n).astype(int).tolist()
 
 
-def _onceki_donem_gunleri(onceki_donem_df, ogrenci_no, faz):
-    """Önceki dönemin gün tahmini çıktısından (aynı uzun formatta bir DataFrame),
-    o öğrenci-faz için Seçenek B kökenli (bireysel sinyal İÇEREN) günleri,
-    sıralarına göre döner. Önceki dönemde de fallback'e (secenek_a_fallback)
-    düşülmüşse boş liste döner -- fallback'ten fallback'e zincirlemek bilgi
-    katmaz, doğrudan güncel popülasyona düşülmesi daha doğrudur."""
-    if onceki_donem_df is None:
-        return []
-    satirlar = onceki_donem_df[
-        (onceki_donem_df['ogrenci_no'] == ogrenci_no)
-        & (onceki_donem_df['FAZ'] == faz)
-        & (onceki_donem_df['yontem'].str.startswith('secenek_b'))
+def _onceki_donem_sozlugu_olustur(onceki_donem_df):
+    """`onceki_donem_df`'i (ogrenci_no, FAZ) -> sıralı Seçenek B kökenli gün indeks
+    listesine ÖNCEDEN indeksler.
+
+    PERFORMANS NOTU (2026-10-18'de keşfedildi): Bu fonksiyon öncesinde (`_onceki_donem_
+    gunleri()` adıyla) her (öğrenci, FAZ) için `onceki_donem_df`'in TAMAMINI baştan
+    tarıyordu (3 sütun karşılaştırması + bir `.str.startswith()` çağrısı) -- önceki dönem
+    hiç yokken (ilk çalıştırmada onceki_donem_df boştu) bu hemen dönüyordu, fark edilmedi.
+    Önceki dönem GERÇEKTEN var olup `onceki_donem_df` büyüdüğünde (örn. ~230k satır),
+    ~150k (öğrenci, FAZ) çağrısının HER BİRİ bu büyük DataFrame'i baştan taradığı için
+    O(öğrenci × geçmiş) karmaşıklığına çıkıyordu -- gerçek veride ~40 dakikaya kadar
+    sürdüğü görüldü. Çözüm: aynı filtre + gruplama TEK SEFERDE yapılıp (öğrenci, FAZ) ->
+    liste sözlüğüne çevrilir, döngü içindeki her çağrı O(1) sözlük erişimine iner.
+    """
+    if onceki_donem_df is None or 0 == len(onceki_donem_df):
+        return {}
+
+    secenek_b = onceki_donem_df[
+        onceki_donem_df['yontem'].str.startswith('secenek_b')
     ].sort_values('gun_sira')
-    return satirlar['tahmini_gun_index'].astype(int).tolist()
+
+    return {
+        anahtar: grup['tahmini_gun_index'].astype(int).tolist()
+        for anahtar, grup in secenek_b.groupby(['ogrenci_no', 'FAZ'])
+    }
 
 
 def model_kur_ve_tahmin_et_gun_hibrit(mat, dem, min_gozlem=MIN_GOZLEM_ESIGI,
@@ -160,6 +171,10 @@ def model_kur_ve_tahmin_et_gun_hibrit(mat, dem, min_gozlem=MIN_GOZLEM_ESIGI,
     for faz in FAZLAR:
         if faz not in faz_counts.columns:
             faz_counts[faz] = 0
+
+    # Önceki dönem önselleri (Seçenek C) TEK SEFERDE sözlüğe çevrilir -- döngü içinde
+    # her çağrıda tüm DataFrame'i taramamak için (bkz. fonksiyonun docblock'u).
+    onceki_donem_sozluk = _onceki_donem_sozlugu_olustur(onceki_donem_df)
 
     sonuclar = []
     # dem'deki TÜM kayıtlı öğrenciler kapsanır (mat'te hiç satırı olmayanlar dahil) --
@@ -187,7 +202,7 @@ def model_kur_ve_tahmin_et_gun_hibrit(mat, dem, min_gozlem=MIN_GOZLEM_ESIGI,
                     if g not in bireysel_gunler:
                         gunler_kaynak.append((g, 'secenek_b_populasyonla_tamamlanmis'))
             else:
-                onceki_gunler = _onceki_donem_gunleri(onceki_donem_df, ogrenci_no, faz)
+                onceki_gunler = onceki_donem_sozluk.get((ogrenci_no, faz), [])
                 if onceki_gunler:
                     gunler_kaynak = [(g, 'secenek_c_onceki_donem_onseli') for g in onceki_gunler[:n]]
                     var_olanlar = set(onceki_gunler[:n])
@@ -292,7 +307,7 @@ def gecmis_donemi_yaz(conn, tahmin_df, yil, donem):
 def kisi_bazli_son_onselleri_getir(conn, aktif_yil, aktif_donem):
     """Her (ogrenci_no, FAZ) için, aktif dönem HARİÇ, en güncel (yil, donem)'de
     Seçenek B kökenli (bireysel sinyal İÇEREN) satırları döner --
-    `_onceki_donem_gunleri()`'nin beklediğiyle aynı formatta bir DataFrame
+    `_onceki_donem_sozlugu_olustur()`'un beklediğiyle aynı formatta bir DataFrame
     (ogrenci_no, FAZ, gun_sira, tahmini_gun_index, yontem).
 
     "Kişi bazlı en son önsel" (kullanıcı kararı): sırf BİR ÖNCEKİ dönem değil,

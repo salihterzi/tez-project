@@ -40,15 +40,23 @@ class DonemTakvimi:
     final_baslangic: pd.Timestamp
     final_bitis: pd.Timestamp
 
+    # Sınav öncesi penceresinin kaç gün sürdüğü -- varsayılan 7 (BAHAR_2024_TAKVIMI'nin
+    # her zaman kullandığı değer, geriye dönük DAVRANIŞ DEĞİŞMEZ). 2027/1 dönemi için
+    # (2026-10-18, kullanıcı kararı) 14'e çekildi -- PHP'nin `term_phases` tablosundaki
+    # GERÇEK takvim de Ara_Sinav_Oncesi/Final_Oncesi'yi 14 gün tanımlıyor; bu alan
+    # olmadan Python'un FAZ ataması (gözlenen saat/gün için) PHP'nin trigger kararıyla
+    # (T2 eşiği gevşemesi) aynı tarihlerde uyuşmazdı.
+    sinav_oncesi_pencere_gun: int = 7
+
     @property
     def ara_sinav_oncesi_baslangic(self):
         # sınav öncesi pencere: sınav gününün kendisi "öncesi" penceresine dahildir,
         # sınav SONRASI ayrı bir faz değil, normal_hafta'nın parçası sayılır.
-        return self.ara_sinav_baslangic - pd.Timedelta(days=7)
+        return self.ara_sinav_baslangic - pd.Timedelta(days=self.sinav_oncesi_pencere_gun)
 
     @property
     def final_oncesi_baslangic(self):
-        return self.final_baslangic - pd.Timedelta(days=7)
+        return self.final_baslangic - pd.Timedelta(days=self.sinav_oncesi_pencere_gun)
 
 
 # 2024/2 bahar dönemi (DB'deki mevcut veri) — varsayılan/geriye dönük uyumluluk
@@ -59,6 +67,18 @@ BAHAR_2024_TAKVIMI = DonemTakvimi(
     final_bitis=pd.Timestamp('2025-05-25 23:59:59'),
 )
 
+# 2027/1 bahar dönemi — yeni dönem simülasyonu (2026-10-18, kullanıcı kararı). Sınav günleri
+# `term_phases` tablosundaki (TERM_ID=1) GERÇEK Sinav_Gunu aralıklarıyla birebir aynı
+# (2027-04-10/11 ara, 2027-05-29/30 final); sinav_oncesi_pencere_gun=14 de aynı tablodaki
+# Ara_Sinav_Oncesi/Final_Oncesi aralıklarının (14 gün) başlangıcını TAM olarak üretir.
+BAHAR_2027_TAKVIMI = DonemTakvimi(
+    ara_sinav_baslangic=pd.Timestamp('2027-04-10'),
+    ara_sinav_bitis=pd.Timestamp('2027-04-11 23:59:59'),
+    final_baslangic=pd.Timestamp('2027-05-29'),
+    final_bitis=pd.Timestamp('2027-05-30 23:59:59'),
+    sinav_oncesi_pencere_gun=14,
+)
+
 # Dönem takvimi kaydı: yeni bir dönem eklendiğinde (materyal_erisim_log/sinav_sonucu'na
 # o dönemin verisi girdiğinde) buraya (yil, donem) -> DonemTakvimi eklenmeli. Gün modelinin
 # (mesaj_zamanlamasi_gun_hibrit.py) aktif dönem DIŞINDAKİ geçmiş dönemleri otomatik DB'den
@@ -67,6 +87,7 @@ BAHAR_2024_TAKVIMI = DonemTakvimi(
 # gecmis_donemleri_hesapla_ve_yaz() fonksiyonu).
 TAKVIM_KAYITLARI = {
     (2024, 2): BAHAR_2024_TAKVIMI,
+    (2027, 1): BAHAR_2027_TAKVIMI,
 }
 
 FAZLAR = ['normal_hafta', 'ara_sinav_oncesi', 'final_oncesi']

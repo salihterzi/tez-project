@@ -38,6 +38,21 @@ hiçbir FAZ için veri-zengin+önceki-dönemi-olan öğrenci kalmaz). İkinci ge
 dönem verisi gelip en az bir kere `mesaj_zamanlamasi_hibrit.py` ile çalıştırılıp
 `saat_tahmini_gecmisi`'ye yazılınca kullanılabilir hale gelecek.
 
+SONUÇ GÜVENİLİRLİĞİ UYARISI (2026-10-18, gerçek çalıştırmadan sonra eklendi):
+Script (2024/2 → 2027/1 sentetik senaryoyla) ilk kez gerçekten çalıştırıldığında
+HER fazda Q_ORANI=0.0'ı (bazen 0.2) "en iyi" olarak önerdi -- ama bu güvenilir
+bir sonuç DEĞİL. Sebep: "veri zengin" (>=MIN_TRUE_N) öğrenci havuzu, bir önceki
+dönemin davranışının sadece TARİHİ KAYDIRILMIŞ bir kopyası olan sentetik
+öğrencilerden oluşuyordu (gerçek bir test senaryosu kurmak için kasıtlı olarak
+böyle üretilmişlerdi) -- yani bu havuzun GERÇEK bir dönem sürüklenmesi hiç
+yoktu, "hiç değişmedi" kabulüyle üretilmişlerdi. Script doğal olarak "geçmişe
+güvenmek en iyisi, Q=0" sonucuna ulaştı; bu, gerçek dünyada öğrencilerin dönem
+arası davranış değişimi ihtimalini HİÇ ölçmedi -- döngüsel bir sonuç
+(sürüklenmesiz veri → "sürüklenme yok" çıkarımı). `mesaj_zamanlamasi_hibrit.py`
+'deki `Q_ORANI=1/3` placeholder'ı BU SONUÇLA DEĞİŞTİRİLMEDİ. Gerçek bir tahmin
+için GERÇEK öğrencilerin GERÇEKTEN farklı davrandığı iki ardışık dönem
+gerekiyor -- kopyalanmış/sentetik değil.
+
 Bu dosya kalıcı değil -- sadece Q_ORANI'nin gerçek veride ne çıktığını görmek
 için (bkz. _sim_n_esik.py / _sim_gun_esik.py ile aynı amaç).
 """
@@ -71,7 +86,7 @@ FAZLAR = pipeline.FAZLAR
 # (bkz. modül docstring'i). İkinci bir geçişi de kontrol etmek istersen (bu
 # projenin "tek okumaya güvenme" prensibi -- bkz. eşik=4/eşik=10'un türetimi),
 # scripti bir de bir SONRAKİ dönemi AKTIF_DONEM yaparak tekrar çalıştır.
-AKTIF_DONEM = None  # örn. (2025, 1)
+AKTIF_DONEM = (2027, 1)  # (2026-10-18) 2024/2 -> 2027/1 geçişi artık gerçek veride var
 
 MIN_TRUE_N = 40          # "gerçek" saati güvenilir saymak için gereken minimum gözlem
 MAKS_OGRENCI = 300       # hız için, veri-zengin havuzdan örneklenecek maksimum öğrenci

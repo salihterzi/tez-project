@@ -184,6 +184,11 @@ class DispatchScheduledMessagesCommand extends Command
                 }
 
                 $profil->recordMessageSent($simdi);
+                // 2026-10-18 (kullanıcı kararı): bu proaktif gönderim, öğrencinin gelen/giden
+                // mesajlarıyla AYNI günlük toplam sayaca da ekleniyor (bkz.
+                // StudentProfile::$dailyMessageCount'un docblock'u) -- haftalık proaktif sayaç
+                // (`recordMessageSent()`, yukarıda) KASITLI olarak bundan ayrı, ikisi de uygulanır.
+                $profil->gunlukMesajiKaydet($simdi);
             }
         }
 

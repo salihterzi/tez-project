@@ -283,19 +283,37 @@ class WhatsAppWebhookController extends AbstractController
             return;
         }
 
+        // 2026-10-18 (kullanıcı kararı): "Merhaba" ile yeniden etkinleştirme, günlük mesaj
+        // sayacından TAMAMEN MUAF -- hem öğrencinin bu mesajı hem sistemin verdiği onay yanıtı
+        // sayılmaz (Sınav Günü/72s hatırlatması gibi, kendi başına ayrı bir istisna kanalı).
+        // Bu yüzden sayaç kontrolünden ÖNCE değerlendirilir -- aksi halde bu mesajın kendisi
+        // sayaca girip (ya da sınırı aşıp günlük kapanışı tetikleyip) susturmayı kaldırma
+        // işlevini bozardı.
+        if (null === $profil->getPendingFlowStep() && $this->isReactivationMessage($text)
+            && null !== $profil->getSilenceUntil() && $profil->getSilenceUntil() > $simdi) {
+            $this->susturulmusOgrenciyiYenidenEtkinlestir($profil, $ogrenci, $from);
+
+            return;
+        }
+
+        // 2026-10-18 (kullanıcı kararı, aynı gün genişletildi): öğrenci başına GÜNLÜK mesaj
+        // sınırı -- öğrenciden GERÇEKTEN bir mesaj geldiği an (yanıt gönderilsin/gönderilmesin,
+        // tanınsın/tanınmasın) sayılır; bu, Sınav Günü/72s hatırlatması/"Merhaba" yeniden
+        // etkinleştirme (yukarıda, ayrıca MUAF) İSTİSNA tutularak proaktif M1/T1-T4
+        // gönderimiyle (bkz. DispatchScheduledMessagesCommand) AYNI sayaca ekleniyor (bkz.
+        // StudentProfile::$dailyMessageCount'un docblock'u). Gelen mesaj kendisi gerçek bir
+        // OLAY olduğu için (markUnansweredRepliesIfAny ile AYNI mantık) gönderimin başarılı
+        // olup olmamasından bağımsız hemen flush edilir.
+        $profil->gunlukMesajiKaydet($simdi);
+        $this->studentProfileRepository->getEntityManager()->flush();
+
+        if ($profil->gunlukMesajSayisi($simdi) > self::GUNLUK_MESAJ_LIMITI) {
+            $this->gunlukMesajSiniriniBildir($profil, $ogrenci, $from, $simdi);
+
+            return;
+        }
+
         if (null === $profil->getPendingFlowStep()) {
-            // 2026-10-16 (kullanıcı kararı): "mesaj göndermeyin" artık otomatik geri dönmüyor
-            // (bkz. EngagementFlowService::SESSIZLIK_SURESIZ_GUN) -- öğrencinin kendi isteğiyle
-            // geri dönebilmesi için, bekleyen akışı yokken VE hâlâ susturulmuşken "Merhaba"
-            // yazması, 7/14 günlük kısa süreli "ara ver"lerde de süresi dolmadan geri dönmek
-            // için aynı şekilde çalışır (silence_until kaynağından bağımsız, tek mekanizma).
-            if ($this->isReactivationMessage($text) && null !== $profil->getSilenceUntil()
-                && $profil->getSilenceUntil() > $simdi) {
-                $this->susturulmusOgrenciyiYenidenEtkinlestir($profil, $ogrenci, $from);
-
-                return;
-            }
-
             $this->logger->info('Karar ağacı: öğrenci için bekleyen bir senaryo yok, yanıt yoksayıldı.', [
                 'ogrenciNo' => $ogrenci->getOgrenciNo(),
                 'metin' => $text,
@@ -356,7 +374,16 @@ class WhatsAppWebhookController extends AbstractController
             return;
         }
 
-        $profil->recordMessageSent(new \DateTimeImmutable());
+        // 2026-10-18 (kullanıcı kararı): `recordMessageSent()` (HAFTALIK, proaktif) BİLEREK
+        // çağrılmıyor -- haftalık sıklık sınırı (`MessageFrequencyPolicy`) kasıtlı olarak
+        // yalnızca PROAKTİF ("kişiselleştirilmiş mesaj", bkz. o sınıfın docblock'u) gönderimleri
+        // kapsıyor; bu metot ise öğrencinin KENDİ başlattığı bir diyaloğun (zaten bekleyen bir
+        // akışın) REAKTİF devamını gönderiyor. Eskiden burada da çağrılıyordu -- sonucu, M1
+        // gibi çok adımlı bir akışı tamamlayan (iyi bir sonuç!) bir öğrencinin, sadece bu
+        // yüzden aynı hafta yeni bir tetikleyiciden mahrum kalmasıydı (ters teşvik). GÜNLÜK
+        // toplam sayaç (`gunlukMesajiKaydet`) zaten bu metodun başında (gelen mesaj için)
+        // artırıldı -- burada bu giden yanıt için TEKRAR artırılır (gelen+giden ayrı ayrı sayılır).
+        $profil->gunlukMesajiKaydet($simdi);
         $this->studentProfileRepository->getEntityManager()->flush();
 
         $this->logger->info('Karar ağacı: yanıt yönlendirildi ve takip mesajı gerçekten gönderildi (şablonsuz, session mesajı).', [
@@ -372,6 +399,13 @@ class WhatsAppWebhookController extends AbstractController
 
     /** Susturulmuş bir öğrencinin mesajları kendi isteğiyle yeniden başlatmak için yazması gereken kelime. */
     private const string YENIDEN_ETKINLESTIRME_KELIMESI = 'merhaba';
+
+    /**
+     * Öğrenci başına, bir günde o öğrenciyle karşılıklı gönderilecek/alınacak en fazla TOPLAM
+     * mesaj sayısı (gelen+giden, proaktif+reaktif — bkz. {@see \App\Entity\StudentProfile::$dailyMessageCount}'un
+     * docblock'u; 2026-10-18, kullanıcı kararı, aynı gün genişletildi).
+     */
+    private const int GUNLUK_MESAJ_LIMITI = 10;
 
     /**
      * Gelen metin (baştaki/sondaki boşluk ve yaygın noktalama işaretleri atılıp küçük harfe
@@ -392,6 +426,9 @@ class WhatsAppWebhookController extends AbstractController
      * `silence_until` temizlenmez. `current_state` elle `AKTİF`'e çekilmiyor -- her gece
      * `belirleDurum()` zaten sıfırdan hesaplıyor, `silence_until` temizlenince FSM kendi
      * akışında doğru durumu bulur.
+     *
+     * 2026-10-18 (kullanıcı kararı): bu alışveriş (öğrencinin "Merhaba"sı VE bu onay yanıtı)
+     * günlük mesaj sayacına TAMAMEN dahil DEĞİL -- bkz. çağıran yerdeki kontrol sırası.
      */
     private function susturulmusOgrenciyiYenidenEtkinlestir(StudentProfile $profil, Ogrenci $ogrenci, string $from): void
     {
@@ -423,6 +460,50 @@ class WhatsAppWebhookController extends AbstractController
         $this->studentProfileRepository->getEntityManager()->flush();
 
         $this->logger->info('Karar ağacı: öğrenci "Merhaba" yazarak susturmayı kendi isteğiyle sonlandırdı.', [
+            'ogrenciNo' => $ogrenci->getOgrenciNo(),
+            'wamid' => $wamid,
+        ]);
+    }
+
+    /**
+     * Öğrenciyle bugün {@see self::GUNLUK_MESAJ_LIMITI} mesaj (gelen+giden, bu mesaj dahil)
+     * alınıp/gönderildiğinde devreye girer (2026-10-18, kullanıcı kararı) -- bekleyen akışı
+     * kapatır (`pending_flow_step=null`, varsa), öğrenci yarın (gün değiştiğinde) normal
+     * şekilde devam edebilir. Önce gönder sonra kaydet kuralı burada da geçerli -- ek olarak
+     * bu kapanış mesajının kendisi de sayaca eklenir (tutarlılık için), zaten limitin üzerinde
+     * olduğundan sonucu değiştirmez.
+     */
+    private function gunlukMesajSiniriniBildir(StudentProfile $profil, Ogrenci $ogrenci, string $from, \DateTimeImmutable $simdi): void
+    {
+        $persona = $this->personaResolver->resolve($ogrenci);
+        $mesaj = EngagementFlowMessages::gunlukMesajSiniriKapanis($persona);
+
+        try {
+            $waResponse = $this->whatsAppClient->sendTextMessage($from, $mesaj);
+        } catch (\Throwable $e) {
+            $this->logger->error('Karar ağacı: günlük mesaj sınırı bildirimi gönderimi başarısız (istisna) -- akış kapatılmadı.', [
+                'exception' => $e,
+                'ogrenciNo' => $ogrenci->getOgrenciNo(),
+            ]);
+
+            return;
+        }
+
+        $wamid = $waResponse['messages'][0]['id'] ?? null;
+        if (null === $wamid) {
+            $this->logger->error('Karar ağacı: günlük mesaj sınırı bildirimi gönderimi başarısız (beklenmeyen WhatsApp yanıtı) -- akış kapatılmadı.', [
+                'ogrenciNo' => $ogrenci->getOgrenciNo(),
+                'whatsappYaniti' => $waResponse,
+            ]);
+
+            return;
+        }
+
+        $profil->setPendingFlowStep(null);
+        $profil->gunlukMesajiKaydet($simdi);
+        $this->studentProfileRepository->getEntityManager()->flush();
+
+        $this->logger->info('Karar ağacı: günlük mesaj sınırına ulaşıldı, akış sonlandırıldı.', [
             'ogrenciNo' => $ogrenci->getOgrenciNo(),
             'wamid' => $wamid,
         ]);
