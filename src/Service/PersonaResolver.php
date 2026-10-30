@@ -17,8 +17,20 @@ final class PersonaResolver
 {
     public function resolve(Ogrenci $ogrenci): Persona
     {
-        $yasGrubu = YasGrubu::fromYas($ogrenci->getYas());
-        $yakinlikOdakli = Cinsiyet::Kadin === $ogrenci->getCinsiyet();
+        return $this->resolveFromAlanlar($ogrenci->getCinsiyet(), $ogrenci->getDogumTarihi());
+    }
+
+    /**
+     * {@see self::resolve()} ile aynı mantık, ama bir `Ogrenci` entity'si GEREKTİRMEZ —
+     * {@see \App\Repository\OgrenciRepository::findIndexedByOgrenciNolar()} gibi toplu
+     * okumalarda (OOM'dan kaçınmak için entity hydrate etmeyen, ham dizi döndüren)
+     * kullanılmak üzere eklendi (2026-10-22).
+     */
+    public function resolveFromAlanlar(Cinsiyet $cinsiyet, \DateTimeImmutable $dogumTarihi): Persona
+    {
+        $yas = $dogumTarihi->diff(new \DateTimeImmutable())->y;
+        $yasGrubu = YasGrubu::fromYas($yas);
+        $yakinlikOdakli = Cinsiyet::Kadin === $cinsiyet;
 
         return match ($yasGrubu) {
             YasGrubu::Genc => $yakinlikOdakli ? Persona::GencYakinlik : Persona::GencBilgi,

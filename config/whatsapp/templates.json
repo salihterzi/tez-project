@@ -1830,13 +1830,13 @@
     ]
   },
   {
-    "name": "tetikleyici_t2_normal_v1_v2_gb",
+    "name": "tetikleyici_t2_normal_v1_v3_gb",
     "language": "tr",
     "category": "MARKETING",
     "components": [
       {
         "type": "BODY",
-        "text": "Selam {{1}}, kaldığın yer hazır. Seni en çok ne zorluyor?",
+        "text": "Selam {{1}}, kaldığın yer hazır. Şu anki durumun nedir?",
         "example": {
           "body_text": [
             [
@@ -1850,28 +1850,28 @@
         "buttons": [
           {
             "type": "QUICK_REPLY",
-            "text": "Zamanım yok"
+            "text": "İyi, devam ediyorum"
           },
           {
             "type": "QUICK_REPLY",
-            "text": "İçerik zor"
+            "text": "Yoğunum"
           },
           {
             "type": "QUICK_REPLY",
-            "text": "Motivasyonum düşük"
+            "text": "Destek lazım"
           }
         ]
       }
     ]
   },
   {
-    "name": "tetikleyici_t2_normal_v1_v2_gy",
+    "name": "tetikleyici_t2_normal_v1_v3_gy",
     "language": "tr",
     "category": "MARKETING",
     "components": [
       {
         "type": "BODY",
-        "text": "Selam {{1}}, kaldığın yer hazır duruyor, merak etme 🙂 Seni şu an en çok ne zorluyor?",
+        "text": "Selam {{1}}, kaldığın yer hazır duruyor, merak etme 🙂 Şu an nasıl gidiyor?",
         "example": {
           "body_text": [
             [
@@ -1885,28 +1885,28 @@
         "buttons": [
           {
             "type": "QUICK_REPLY",
-            "text": "Zamanım yok"
+            "text": "İyi, devam ediyorum"
           },
           {
             "type": "QUICK_REPLY",
-            "text": "İçerik zor"
+            "text": "Yoğunum"
           },
           {
             "type": "QUICK_REPLY",
-            "text": "Motivasyonum düşük"
+            "text": "Destek lazım"
           }
         ]
       }
     ]
   },
   {
-    "name": "tetikleyici_t2_normal_v1_v2_ib",
+    "name": "tetikleyici_t2_normal_v1_v3_ib",
     "language": "tr",
     "category": "MARKETING",
     "components": [
       {
         "type": "BODY",
-        "text": "Merhaba {{1}}, kaldığınız yer hazır. Sizi en çok ne zorladığını belirtmeniz yeterlidir.",
+        "text": "Merhaba {{1}}, kaldığınız yer hazır duruyor. Şu anki durumunuzu belirtmeniz yeterlidir.",
         "example": {
           "body_text": [
             [
@@ -1920,28 +1920,28 @@
         "buttons": [
           {
             "type": "QUICK_REPLY",
-            "text": "Zamanım yok"
+            "text": "İyi, devam ediyorum"
           },
           {
             "type": "QUICK_REPLY",
-            "text": "İçerik zor"
+            "text": "Yoğunum"
           },
           {
             "type": "QUICK_REPLY",
-            "text": "Motivasyonum düşük"
+            "text": "Destek lazım"
           }
         ]
       }
     ]
   },
   {
-    "name": "tetikleyici_t2_normal_v1_v2_iy",
+    "name": "tetikleyici_t2_normal_v1_v3_iy",
     "language": "tr",
     "category": "MARKETING",
     "components": [
       {
         "type": "BODY",
-        "text": "Merhaba {{1}}, kaldığınız yer hazır duruyor, hiç merak etmeyin. Sizi şu an en çok ne zorluyor, paylaşmak ister misiniz?",
+        "text": "Merhaba {{1}}, kaldığınız yer hazır duruyor, hiç merak etmeyin. Şu anki durumunuzu paylaşmak ister misiniz?",
         "example": {
           "body_text": [
             [
@@ -1955,28 +1955,28 @@
         "buttons": [
           {
             "type": "QUICK_REPLY",
-            "text": "Zamanım yok"
+            "text": "İyi, devam ediyorum"
           },
           {
             "type": "QUICK_REPLY",
-            "text": "İçerik zor"
+            "text": "Yoğunum"
           },
           {
             "type": "QUICK_REPLY",
-            "text": "Motivasyonum düşük"
+            "text": "Destek lazım"
           }
         ]
       }
     ]
   },
   {
-    "name": "tetikleyici_t2_normal_v1_v2_yb",
+    "name": "tetikleyici_t2_normal_v1_v3_yb",
     "language": "tr",
     "category": "MARKETING",
     "components": [
       {
         "type": "BODY",
-        "text": "Merhaba {{1}}, kaldığınız yer hazır. Sizi en çok ne zorladığını belirtmeniz yeterli.",
+        "text": "Merhaba {{1}}, kaldığınız yer hazır duruyor. Şu anki durumunuzu belirtmeniz yeterli.",
         "example": {
           "body_text": [
             [
@@ -1990,28 +1990,28 @@
         "buttons": [
           {
             "type": "QUICK_REPLY",
-            "text": "Zamanım yok"
+            "text": "İyi, devam ediyorum"
           },
           {
             "type": "QUICK_REPLY",
-            "text": "İçerik zor"
+            "text": "Yoğunum"
           },
           {
             "type": "QUICK_REPLY",
-            "text": "Motivasyonum düşük"
+            "text": "Destek lazım"
           }
         ]
       }
     ]
   },
   {
-    "name": "tetikleyici_t2_normal_v1_v2_yy",
+    "name": "tetikleyici_t2_normal_v1_v3_yy",
     "language": "tr",
     "category": "MARKETING",
     "components": [
       {
         "type": "BODY",
-        "text": "Merhaba {{1}}, kaldığınız yer hazır duruyor. Sizi şu an en çok ne zorluyor, paylaşmak ister misiniz?",
+        "text": "Merhaba {{1}}, kaldığınız yer hazır duruyor. Şu anki durumunuzu paylaşmak ister misiniz?",
         "example": {
           "body_text": [
             [
@@ -2025,28 +2025,28 @@
         "buttons": [
           {
             "type": "QUICK_REPLY",
-            "text": "Zamanım yok"
+            "text": "İyi, devam ediyorum"
           },
           {
             "type": "QUICK_REPLY",
-            "text": "İçerik zor"
+            "text": "Yoğunum"
           },
           {
             "type": "QUICK_REPLY",
-            "text": "Motivasyonum düşük"
+            "text": "Destek lazım"
           }
         ]
       }
     ]
   },
   {
-    "name": "tetikleyici_t2_normal_v2_v2_gb",
+    "name": "tetikleyici_t2_normal_v2_v3_gb",
     "language": "tr",
     "category": "MARKETING",
     "components": [
       {
         "type": "BODY",
-        "text": "Selam {{1}}, bir süredir aktif değilsin. Seni en çok ne zorluyor?",
+        "text": "Selam {{1}}, bir süredir aktif değilsin. Şu anki durumun nedir?",
         "example": {
           "body_text": [
             [
@@ -2060,28 +2060,28 @@
         "buttons": [
           {
             "type": "QUICK_REPLY",
-            "text": "Zamanım yok"
+            "text": "İyi, devam ediyorum"
           },
           {
             "type": "QUICK_REPLY",
-            "text": "İçerik zor"
+            "text": "Yoğunum"
           },
           {
             "type": "QUICK_REPLY",
-            "text": "Motivasyonum düşük"
+            "text": "Destek lazım"
           }
         ]
       }
     ]
   },
   {
-    "name": "tetikleyici_t2_normal_v2_v2_gy",
+    "name": "tetikleyici_t2_normal_v2_v3_gy",
     "language": "tr",
     "category": "MARKETING",
     "components": [
       {
         "type": "BODY",
-        "text": "Selam {{1}}, bir süredir yoktun, nasılsın diye sormak istedim 🙂 Şu an en çok ne zorluyor?",
+        "text": "Selam {{1}}, bir süredir yoktun, nasılsın diye sormak istedim 🙂 Şu an durumun ne?",
         "example": {
           "body_text": [
             [
@@ -2095,28 +2095,28 @@
         "buttons": [
           {
             "type": "QUICK_REPLY",
-            "text": "Zamanım yok"
+            "text": "İyi, devam ediyorum"
           },
           {
             "type": "QUICK_REPLY",
-            "text": "İçerik zor"
+            "text": "Yoğunum"
           },
           {
             "type": "QUICK_REPLY",
-            "text": "Motivasyonum düşük"
+            "text": "Destek lazım"
           }
         ]
       }
     ]
   },
   {
-    "name": "tetikleyici_t2_normal_v2_v2_ib",
+    "name": "tetikleyici_t2_normal_v2_v3_ib",
     "language": "tr",
     "category": "MARKETING",
     "components": [
       {
         "type": "BODY",
-        "text": "Merhaba {{1}}, bir süredir hareketlilik gözlenmedi. Sizi en çok ne zorladığını belirtmeniz yeterlidir.",
+        "text": "Merhaba {{1}}, bir süredir hareketlilik fark edilmedi. Şu anki durumunuzu belirtmeniz yeterlidir.",
         "example": {
           "body_text": [
             [
@@ -2130,28 +2130,28 @@
         "buttons": [
           {
             "type": "QUICK_REPLY",
-            "text": "Zamanım yok"
+            "text": "İyi, devam ediyorum"
           },
           {
             "type": "QUICK_REPLY",
-            "text": "İçerik zor"
+            "text": "Yoğunum"
           },
           {
             "type": "QUICK_REPLY",
-            "text": "Motivasyonum düşük"
+            "text": "Destek lazım"
           }
         ]
       }
     ]
   },
   {
-    "name": "tetikleyici_t2_normal_v2_v2_iy",
+    "name": "tetikleyici_t2_normal_v2_v3_iy",
     "language": "tr",
     "category": "MARKETING",
     "components": [
       {
         "type": "BODY",
-        "text": "Merhaba {{1}}, bir süredir sizi göremedik. Sizi şu an en çok ne zorluyor, paylaşmak ister misiniz?",
+        "text": "Merhaba {{1}}, bir süredir sizi göremedik. Şu anki durumunuzu paylaşmak ister misiniz?",
         "example": {
           "body_text": [
             [
@@ -2165,28 +2165,28 @@
         "buttons": [
           {
             "type": "QUICK_REPLY",
-            "text": "Zamanım yok"
+            "text": "İyi, devam ediyorum"
           },
           {
             "type": "QUICK_REPLY",
-            "text": "İçerik zor"
+            "text": "Yoğunum"
           },
           {
             "type": "QUICK_REPLY",
-            "text": "Motivasyonum düşük"
+            "text": "Destek lazım"
           }
         ]
       }
     ]
   },
   {
-    "name": "tetikleyici_t2_normal_v2_v2_yb",
+    "name": "tetikleyici_t2_normal_v2_v3_yb",
     "language": "tr",
     "category": "MARKETING",
     "components": [
       {
         "type": "BODY",
-        "text": "Merhaba {{1}}, bir süredir hareketlilik gözlenmedi. Sizi en çok ne zorladığını belirtmeniz yeterli.",
+        "text": "Merhaba {{1}}, bir süredir hareketlilik fark edilmedi. Şu anki durumunuzu belirtmeniz yeterli.",
         "example": {
           "body_text": [
             [
@@ -2200,28 +2200,28 @@
         "buttons": [
           {
             "type": "QUICK_REPLY",
-            "text": "Zamanım yok"
+            "text": "İyi, devam ediyorum"
           },
           {
             "type": "QUICK_REPLY",
-            "text": "İçerik zor"
+            "text": "Yoğunum"
           },
           {
             "type": "QUICK_REPLY",
-            "text": "Motivasyonum düşük"
+            "text": "Destek lazım"
           }
         ]
       }
     ]
   },
   {
-    "name": "tetikleyici_t2_normal_v2_v2_yy",
+    "name": "tetikleyici_t2_normal_v2_v3_yy",
     "language": "tr",
     "category": "MARKETING",
     "components": [
       {
         "type": "BODY",
-        "text": "Merhaba {{1}}, bir süredir sizi göremedik. Sizi şu an en çok ne zorluyor, paylaşmak ister misiniz?",
+        "text": "Merhaba {{1}}, bir süredir sizi göremedik. Şu anki durumunuzu paylaşmak ister misiniz?",
         "example": {
           "body_text": [
             [
@@ -2235,28 +2235,28 @@
         "buttons": [
           {
             "type": "QUICK_REPLY",
-            "text": "Zamanım yok"
+            "text": "İyi, devam ediyorum"
           },
           {
             "type": "QUICK_REPLY",
-            "text": "İçerik zor"
+            "text": "Yoğunum"
           },
           {
             "type": "QUICK_REPLY",
-            "text": "Motivasyonum düşük"
+            "text": "Destek lazım"
           }
         ]
       }
     ]
   },
   {
-    "name": "tetikleyici_t2_normal_v3_v3_gb",
+    "name": "tetikleyici_t2_normal_v3_v4_gb",
     "language": "tr",
     "category": "MARKETING",
     "components": [
       {
         "type": "BODY",
-        "text": "Selam {{1}}, derslerinde bir süredir hareket yok. Şu an seni en çok ne zorluyor?",
+        "text": "Selam {{1}}, derslerinde bir süredir hareket yok. Şu anki durumun nedir?",
         "example": {
           "body_text": [
             [
@@ -2270,28 +2270,28 @@
         "buttons": [
           {
             "type": "QUICK_REPLY",
-            "text": "Zamanım yok"
+            "text": "İyi, devam ediyorum"
           },
           {
             "type": "QUICK_REPLY",
-            "text": "İçerik zor"
+            "text": "Yoğunum"
           },
           {
             "type": "QUICK_REPLY",
-            "text": "Motivasyonum düşük"
+            "text": "Destek lazım"
           }
         ]
       }
     ]
   },
   {
-    "name": "tetikleyici_t2_normal_v3_v3_gy",
+    "name": "tetikleyici_t2_normal_v3_v4_gy",
     "language": "tr",
     "category": "MARKETING",
     "components": [
       {
         "type": "BODY",
-        "text": "Selam {{1}}, derslerinde bir süredir sessizlik var, nasılsın diye sormak istedim 🙂 Şu an seni en çok ne zorluyor?",
+        "text": "Selam {{1}}, derslerinde bir süredir sessizlik var, nasılsın diye sormak istedim 🙂 Şu an durumun ne?",
         "example": {
           "body_text": [
             [
@@ -2305,28 +2305,28 @@
         "buttons": [
           {
             "type": "QUICK_REPLY",
-            "text": "Zamanım yok"
+            "text": "İyi, devam ediyorum"
           },
           {
             "type": "QUICK_REPLY",
-            "text": "İçerik zor"
+            "text": "Yoğunum"
           },
           {
             "type": "QUICK_REPLY",
-            "text": "Motivasyonum düşük"
+            "text": "Destek lazım"
           }
         ]
       }
     ]
   },
   {
-    "name": "tetikleyici_t2_normal_v3_v3_ib",
+    "name": "tetikleyici_t2_normal_v3_v4_ib",
     "language": "tr",
     "category": "MARKETING",
     "components": [
       {
         "type": "BODY",
-        "text": "Merhaba {{1}}, derslerinizde hareketsizlik fark edildi. Sizi en çok ne zorladığını belirtmeniz yeterlidir.",
+        "text": "Merhaba {{1}}, derslerinizde hareketsizlik fark edildi. Şu anki durumunuzu belirtmeniz yeterlidir.",
         "example": {
           "body_text": [
             [
@@ -2340,28 +2340,28 @@
         "buttons": [
           {
             "type": "QUICK_REPLY",
-            "text": "Zamanım yok"
+            "text": "İyi, devam ediyorum"
           },
           {
             "type": "QUICK_REPLY",
-            "text": "İçerik zor"
+            "text": "Yoğunum"
           },
           {
             "type": "QUICK_REPLY",
-            "text": "Motivasyonum düşük"
+            "text": "Destek lazım"
           }
         ]
       }
     ]
   },
   {
-    "name": "tetikleyici_t2_normal_v3_v3_iy",
+    "name": "tetikleyici_t2_normal_v3_v4_iy",
     "language": "tr",
     "category": "MARKETING",
     "components": [
       {
         "type": "BODY",
-        "text": "Merhaba {{1}}, derslerinizde bir süredir hareket gözlenmedi. Şu an sizi en çok ne zorluyor, paylaşmak ister misiniz?",
+        "text": "Merhaba {{1}}, derslerinizde bir süredir hareket fark edilmedi. Şu anki durumunuzu paylaşmak ister misiniz?",
         "example": {
           "body_text": [
             [
@@ -2375,28 +2375,28 @@
         "buttons": [
           {
             "type": "QUICK_REPLY",
-            "text": "Zamanım yok"
+            "text": "İyi, devam ediyorum"
           },
           {
             "type": "QUICK_REPLY",
-            "text": "İçerik zor"
+            "text": "Yoğunum"
           },
           {
             "type": "QUICK_REPLY",
-            "text": "Motivasyonum düşük"
+            "text": "Destek lazım"
           }
         ]
       }
     ]
   },
   {
-    "name": "tetikleyici_t2_normal_v3_v3_yb",
+    "name": "tetikleyici_t2_normal_v3_v4_yb",
     "language": "tr",
     "category": "MARKETING",
     "components": [
       {
         "type": "BODY",
-        "text": "Merhaba {{1}}, derslerinizde hareketsizlik fark edildi. Sizi en çok ne zorladığını belirtmeniz yeterli.",
+        "text": "Merhaba {{1}}, derslerinizde hareketsizlik fark edildi. Şu anki durumunuzu belirtmeniz yeterli.",
         "example": {
           "body_text": [
             [
@@ -2410,28 +2410,28 @@
         "buttons": [
           {
             "type": "QUICK_REPLY",
-            "text": "Zamanım yok"
+            "text": "İyi, devam ediyorum"
           },
           {
             "type": "QUICK_REPLY",
-            "text": "İçerik zor"
+            "text": "Yoğunum"
           },
           {
             "type": "QUICK_REPLY",
-            "text": "Motivasyonum düşük"
+            "text": "Destek lazım"
           }
         ]
       }
     ]
   },
   {
-    "name": "tetikleyici_t2_normal_v3_v3_yy",
+    "name": "tetikleyici_t2_normal_v3_v4_yy",
     "language": "tr",
     "category": "MARKETING",
     "components": [
       {
         "type": "BODY",
-        "text": "Merhaba {{1}}, derslerinizde bir süredir hareket gözlenmedi. Şu an sizi en çok ne zorluyor, paylaşmak ister misiniz?",
+        "text": "Merhaba {{1}}, derslerinizde bir süredir hareket fark edilmedi. Şu anki durumunuzu paylaşmak ister misiniz?",
         "example": {
           "body_text": [
             [
@@ -2445,15 +2445,15 @@
         "buttons": [
           {
             "type": "QUICK_REPLY",
-            "text": "Zamanım yok"
+            "text": "İyi, devam ediyorum"
           },
           {
             "type": "QUICK_REPLY",
-            "text": "İçerik zor"
+            "text": "Yoğunum"
           },
           {
             "type": "QUICK_REPLY",
-            "text": "Motivasyonum düşük"
+            "text": "Destek lazım"
           }
         ]
       }
@@ -5022,72 +5022,6 @@
     ]
   },
   {
-    "name": "m1_kapanis_k4_gy",
-    "language": "tr",
-    "category": "UTILITY",
-    "components": [
-      {
-        "type": "BODY",
-        "text": "İçerikle ilgili yardım için materyallere e-kampüs üzerinden ulaşabilirsin: https://ekampus.anadolu.edu.tr 🙂 Genel bir desteğe ihtiyacın olursa AÖS Destek de yanında: https://aosdestek.anadolu.edu.tr"
-      }
-    ]
-  },
-  {
-    "name": "m1_kapanis_k4_gb",
-    "language": "tr",
-    "category": "UTILITY",
-    "components": [
-      {
-        "type": "BODY",
-        "text": "İçerikle ilgili yardım için materyallere e-kampüs üzerinden ulaşabilirsin: https://ekampus.anadolu.edu.tr. Genel destek için AÖS Destek: https://aosdestek.anadolu.edu.tr"
-      }
-    ]
-  },
-  {
-    "name": "m1_kapanis_k4_yy",
-    "language": "tr",
-    "category": "UTILITY",
-    "components": [
-      {
-        "type": "BODY",
-        "text": "İçerikle ilgili yardım için materyallere e-kampüs platformu üzerinden ulaşabilirsiniz: https://ekampus.anadolu.edu.tr. Genel bir desteğe ihtiyacınız olursa AÖS Destek'e ulaşabilirsiniz: https://aosdestek.anadolu.edu.tr"
-      }
-    ]
-  },
-  {
-    "name": "m1_kapanis_k4_yb",
-    "language": "tr",
-    "category": "UTILITY",
-    "components": [
-      {
-        "type": "BODY",
-        "text": "İçerikle ilgili yardım için materyallere e-kampüs platformu üzerinden ulaşabilirsiniz: https://ekampus.anadolu.edu.tr. Genel destek için AÖS Destek: https://aosdestek.anadolu.edu.tr"
-      }
-    ]
-  },
-  {
-    "name": "m1_kapanis_k4_iy",
-    "language": "tr",
-    "category": "UTILITY",
-    "components": [
-      {
-        "type": "BODY",
-        "text": "İçerikle ilgili yardım için materyallere e-kampüs platformu üzerinden, kendi hızınızda ulaşabilirsiniz: https://ekampus.anadolu.edu.tr. Genel bir desteğe ihtiyacınız olursa AÖS Destek'e ulaşabilirsiniz: https://aosdestek.anadolu.edu.tr"
-      }
-    ]
-  },
-  {
-    "name": "m1_kapanis_k4_ib",
-    "language": "tr",
-    "category": "UTILITY",
-    "components": [
-      {
-        "type": "BODY",
-        "text": "İçerikle ilgili yardım için materyallere e-kampüs platformu üzerinden ulaşabilirsiniz: https://ekampus.anadolu.edu.tr. Genel destek için AÖS Destek: https://aosdestek.anadolu.edu.tr"
-      }
-    ]
-  },
-  {
     "name": "tetikleyici_t3_normal_v1_v3_gy",
     "language": "tr",
     "category": "UTILITY",
@@ -5292,6 +5226,528 @@
           {
             "type": "QUICK_REPLY",
             "text": "Destek lazım"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "tanitim_t0_v1_gy",
+    "language": "tr",
+    "category": "MARKETING",
+    "components": [
+      {
+        "type": "BODY",
+        "text": "Selam {{1}}! Biz Yönetim Bilişim Sistemleri Bölümü'nden yazıyoruz 👋 Kişisel iletişim formunu doldururken WhatsApp'tan hatırlatma almayı işaretlemiştin, o yüzden buradayız. Dönem boyunca ara ara kısa bir ders çalışma hatırlatması göndereceğiz — haftada birden fazla değil. İstemediğin an \"Mesaj göndermeyin\" demen yeterli, hemen keseriz 🙂",
+        "example": {
+          "body_text": [
+            [
+              "Ahmet"
+            ]
+          ]
+        }
+      },
+      {
+        "type": "BUTTONS",
+        "buttons": [
+          {
+            "type": "QUICK_REPLY",
+            "text": "Tamam"
+          },
+          {
+            "type": "QUICK_REPLY",
+            "text": "Mesaj göndermeyin"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "tanitim_t0_v1_gb",
+    "language": "tr",
+    "category": "MARKETING",
+    "components": [
+      {
+        "type": "BODY",
+        "text": "Selam {{1}}, Yönetim Bilişim Sistemleri Bölümü adına yazıyoruz. Kişisel iletişim formunda WhatsApp'tan hatırlatma almayı işaretlemiştin. Dönem boyunca kısa ders çalışma hatırlatmaları göndereceğiz; sıklık haftada en fazla 1. Durdurmak için \"Mesaj göndermeyin\" yazman yeterli.",
+        "example": {
+          "body_text": [
+            [
+              "Ahmet"
+            ]
+          ]
+        }
+      },
+      {
+        "type": "BUTTONS",
+        "buttons": [
+          {
+            "type": "QUICK_REPLY",
+            "text": "Tamam"
+          },
+          {
+            "type": "QUICK_REPLY",
+            "text": "Mesaj göndermeyin"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "tanitim_t0_v1_yy",
+    "language": "tr",
+    "category": "MARKETING",
+    "components": [
+      {
+        "type": "BODY",
+        "text": "Merhaba {{1}}, biz Yönetim Bilişim Sistemleri Bölümü'nden yazıyoruz 👋 Kişisel iletişim formunu doldururken WhatsApp'tan hatırlatma almayı işaretlemiştiniz. Dönem boyunca ara ara kısa bir ders çalışma hatırlatması göndereceğiz — haftada birden fazla değil. Dilediğiniz an \"Mesaj göndermeyin\" demeniz yeterli 🙂",
+        "example": {
+          "body_text": [
+            [
+              "Ahmet"
+            ]
+          ]
+        }
+      },
+      {
+        "type": "BUTTONS",
+        "buttons": [
+          {
+            "type": "QUICK_REPLY",
+            "text": "Tamam"
+          },
+          {
+            "type": "QUICK_REPLY",
+            "text": "Mesaj göndermeyin"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "tanitim_t0_v1_yb",
+    "language": "tr",
+    "category": "MARKETING",
+    "components": [
+      {
+        "type": "BODY",
+        "text": "Merhaba {{1}}, Yönetim Bilişim Sistemleri Bölümü adına yazıyoruz. Kişisel iletişim formunda WhatsApp'tan hatırlatma almayı işaretlemiştiniz. Dönem boyunca kısa ders çalışma hatırlatmaları göndereceğiz; sıklık haftada en fazla 1. Durdurmak için \"Mesaj göndermeyin\" yazmanız yeterlidir.",
+        "example": {
+          "body_text": [
+            [
+              "Ahmet"
+            ]
+          ]
+        }
+      },
+      {
+        "type": "BUTTONS",
+        "buttons": [
+          {
+            "type": "QUICK_REPLY",
+            "text": "Tamam"
+          },
+          {
+            "type": "QUICK_REPLY",
+            "text": "Mesaj göndermeyin"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "tanitim_t0_v1_iy",
+    "language": "tr",
+    "category": "MARKETING",
+    "components": [
+      {
+        "type": "BODY",
+        "text": "Merhaba {{1}}, biz Yönetim Bilişim Sistemleri Bölümü'nden yazıyoruz 👋 Kişisel iletişim formunda WhatsApp'tan hatırlatma almayı işaretlemiştiniz. Dönem boyunca kısa hatırlatmalar göndereceğiz — haftada en fazla bir. Durdurmak için \"Mesaj göndermeyin\" demeniz yeterli 🙂",
+        "example": {
+          "body_text": [
+            [
+              "Ahmet"
+            ]
+          ]
+        }
+      },
+      {
+        "type": "BUTTONS",
+        "buttons": [
+          {
+            "type": "QUICK_REPLY",
+            "text": "Tamam"
+          },
+          {
+            "type": "QUICK_REPLY",
+            "text": "Mesaj göndermeyin"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "tanitim_t0_v1_ib",
+    "language": "tr",
+    "category": "MARKETING",
+    "components": [
+      {
+        "type": "BODY",
+        "text": "Merhaba {{1}}, Yönetim Bilişim Sistemleri Bölümü adına yazıyoruz. Kişisel iletişim formunda WhatsApp'tan hatırlatma almayı işaretlemiştiniz. Dönem boyunca kısa hatırlatmalar göndereceğiz; haftada en fazla bir. Durdurmak için \"Mesaj göndermeyin\" yazmanız yeterlidir.",
+        "example": {
+          "body_text": [
+            [
+              "Ahmet"
+            ]
+          ]
+        }
+      },
+      {
+        "type": "BUTTONS",
+        "buttons": [
+          {
+            "type": "QUICK_REPLY",
+            "text": "Tamam"
+          },
+          {
+            "type": "QUICK_REPLY",
+            "text": "Mesaj göndermeyin"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "gunluk_kontrol_duz_v3_gy",
+    "language": "tr",
+    "category": "MARKETING",
+    "components": [
+      {
+        "type": "BODY",
+        "text": "Selam {{1}}, bugün çalışma günlerinden biri 🙂 Hazır olduğunda aşağıdaki butondan e-kampüs'e geçebilirsin. Not: sıklığı değiştirmek istersen haftada kaç gün istediğini (1-7 arası) yazman yeterli.",
+        "example": {
+          "body_text": [
+            [
+              "Ahmet"
+            ]
+          ]
+        }
+      },
+      {
+        "type": "BUTTONS",
+        "buttons": [
+          {
+            "type": "URL",
+            "text": "E-kampüs'e git",
+            "url": "https://ekampus.anadolu.edu.tr"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "gunluk_kontrol_duz_v3_gb",
+    "language": "tr",
+    "category": "MARKETING",
+    "components": [
+      {
+        "type": "BODY",
+        "text": "Selam {{1}}, bugün planlanan çalışma günlerinden biri. Aşağıdaki butondan e-kampüs'e geçebilirsin. Not: sıklığı değiştirmek istersen haftada kaç gün istediğini (1-7 arası) yazman yeterli.",
+        "example": {
+          "body_text": [
+            [
+              "Ahmet"
+            ]
+          ]
+        }
+      },
+      {
+        "type": "BUTTONS",
+        "buttons": [
+          {
+            "type": "URL",
+            "text": "E-kampüs'e git",
+            "url": "https://ekampus.anadolu.edu.tr"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "gunluk_kontrol_duz_v3_yy",
+    "language": "tr",
+    "category": "MARKETING",
+    "components": [
+      {
+        "type": "BODY",
+        "text": "Merhaba {{1}}, bugün çalışma günlerinizden biri. Hazır olduğunuzda aşağıdaki butondan e-kampüs'e geçebilirsiniz. Not: sıklığı değiştirmek isterseniz haftada kaç gün istediğinizi (1-7 arası) yazmanız yeterli.",
+        "example": {
+          "body_text": [
+            [
+              "Ahmet"
+            ]
+          ]
+        }
+      },
+      {
+        "type": "BUTTONS",
+        "buttons": [
+          {
+            "type": "URL",
+            "text": "E-kampüs'e git",
+            "url": "https://ekampus.anadolu.edu.tr"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "gunluk_kontrol_duz_v3_yb",
+    "language": "tr",
+    "category": "MARKETING",
+    "components": [
+      {
+        "type": "BODY",
+        "text": "Merhaba {{1}}, bugün planlanan çalışma günlerinizden biri. Aşağıdaki butondan e-kampüs'e geçebilirsiniz. Not: sıklığı değiştirmek isterseniz haftada kaç gün istediğinizi (1-7 arası) yazmanız yeterli.",
+        "example": {
+          "body_text": [
+            [
+              "Ahmet"
+            ]
+          ]
+        }
+      },
+      {
+        "type": "BUTTONS",
+        "buttons": [
+          {
+            "type": "URL",
+            "text": "E-kampüs'e git",
+            "url": "https://ekampus.anadolu.edu.tr"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "gunluk_kontrol_duz_v3_iy",
+    "language": "tr",
+    "category": "MARKETING",
+    "components": [
+      {
+        "type": "BODY",
+        "text": "Merhaba {{1}}, bugün çalışma günlerinizden biri. Kendi hızınızda, hazır olduğunuzda aşağıdaki butondan e-kampüs'e geçebilirsiniz. Not: sıklığı değiştirmek isterseniz haftada kaç gün istediğinizi (1-7 arası) yazmanız yeterli.",
+        "example": {
+          "body_text": [
+            [
+              "Ahmet"
+            ]
+          ]
+        }
+      },
+      {
+        "type": "BUTTONS",
+        "buttons": [
+          {
+            "type": "URL",
+            "text": "E-kampüs'e git",
+            "url": "https://ekampus.anadolu.edu.tr"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "gunluk_kontrol_duz_v3_ib",
+    "language": "tr",
+    "category": "MARKETING",
+    "components": [
+      {
+        "type": "BODY",
+        "text": "Merhaba {{1}}, bugün planlanan çalışma günlerinizden biri. Aşağıdaki butondan e-kampüs'e geçebilirsiniz. Not: sıklığı değiştirmek isterseniz haftada kaç gün istediğinizi (1-7 arası) yazmanız yeterlidir.",
+        "example": {
+          "body_text": [
+            [
+              "Ahmet"
+            ]
+          ]
+        }
+      },
+      {
+        "type": "BUTTONS",
+        "buttons": [
+          {
+            "type": "URL",
+            "text": "E-kampüs'e git",
+            "url": "https://ekampus.anadolu.edu.tr"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "gunluk_kontrol_ovgu_v3_gy",
+    "language": "tr",
+    "category": "MARKETING",
+    "components": [
+      {
+        "type": "BODY",
+        "text": "Selam {{1}}, son zamanlarda güzel bir tempo yakaladın, helal olsun 💪 Devam etmek için aşağıdaki butondan e-kampüs'e geçebilirsin. Not: sıklığı değiştirmek istersen haftada kaç gün istediğini (1-7 arası) yazman yeterli.",
+        "example": {
+          "body_text": [
+            [
+              "Ahmet"
+            ]
+          ]
+        }
+      },
+      {
+        "type": "BUTTONS",
+        "buttons": [
+          {
+            "type": "URL",
+            "text": "E-kampüs'e git",
+            "url": "https://ekampus.anadolu.edu.tr"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "gunluk_kontrol_ovgu_v3_gb",
+    "language": "tr",
+    "category": "MARKETING",
+    "components": [
+      {
+        "type": "BODY",
+        "text": "Selam {{1}}, son zamanlarda iyi bir tempo yakaladın. Devam etmek için aşağıdaki butondan e-kampüs'e geçebilirsin. Not: sıklığı değiştirmek istersen haftada kaç gün istediğini (1-7 arası) yazman yeterli.",
+        "example": {
+          "body_text": [
+            [
+              "Ahmet"
+            ]
+          ]
+        }
+      },
+      {
+        "type": "BUTTONS",
+        "buttons": [
+          {
+            "type": "URL",
+            "text": "E-kampüs'e git",
+            "url": "https://ekampus.anadolu.edu.tr"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "gunluk_kontrol_ovgu_v3_yy",
+    "language": "tr",
+    "category": "MARKETING",
+    "components": [
+      {
+        "type": "BODY",
+        "text": "Merhaba {{1}}, son zamanlarda güzel bir tempo yakaladınız, bunu takdir ediyoruz. Devam etmek için aşağıdaki butondan e-kampüs'e geçebilirsiniz. Not: sıklığı değiştirmek isterseniz haftada kaç gün istediğinizi (1-7 arası) yazmanız yeterli.",
+        "example": {
+          "body_text": [
+            [
+              "Ahmet"
+            ]
+          ]
+        }
+      },
+      {
+        "type": "BUTTONS",
+        "buttons": [
+          {
+            "type": "URL",
+            "text": "E-kampüs'e git",
+            "url": "https://ekampus.anadolu.edu.tr"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "gunluk_kontrol_ovgu_v3_yb",
+    "language": "tr",
+    "category": "MARKETING",
+    "components": [
+      {
+        "type": "BODY",
+        "text": "Merhaba {{1}}, son zamanlarda iyi bir tempo yakaladınız. Devam etmek için aşağıdaki butondan e-kampüs'e geçebilirsiniz. Not: sıklığı değiştirmek isterseniz haftada kaç gün istediğinizi (1-7 arası) yazmanız yeterli.",
+        "example": {
+          "body_text": [
+            [
+              "Ahmet"
+            ]
+          ]
+        }
+      },
+      {
+        "type": "BUTTONS",
+        "buttons": [
+          {
+            "type": "URL",
+            "text": "E-kampüs'e git",
+            "url": "https://ekampus.anadolu.edu.tr"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "gunluk_kontrol_ovgu_v3_iy",
+    "language": "tr",
+    "category": "MARKETING",
+    "components": [
+      {
+        "type": "BODY",
+        "text": "Merhaba {{1}}, son zamanlarda güzel bir tempo yakaladınız, bunu takdir ediyoruz. Kendi hızınızda devam etmek için aşağıdaki butondan e-kampüs'e geçebilirsiniz. Not: sıklığı değiştirmek isterseniz haftada kaç gün istediğinizi (1-7 arası) yazmanız yeterli.",
+        "example": {
+          "body_text": [
+            [
+              "Ahmet"
+            ]
+          ]
+        }
+      },
+      {
+        "type": "BUTTONS",
+        "buttons": [
+          {
+            "type": "URL",
+            "text": "E-kampüs'e git",
+            "url": "https://ekampus.anadolu.edu.tr"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "gunluk_kontrol_ovgu_v3_ib",
+    "language": "tr",
+    "category": "MARKETING",
+    "components": [
+      {
+        "type": "BODY",
+        "text": "Merhaba {{1}}, son zamanlarda iyi bir tempo yakaladınız. Devam etmek için aşağıdaki butondan e-kampüs'e geçebilirsiniz. Not: sıklığı değiştirmek isterseniz haftada kaç gün istediğinizi (1-7 arası) yazmanız yeterlidir.",
+        "example": {
+          "body_text": [
+            [
+              "Ahmet"
+            ]
+          ]
+        }
+      },
+      {
+        "type": "BUTTONS",
+        "buttons": [
+          {
+            "type": "URL",
+            "text": "E-kampüs'e git",
+            "url": "https://ekampus.anadolu.edu.tr"
           }
         ]
       }

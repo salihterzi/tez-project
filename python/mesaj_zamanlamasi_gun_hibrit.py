@@ -6,18 +6,29 @@ Gün Hibrit (Öğrenci x Faz Bazlı, Kategorik, Top-N) Tahmin
 tekrarlanır. Farkı: saat dairesel bir regresyon problemiydi (saat_sin/saat_cos
 üzerinde mixedlm), gün burada KATEGORİK ele alınır -- statsmodels'te kategorik
 (multinomial) karma-etkiler modeli pratik desteklenmediği için, mixedlm/BLUP
-yerine her (öğrenci, FAZ) hücresinde EN SIK görülen N gün (frekans sıralaması)
-hesaplanır. N faza göre değişir -- normal haftada etkileşim daha dağınık
-olduğundan 3 gün, sınav öncesi ~7 günlük pencerede etkileşim daha yoğun
-olduğundan 4 gün istenir (bkz. FAZ_TOP_N):
+yerine her (öğrenci, FAZ) hücresinde EN SIK görülen gün(ler) (frekans
+sıralaması) hesaplanır.
+
+2026-10-18 (kullanıcı kararı): çıktı artık HER ZAMAN 7 gün (`TOPLAM_GUN_SAYISI`,
+haftanın tamamı) -- `MessageDispatchScheduler`'ın `weekly_hours_available`'a
+göre bu listeden baştan N gün alması (array_slice, SADECE KIRPAR, UZATAMAZ)
+eski kısa listelerde (3/4 gün) "4 günden fazla" diyen öğrenciler için
+gerçekte var olmayan bir 4./5./6./7. günü hiç üretemiyordu. AMA bireysel
+veriden TÜM 7 günü güvenilir sıralamaya çalışmak (bkz. `_sim_gun_esik.py`'nin
+top_n=7 denemesi) popülasyon taban çizgisini HİÇBİR test edilen n'de (35'e
+kadar) geçemedi -- yani haftanın 4-7. günlerini ayırt etmek için bireysel
+veri yeterince güçlü bir sinyal DEĞİL. Bu yüzden `KISISEL_GUN_SAYISI` (eski
+`FAZ_TOP_N`, DEĞİŞMEDİ: normal_hafta=3, sınav öncesi=4) ile `TOPLAM_GUN_SAYISI`
+(7, yeni) AYRIŞTIRILDI:
 
   - Bir öğrencinin bir fazda >= GUN_MIN_FAZ_GOZLEM_ESIGI gözlemi varsa, o
-    öğrenci-faz kombinasyonu için KENDİ en sık N günü kullanılır (Seçenek B
-    davranışı, bireysel). Öğrencinin kendi verisinde N'den az farklı gün
-    varsa (az gözlemle sınırlı çeşitlilik), kalan sıralar POPÜLASYONUN top-N
-    listesinden (bireyselde zaten olanlar hariç) tamamlanır -- her satırın
-    `yontem` kolonu bu günün bireysel mi yoksa popülasyonla mı tamamlandığını
-    gösterir.
+    öğrenci-faz kombinasyonu için KENDİ en sık `KISISEL_GUN_SAYISI` günü
+    kullanılır (Seçenek B davranışı, bireysel) -- bu eşik/boyut HİÇ değişmedi,
+    zaten ampirik olarak doğrulanmıştı. KALAN günler (kişisel sayı artı
+    öğrencinin kendi verisinde yeterince FARKLI gün yoksa daha da fazlası)
+    `TOPLAM_GUN_SAYISI`'ya kadar HER ZAMAN POPÜLASYONUN top-7'sinden
+    tamamlanır -- her satırın `yontem` kolonu bu günün bireysel mi yoksa
+    popülasyonla mı tamamlandığını gösterir.
   - Öğrencinin fazda hiç yeterli verisi yoksa VE geçmiş bir dönemden o
     öğrenci-faz için bireysel (Seçenek B kökenli) bir sonuç varsa, popülasyona
     düşmeden ÖNCE o sonuç "önsel" olarak kullanılır (Seçenek C --
@@ -42,27 +53,31 @@ olduğundan 4 gün istenir (bkz. FAZ_TOP_N):
     hesaplanmaz aynı tabloya yazılır -- böylece bir SONRAKİ dönem çalıştığında
     bu dönemin önseli otomatik hazır olur.
   - Öğrencinin fazda hiç yeterli verisi yoksa VE önceki dönem önseli de yoksa
-    (yeni öğrenci veya önceki dönemde de fallback), o fazdaki POPÜLASYON
-    genelinde (>= MIN_GOZLEM_ESIGI toplam gözlemi olan öğrenci havuzunda) en
-    sık N gün kullanılır (Seçenek A davranışı). Bu fallback yolu, hiç
-    davranışsal verisi olmayan (n_faz=0) öğrencileri de otomatik kapsar --
-    saat pipeline'ındaki gibi ayrı bir cold-start adımına gerek kalmaz.
+    (yeni öğrenci veya önceki dönemde de fallback), o fazdaki POPÜLASYONUN
+    top-`TOPLAM_GUN_SAYISI` günü doğrudan kullanılır (Seçenek A davranışı). Bu
+    fallback yolu, hiç davranışsal verisi olmayan (n_faz=0) öğrencileri de
+    otomatik kapsar -- saat pipeline'ındaki gibi ayrı bir cold-start adımına
+    gerek kalmaz.
 
 ÖNEMLİ: GUN_MIN_FAZ_GOZLEM_ESIGI, saat modelinin MIN_FAZ_GOZLEM_ESIGI'sinden
 (mixedlm BLUP shrinkage formülünden türetilmiş) KASITLI olarak AYRI ve FARKLI
 bir sabittir -- o formül (sigma^2/tau^2) sürekli/dairesel regresyona özgüdür,
 buradaki top-N mod/frekans mekanizmasına aktarılamaz (bkz. proje sohbet
 geçmişi). Bunun yerine ampirik alt-örnekleme (subsampling) ile türetildi:
-veri-zengin öğrencilerin (>=40 gözlem) TÜM verisinden çıkan top-N "gerçek"
-kabul edilip, farklı n boyutlarında rastgele alt-örneklemlerin bu "gerçek"le
-örtüşme oranı ölçüldü (bkz. python/_sim_gun_esik.py). %70 hedef örtüşme oranını
-ilk aşan n=10 çıktı -- üç fazda da aynı (top_n 3 veya 4 olsa da), bu yüzden
-faza özel ayrım yerine tek sabit kullanılıyor. Not: n=top_n (örn. 4) ile
-örtüşme sadece ~%55 idi -- top-N kadar günü anlamlı sıralamak için top_n'in
-kendisi değil, birkaç katı gözlem gerekiyor.
+veri-zengin öğrencilerin (>=40 gözlem) TÜM verisinden çıkan top-`KISISEL_GUN_
+SAYISI` "gerçek" kabul edilip, farklı n boyutlarında rastgele alt-örneklemlerin
+bu "gerçek"le örtüşme oranı ölçüldü (bkz. python/_sim_gun_esik.py). %70 hedef
+örtüşme oranını ilk aşan n=10 çıktı -- üç fazda da aynı (top_n 3 veya 4 olsa
+da), bu yüzden faza özel ayrım yerine tek sabit kullanılıyor. Not: n=top_n
+(örn. 4) ile örtüşme sadece ~%55 idi -- top-N kadar günü anlamlı sıralamak
+için top_n'in kendisi değil, birkaç katı gözlem gerekiyor. Bu eşik SADECE
+`KISISEL_GUN_SAYISI` (3/4) için geçerli -- `TOPLAM_GUN_SAYISI`'nın (7) TAMAMINI
+bireysel veriden sıralamak İÇİN AYRICA denendi (2026-10-18) ve popülasyon
+taban çizgisini HİÇBİR test edilen n'de (35'e kadar) geçemedi; bu yüzden
+4-7. günler için eşik YOK -- her zaman popülasyondan dolar.
 
-Çıktı UZUN (long) formattadır: her (öğrenci, FAZ) için `top_n` kadar satır
-üretilir, `gun_sira` (1..top_n) o günün sıralamadaki yerini gösterir.
+Çıktı UZUN (long) formattadır: her (öğrenci, FAZ) için `TOPLAM_GUN_SAYISI`
+(7) satır üretilir, `gun_sira` (1..7) o günün sıralamadaki yerini gösterir.
 
 KULLANIM (python container'ı içinde):
     docker compose exec python python mesaj_zamanlamasi_gun_hibrit.py
@@ -95,17 +110,28 @@ FAZLAR = pipeline.FAZLAR
 MIN_GOZLEM_ESIGI = pipeline.MIN_GOZLEM_ESIGI    # popülasyon havuzuna dahil olmak için (toplam)
 
 # Saat modelinin MIN_FAZ_GOZLEM_ESIGI'sinden KASITLI olarak ayrı -- ampirik
-# alt-örnekleme ile türetildi (bkz. python/_sim_gun_esik.py): veri-zengin
-# öğrencilerin TÜM verisinden çıkan top-N "gerçek" kabul edilip, n boyutundaki
-# alt-örneklemlerin bununla örtüşme oranı ölçüldü; %70 hedef oranı ilk aşan
-# n=10, üç fazda da (normal_hafta/ara_sinav_oncesi/final_oncesi) aynı çıktı.
+# alt-örnekleme ile türetildi (bkz. python/_sim_gun_esik.py), SADECE
+# `KISISEL_GUN_SAYISI` (3/4) için geçerli -- `TOPLAM_GUN_SAYISI`'nın (7) kalan
+# günleri için bir eşik YOK, her zaman popülasyondan dolar (bkz. modül
+# docstring'indeki "ÖNEMLİ" notu).
 GUN_MIN_FAZ_GOZLEM_ESIGI = 10
 
 GUN_ADLARI = ['Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi', 'Pazar']
 
-# Faz başına istenen gün sayısı: normal haftada etkileşim günlere daha dağınık,
-# sınav öncesi ~7 günlük pencerede daha yoğun olduğundan farklı N kullanılır.
-FAZ_TOP_N = {'normal_hafta': 3, 'ara_sinav_oncesi': 4, 'final_oncesi': 4}
+# Bireysel veriden GÜVENLE sıralanmaya ÇALIŞILAN gün sayısı -- DEĞİŞMEDİ, hâlâ
+# ampirik olarak doğrulanmış 3/4 (normal haftada etkileşim daha dağınık, sınav
+# öncesi ~7 günlük pencerede daha yoğun). Eski adı FAZ_TOP_N idi.
+KISISEL_GUN_SAYISI = {'normal_hafta': 3, 'ara_sinav_oncesi': 4, 'final_oncesi': 4}
+
+# Çıktının TOPLAM uzunluğu -- 2026-10-18 (kullanıcı kararı): haftanın TAMAMI (7).
+# `MessageDispatchScheduler`'ın `weekly_hours_available`'a göre `observed_days`
+# listesinden baştan N gün alması (array_slice, SADECE KIRPAR, UZATAMAZ) eski
+# 3/4'lük listelerde "4 günden fazla" diyen öğrenciler için gerçekte var
+# olmayan bir 4./5./6./7. günü hiç üretemiyordu. KISISEL_GUN_SAYISI'nın ÖTESİNDE
+# kalan günler HER ZAMAN popülasyondan tamamlanıyor (bkz. modül docstring'i) --
+# bireysel veriden tüm 7'yi sıralamaya çalışmak DENENDİ (_sim_gun_esik.py,
+# top_n=7) ve popülasyon taban çizgisini hiçbir n'de geçemedi.
+TOPLAM_GUN_SAYISI = 7
 
 
 # =====================================================================
@@ -154,16 +180,21 @@ def _onceki_donem_sozlugu_olustur(onceki_donem_df):
 
 def model_kur_ve_tahmin_et_gun_hibrit(mat, dem, min_gozlem=MIN_GOZLEM_ESIGI,
                                        min_faz_gozlem=GUN_MIN_FAZ_GOZLEM_ESIGI,
-                                       faz_top_n=None, onceki_donem_df=None):
-    faz_top_n = faz_top_n or FAZ_TOP_N
+                                       kisisel_gun_sayisi=None, toplam_gun_sayisi=None,
+                                       onceki_donem_df=None):
+    kisisel_gun_sayisi = kisisel_gun_sayisi or KISISEL_GUN_SAYISI
+    toplam_gun_sayisi = toplam_gun_sayisi or TOPLAM_GUN_SAYISI
     counts_toplam = mat.groupby('ogrenci_no').size()
     yeterli = counts_toplam[counts_toplam >= min_gozlem].index
     sub = mat[mat['ogrenci_no'].isin(yeterli)]
 
     # Popülasyon (fallback) top-N günü: FAZ başına, 'yeterli' öğrenci havuzunun
-    # tamamından hesaplanır -- saat modelindeki sabit (popülasyon) etkiye karşılık gelir.
+    # tamamından, HER ZAMAN toplam_gun_sayisi (7) uzunluğunda hesaplanır -- saat
+    # modelindeki sabit (popülasyon) etkiye karşılık gelir. Popülasyon ölçeğinde
+    # haftanın tamamını sıralamak (bireysel veriden farklı olarak) güvenilir --
+    # bkz. modül docstring'indeki "ÖNEMLİ" notu.
     populasyon_top_gun = {
-        faz: _top_n_gun(sub.loc[sub['FAZ'] == faz, 'gun_index'], faz_top_n[faz])
+        faz: _top_n_gun(sub.loc[sub['FAZ'] == faz, 'gun_index'], toplam_gun_sayisi)
         for faz in FAZLAR
     }
 
@@ -184,30 +215,34 @@ def model_kur_ve_tahmin_et_gun_hibrit(mat, dem, min_gozlem=MIN_GOZLEM_ESIGI,
         ogrenci_mat = mat[mat['ogrenci_no'] == ogrenci_no]
 
         for faz in FAZLAR:
-            n = faz_top_n[faz]
+            kisisel_n = kisisel_gun_sayisi[faz]
+            toplam_n = toplam_gun_sayisi
             n_faz = int(faz_counts.loc[ogrenci_no, faz]) if ogrenci_no in faz_counts.index else 0
             yeterli_veri = n_faz >= min_faz_gozlem
             pop_gunler = populasyon_top_gun[faz]
 
             if yeterli_veri:
+                # Bireysel veriden SADECE kisisel_n (3/4, ampirik olarak doğrulanmış)
+                # kadar gün istenir -- toplam_n'in (7) TAMAMINI bireysel veriden
+                # sıralamak güvenilmez (bkz. modül docstring'i).
                 bireysel_gunler = _top_n_gun(
-                    ogrenci_mat.loc[ogrenci_mat['FAZ'] == faz, 'gun_index'], n)
+                    ogrenci_mat.loc[ogrenci_mat['FAZ'] == faz, 'gun_index'], kisisel_n)
                 gunler_kaynak = [(g, 'secenek_b_bireysel') for g in bireysel_gunler]
-                # Öğrencinin kendi verisinde n farklı gün yoksa (az gözlemle sınırlı
-                # çeşitlilik), kalan sıralar popülasyonun top-N'inden (bireyselde
-                # zaten olanlar hariç) tamamlanır.
+                # Kalan günler (kisisel_n'e ulaşmadıysa ONDAN, her durumda toplam_n'e
+                # kadar) popülasyonun top-N'inden (bireyselde zaten olanlar hariç)
+                # tamamlanır.
                 for g in pop_gunler:
-                    if len(gunler_kaynak) >= n:
+                    if len(gunler_kaynak) >= toplam_n:
                         break
                     if g not in bireysel_gunler:
                         gunler_kaynak.append((g, 'secenek_b_populasyonla_tamamlanmis'))
             else:
                 onceki_gunler = onceki_donem_sozluk.get((ogrenci_no, faz), [])
                 if onceki_gunler:
-                    gunler_kaynak = [(g, 'secenek_c_onceki_donem_onseli') for g in onceki_gunler[:n]]
-                    var_olanlar = set(onceki_gunler[:n])
+                    gunler_kaynak = [(g, 'secenek_c_onceki_donem_onseli') for g in onceki_gunler[:kisisel_n]]
+                    var_olanlar = set(onceki_gunler[:kisisel_n])
                     for g in pop_gunler:
-                        if len(gunler_kaynak) >= n:
+                        if len(gunler_kaynak) >= toplam_n:
                             break
                         if g not in var_olanlar:
                             gunler_kaynak.append((g, 'secenek_c_onceki_donem_onseli_populasyonla_tamamlanmis'))
@@ -220,7 +255,7 @@ def model_kur_ve_tahmin_et_gun_hibrit(mat, dem, min_gozlem=MIN_GOZLEM_ESIGI,
                     'ogrenci_no': ogrenci_no,
                     'FAZ': faz,
                     'gun_sira': sira,
-                    'top_n': n,
+                    'top_n': toplam_n,
                     'n_gozlem_faz': n_faz,
                     'n_gozlem_toplam': n_toplam,
                     'tahmini_gun_index': gun_idx,

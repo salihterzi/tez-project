@@ -37,17 +37,25 @@ class StudentProfileRepository extends ServiceEntityRepository
     }
 
     /**
-     * `last_barrier_type` dolu VE geçerlilik penceresi (bkz.
-     * {@see \App\Service\EngagementFlowService::BARRIER_GECERLILIK_HAFTASI}) içinde set edilmiş
-     * öğrenci id'leri — yani M1'in TEKRAR SORULMAMASI gereken öğrenciler.
+     * `last_barrier_type` dolu VE öğrenci henüz `current_state=AKTİF`'e dönmemiş öğrenci
+     * id'leri — yani M1'in TEKRAR SORULMAMASI gereken öğrenciler.
+     *
+     * 2026-10-18 (kullanıcı kararı): eskiden sabit bir hafta sayısına (bkz. artık kaldırılmış
+     * {@see \App\Service\EngagementFlowService}::BARRIER_GECERLILIK_HAFTASI) bağlıydı — keyfi bir
+     * sayı seçmek yerine, zaten her gün yeniden hesaplanan `current_state` FSM'ine ({@see
+     * \App\Command\EvaluateDailyTriggersCommand::belirleDurum()}) bağlandı: öğrenci GERÇEKTEN
+     * iyileşip (current_state=AKTİF) tekrar düşüşe girerse bu YENİ bir vaka sayılır, M1 o zaman
+     * tekrar sorulabilir. `BarrierType::Zaman` + "Ara vermek istiyorum" seçimi zaten DAHA GÜÇLÜ
+     * bir mekanizmayla (`silence_until`, bkz. {@see EngagementFlowService::zamanDonusSuresiYanitiIsle()})
+     * ayrıca korunuyor — `DailyTriggerEvaluator` o süre boyunca tetikleyiciyi hiç hesaplamadığı
+     * için bu sorgu o öğrenciler için zaten devreye girmiyor.
      *
      * @return int[]
      */
-    public function findStudentIdsWithValidBarrierType(\DateTimeImmutable $esikTarih): array
+    public function findStudentIdsWithValidBarrierType(): array
     {
         return array_map(intval(...), $this->getEntityManager()->getConnection()->executeQuery(
-            'SELECT student_id FROM student_profile WHERE last_barrier_type IS NOT NULL AND last_barrier_type_set_at >= :esik',
-            ['esik' => $esikTarih->format('Y-m-d H:i:s')],
+            "SELECT student_id FROM student_profile WHERE last_barrier_type IS NOT NULL AND current_state != 'AKTİF'",
         )->fetchFirstColumn());
     }
 
@@ -101,17 +109,31 @@ class StudentProfileRepository extends ServiceEntityRepository
     }
 
     /**
-     * Verilen öğrenci id'leri için `messages_sent_this_week` ve `weekly_hours_available` —
+     * Verilen öğrenci id'leri için `messages_sent_this_week` ve `last_message_sent_at` —
      * haftalık sıklık üst sınırı kontrolü için (bkz. {@see \App\Service\MessageFrequencyPolicy}).
-     * `weekly_hours_available` YBS Soru 5'ten GELİR ama M1 "zamanım yok" dalındaki "Haftada 1
-     * kısa oturum" seçimiyle de (daha güncel beyan olarak) üzerine yazılabilir — bkz.
-     * {@see \App\Service\EngagementFlowService::zamanHaftadaBirSecildi()}. Profili olmayan
-     * öğrenciler dizide yer almaz (çağıran taraf messagesSentThisWeek=0/weeklyHoursAvailable=null
+     *
+     * 2026-10-20 (kullanıcı kararı, gerçek bir bug'dan bulundu): `messages_sent_this_week`'in
+     * ISO-hafta sıfırlanması SADECE {@see \App\Entity\StudentProfile::recordMessageSent()}
+     * (YAZMA anında) uygulanıyordu — bu metot (OKUMA) ham sütunu olduğu gibi döndürüyordu,
+     * "bu değer hâlâ BU haftaya mı ait" diye hiç kontrol etmiyordu. Sonuç: bir öğrenci haftanın
+     * son günü (örn. Pazar) 1 mesaj alırsa, `last_message_sent_at` yeni haftaya (Pazartesi)
+     * geçtikten SONRA bile `messages_sent_this_week=1` okunmaya devam ediyordu — ve bu değeri
+     * sıfırlayacak tek yer (`recordMessageSent()`) ZATEN bu kontrolün GEÇMESİNİ gerektirdiği
+     * için öğrenci KALICI olarak "haftalık sıklık sınırında" kilitleniyordu (gerçek veriyle
+     * doğrulandı — bkz. proje notları). Artık `lastMessageSentAt` de döndürülüyor, çağıran taraf
+     * ({@see \App\Command\EvaluateDailyTriggersCommand}) `recordMessageSent()`'in KULLANDIĞI
+     * AYNI `'o-W'` karşılaştırmasını OKUMA anında da uyguluyor.
+     *
+     * `weekly_hours_available` artık burada DÖNDÜRÜLMÜYOR — tetikleyici sıklığı 2026-10-19'dan
+     * beri bu alandan bağımsız, sabit haftada-1 (bkz. {@see \App\Service\MessageFrequencyPolicy}
+     * docblock'u); o alan artık GunlukKontrol kanalının günlerini belirliyor, oradan okunuyor.
+     *
+     * Profili olmayan öğrenciler dizide yer almaz (çağıran taraf messagesSentThisWeek=0
      * varsaymalı).
      *
      * @param int[] $ogrenciNolar
      *
-     * @return array<int, array{messagesSentThisWeek: int, weeklyHoursAvailable: ?string}>
+     * @return array<int, array{messagesSentThisWeek: int, lastMessageSentAt: ?string}>
      */
     public function findFrequencyInfoFor(array $ogrenciNolar): array
     {
@@ -125,14 +147,14 @@ class StudentProfileRepository extends ServiceEntityRepository
         foreach (array_chunk($ogrenciNolar, self::TOPLU_ISLEM_PARCA_BOYUTU) as $parca) {
             $yerTutucular = implode(', ', array_fill(0, count($parca), '?'));
             $rows = $connection->fetchAllAssociative(
-                "SELECT student_id, messages_sent_this_week, weekly_hours_available FROM student_profile WHERE student_id IN ({$yerTutucular})",
+                "SELECT student_id, messages_sent_this_week, last_message_sent_at FROM student_profile WHERE student_id IN ({$yerTutucular})",
                 $parca,
             );
 
             foreach ($rows as $row) {
                 $sonuc[(int) $row['student_id']] = [
                     'messagesSentThisWeek' => (int) $row['messages_sent_this_week'],
-                    'weeklyHoursAvailable' => $row['weekly_hours_available'],
+                    'lastMessageSentAt' => $row['last_message_sent_at'],
                 ];
             }
         }

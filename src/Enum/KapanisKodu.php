@@ -33,7 +33,10 @@ enum KapanisKodu: string
     {
         return match ($metin) {
             'Evet', 'Konu tekrarı', 'Olur', 'Göz atacağım', 'Biraz zorlanıyorum',
-            'Henüz başlamadım', 'Biraz dağınık', 'Henüz oturmadı', 'Henüz değil' => self::K1,
+            'Henüz başlamadım', 'Biraz dağınık', 'Henüz oturmadı', 'Henüz değil',
+            // 2026-10-19 (kullanıcı kararı): günlük hatırlatma/övgü kanalının
+            // ({@see \App\Enum\ScheduledMessageKind::GunlukKontrol}) tek butonu.
+            "E-kampüs'e git" => self::K1,
             'Zaten çalışıyorum', 'İyi gidiyor', 'Planlı gidiyor', 'Evet, netleştirdim',
             'İyi, devam ediyorum' => self::K2,
             'Şimdilik gerek yok', 'Şu an gerek yok', 'Gerek yok', 'Şimdi değil',

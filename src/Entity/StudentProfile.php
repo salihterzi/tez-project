@@ -9,6 +9,7 @@ use App\Enum\LearningGoal;
 use App\Enum\MotivasyonResponse;
 use App\Enum\Phase;
 use App\Enum\PreferredStudyTime;
+use App\Enum\ScheduledMessageKind;
 use App\Enum\SocialComparisonOptin;
 use App\Enum\StudentState;
 use App\Enum\WeeklyHoursAvailable;
@@ -59,7 +60,7 @@ class StudentProfile
         name: 'weekly_hours_available',
         enumType: WeeklyHoursAvailable::class,
         nullable: true,
-        columnDefinition: "ENUM('1 gün','2 gün','3 gün','4 günden fazla') DEFAULT NULL",
+        columnDefinition: "ENUM('1 gün','2 gün','3 gün','4 gün','5 gün','6 gün','Her gün') DEFAULT NULL",
     )]
     private ?WeeklyHoursAvailable $weeklyHoursAvailable = null;
 
@@ -112,10 +113,11 @@ class StudentProfile
     private ?BarrierType $lastBarrierType = null;
 
     /**
-     * `last_barrier_type` en son ne zaman set edildi — geçerlilik penceresi (bkz.
-     * {@see \App\Service\EngagementFlowService::BARRIER_GECERLILIK_HAFTASI}) bu alana göre
-     * hesaplanır. `last_barrier_type` set edilirken her zaman birlikte güncellenir
-     * (bkz. {@see self::setLastBarrierType()}), ayrıca elle set edilmez.
+     * `last_barrier_type` en son ne zaman set edildi — tarihsel/bilgi amaçlı kayıt. M1'in tekrar
+     * sorulup sorulmayacağı artık bu tarihe değil `current_state`'e bağlı (2026-10-18, kullanıcı
+     * kararı — bkz. {@see \App\Repository\StudentProfileRepository::findStudentIdsWithValidBarrierType()}).
+     * `last_barrier_type` set edilirken her zaman birlikte güncellenir (bkz.
+     * {@see self::setLastBarrierType()}), ayrıca elle set edilmez.
      */
     #[ORM\Column(name: 'last_barrier_type_set_at', type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $lastBarrierTypeSetAt = null;
@@ -131,6 +133,95 @@ class StudentProfile
         columnDefinition: "ENUM('ENGEL_BEKLENIYOR','ZAMAN_TAKIBI_BEKLENIYOR','ZAMAN_GUN_SAATI_BEKLENIYOR','ZAMAN_DONUS_SURESI_BEKLENIYOR','ZORLUK_TAKIBI_BEKLENIYOR','ZORLUK_NOT_BEKLENIYOR','MOTIVASYON_TAKIBI_BEKLENIYOR','T1_YANITI_BEKLENIYOR','TETIKLEYICI_SECENEK_YANITI_BEKLENIYOR') DEFAULT NULL",
     )]
     private ?FlowStep $pendingFlowStep = null;
+
+    /**
+     * Bu akış kapanışı için "akış tamamlandı" bilgilendirmesinin gönderilip gönderilmediği
+     * (2026-10-28, kullanıcı kararı: "her akış kapandığında BİR KERE gelmeli").
+     *
+     * {@see self::setPendingFlowStep()} içinde, boş OLMAYAN bir adım atandığında otomatik
+     * `false`'a döner — yani yeni bir akış başladığında bilgilendirme yeniden "borçlu" hâle
+     * gelir ve o akış kapandıktan sonraki ilk serbest metinde tekrar gönderilir.
+     */
+    #[ORM\Column(name: 'akis_tamamlandi_bildirildi', type: 'boolean', options: ['default' => false])]
+    private bool $akisTamamlandiBildirildi = false;
+
+    /**
+     * "Bugünlük mesajlaşma sınırına ulaşıldı" bildiriminin bugün gönderilip gönderilmediği
+     * (2026-10-28, kullanıcı kararı). Önceden sınır aşıldıktan sonra gelen HER mesajda tekrar
+     * gönderiliyordu — mesajlaşmayı kesmesi gereken mekanizma sınırsız mesaj üretiyordu.
+     *
+     * Boolean değil TARİH: {@see self::$dailyMessageAt} ile aynı mantıkla gün karşılaştırması
+     * yapılır ({@see self::gunlukSinirBildirildiMi()}), böylece gece yarısı ayrı bir sıfırlama
+     * işine gerek kalmaz.
+     */
+    #[ORM\Column(name: 'gunluk_sinir_bildirildi_at', type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $gunlukSinirBildirildiAt = null;
+
+    /**
+     * Bu oturumda "lütfen seçeneklerden birini seçin" hatırlatmasının gönderilip gönderilmediği
+     * (2026-10-28, kullanıcı kararı: oturumda bir kez, devam ederse sessiz kalınır).
+     *
+     * {@see self::oturumuBaslat()} içinde sıfırlanır — yani her yeni proaktif mesajla birlikte
+     * öğrenci yeniden bir hatırlatma hakkı kazanır.
+     */
+    #[ORM\Column(name: 'secenek_hatirlatmasi_gonderildi', type: 'boolean', options: ['default' => false])]
+    private bool $secenekHatirlatmasiGonderildi = false;
+
+    /**
+     * Bu oturumu BAŞLATAN proaktif mesajın türü (2026-10-30, kullanıcı kararı) —
+     * {@see self::oturumuBaslat()} ile yazılır, yani her zaman gerçekten gönderilmiş bir
+     * mesajın türüdür.
+     *
+     * Niye gerekiyor: günlük kontrol kanalı bilerek `pending_flow_step` SET ETMEZ
+     * (2026-10-19, kullanıcı kararı — cevap vermeyen öğrencide adım sonsuza kadar dolu kalıp
+     * M1'i sessizce bir daha hiç tetiklenemez hale getiriyordu). Dolayısıyla webhook, bekleyen
+     * adım boş olduğunda "gerçekten tamamlanmış bir akış" ile "günlük kontrol mesajı" arasını
+     * ayırt edemiyordu ve ikisine de "akış tamamlandı" diyordu — oysa hiç konuşma başlamamıştı.
+     * Bu alan o ayrımı `pending_flow_step`'e dokunmadan kuruyor
+     * ({@see \App\Controller\WhatsAppWebhookController::oturumBildirimiGonder()}).
+     *
+     * Tarihçe: 28 Ekim'de eklendi (`Version20261028160000`), 29 Ekim'de kaldırıldı
+     * (`Version20261029090000`) çünkü buton QUICK_REPLY'dan URL'ye çevrilince "yanıt
+     * beklenmiyor" sayıldı; 30 Ekim'de geri getirildi (`Version20261030090000`) — `_v3`
+     * gövdesi hâlâ serbest metne davet ediyor ("1-7 arası bir sayı yazman yeterli"), yani
+     * sayı OLMAYAN serbest metin hâlâ yanlış dala düşüyordu.
+     */
+    #[ORM\Column(name: 'oturum_kaynagi', type: 'string', length: 32, nullable: true, enumType: ScheduledMessageKind::class)]
+    private ?ScheduledMessageKind $oturumKaynagi = null;
+
+    /**
+     * Mevcut oturumun korelasyon anahtarı (2026-10-30, kullanıcı kararı). Ayrı bir "oturum"
+     * tablosu YOK — oturumun kendisi hâlâ bu satırın anlık durumu; bu alan yalnızca
+     * {@see \App\Service\OturumMesajLoglayici}'nin bir oturuma ait tüm mesajları (proaktif
+     * açılış + sonraki gelen/giden) `oturum_mesaji` tablosunda GRUPLAYABİLMESİ için
+     * {@see self::oturumuBaslat()} içinde üretilir. Eski bir oturumun ID'si, yeni bir
+     * oturum başladığında üzerine yazılır — geçmiş mesajlar zaten kendi satırlarına
+     * loglandığı için bu kaybı etkilemez.
+     */
+    #[ORM\Column(name: 'oturum_id', type: 'string', length: 32, nullable: true)]
+    private ?string $oturumId = null;
+
+    /**
+     * Bu oturumda öğrenci haftalık gün sayısını (1-7) güncelledi mi? (2026-10-30, kullanıcı
+     * kararı: "oturumda bir kez tercih değişikliği".)
+     *
+     * İkinci sayı ayarı DEĞİŞTİRMEZ ve onay mesajı üretmez; serbest metin gibi bildirim dalına
+     * düşer ve orada kendi metnini bulur ("her mesajda bir kez güncelleyebiliyoruz"). Gerekçe:
+     * onay mesajı günlük/oturum sayacından muaf olduğu için (2026-10-18, kullanıcı kararı —
+     * tercih güncellemesi bir sohbet alışverişi değil) hiçbir üst sınırı yoktu; öğrenci
+     * `3 → 5 → 2 → 7` yazarak sınırsız sayıda giden mesaj üretebiliyordu. Bu, 28 Ekim'de
+     * günlük sınır duyurusunda bulunan arızanın aynısı: mesajlaşmayı kesmesi gereken
+     * mekanizmanın kendisi sınırsız mesaj üretiyor.
+     *
+     * Bilinen bedeli (kullanıcı kararıyla kabul edildi): yanlış sayı yazan öğrenci aynı
+     * oturumda düzeltemez — ayarı bir sonraki proaktif mesaja kadar yanlış kalır. Bildirim
+     * metni en azından düzeltmenin NE ZAMAN mümkün olduğunu söylüyor.
+     *
+     * {@see self::oturumuBaslat()} içinde sıfırlanır.
+     */
+    #[ORM\Column(name: 'oturumda_sayi_yazildi', type: 'boolean', options: ['default' => false])]
+    private bool $oturumdaSayiYazildi = false;
+
 
     // --- M1 (engel teşhisi) veri alanları — Engel_Teshisi_Mesaj_Sablonu.docx "Toplanacak
     // Veri Alanları" tablosu (barrier_type zaten current_state'in üstünde last_barrier_type
@@ -417,7 +508,41 @@ class StudentProfile
 
     public function setPendingFlowStep(?FlowStep $pendingFlowStep): static
     {
+        // Yeni bir akış başlıyorsa (boş olmayan adım), "akış tamamlandı" bilgilendirmesi
+        // yeniden borçlu hâle gelir — o akış kapandıktan sonraki ilk serbest metinde gider.
+        if (null !== $pendingFlowStep) {
+            $this->akisTamamlandiBildirildi = false;
+        }
+
         $this->pendingFlowStep = $pendingFlowStep;
+        $this->touch();
+
+        return $this;
+    }
+
+    public function akisTamamlandiBildirildiMi(): bool
+    {
+        return $this->akisTamamlandiBildirildi;
+    }
+
+    public function akisTamamlandiBildirimiKaydet(): static
+    {
+        $this->akisTamamlandiBildirildi = true;
+        $this->touch();
+
+        return $this;
+    }
+
+    /** Günlük sınır bildirimi BUGÜN gönderildi mi? Gün değiştiyse otomatik `false`. */
+    public function gunlukSinirBildirildiMi(\DateTimeImmutable $simdi): bool
+    {
+        return null !== $this->gunlukSinirBildirildiAt
+            && $this->gunlukSinirBildirildiAt->format('Y-m-d') === $simdi->format('Y-m-d');
+    }
+
+    public function gunlukSinirBildirimiKaydet(\DateTimeImmutable $simdi): static
+    {
+        $this->gunlukSinirBildirildiAt = $simdi;
         $this->touch();
 
         return $this;
@@ -654,6 +779,27 @@ class StudentProfile
     }
 
     /**
+     * Öğrencinin BU ISO haftada (Pazartesi başlangıç) kaç tetikleyici-kaynaklı mesaj aldığını
+     * döner -- `recordMessageSent()`'in YAZMA anında uyguladığı AYNI `'o-W'` karşılaştırmasını
+     * OKUMA anında da uygular (salt okunur, sayaç durumunu DEĞİŞTİRMEZ).
+     *
+     * 2026-10-20 (kullanıcı kararı, gerçek bir bug'dan bulundu): bu metot eklenmeden önce
+     * {@see \App\Service\MessageFrequencyPolicy::siklikUygunMu()} ham `messagesSentThisWeek`
+     * sütununu DOĞRUDAN kullanıyordu — bu değer sadece YAZMA anında (yani bir sonraki GERÇEK
+     * gönderimde) sıfırlanıyordu. Bir öğrenci haftanın son günü (örn. Pazar) 1 mesaj alırsa,
+     * yeni hafta başladıktan (Pazartesi) SONRA bile sayaç hâlâ "1" okunuyordu — ve bunu
+     * sıfırlayacak tek yer (`recordMessageSent()`) ZATEN bu sınır kontrolünün GEÇMESİNİ
+     * gerektirdiği için öğrenci KALICI olarak "haftalık sıklık sınırında" kilitleniyordu.
+     */
+    public function haftalikMesajSayisi(\DateTimeImmutable $simdi): int
+    {
+        $ayniHaftaMi = null !== $this->lastMessageSentAt
+            && $this->lastMessageSentAt->format('o-W') === $simdi->format('o-W');
+
+        return $ayniHaftaMi ? $this->messagesSentThisWeek : 0;
+    }
+
+    /**
      * Öğrenciyle bugün (GÜN bazında, `$simdi`'nin tarihine göre) kaç mesaj (yön/tür fark
      * etmez — gelen, giden, proaktif, reaktif) ALINIP/GÖNDERİLDİĞİNİ döner -- `$simdi` farklı
      * bir güne denk geliyorsa (ya da hiç kayıt yoksa) 0 döner, sayaç DURUMU DEĞİŞTİRMEZ (salt
@@ -666,6 +812,76 @@ class StudentProfile
             && $this->dailyMessageAt->format('Y-m-d') === $simdi->format('Y-m-d');
 
         return $bugunMu ? $this->dailyMessageCount : 0;
+    }
+
+    /**
+     * Yeni bir OTURUM başlatır (2026-10-28, kullanıcı kararı: "1 oturum, 1 proaktif mesajla
+     * başlayan sohbet akışıdır"). Proaktif gönderim ({@see \App\Command\DispatchScheduledMessagesCommand})
+     * sayacı ARTIRMAK yerine 1'e SIFIRLAR — böylece {@see \App\Service\MessageFrequencyPolicy::GUNLUK_UST_SINIR}
+     * oturum başına uygulanır.
+     *
+     * Tasarımda günde en fazla bir oturum hedeflendiği için (günlük kontrol kanalı, o gün
+     * tetikleyici kaynaklı mesaj gitmediyse devreye girer — bkz. {@see \App\Enum\ScheduledMessageKind})
+     * bu sayaç fiilen hem oturum hem gün sınırı işlevi görür. Gün değişiminde kendiliğinden
+     * sıfırlanması ({@see self::gunlukMesajSayisi()}) ek bir güvenlik olarak korunur.
+     *
+     * `$kaynak`, oturumu açan mesajın türü — {@see self::$oturumKaynagi}'nın tek yazarı
+     * (2026-10-30, kullanıcı kararı). Bu metot YALNIZCA gerçek gönderim başarılı olduktan
+     * sonra çağrıldığı için ({@see \App\Command\DispatchScheduledMessagesCommand}) alan her
+     * zaman gerçekten gönderilmiş bir mesajı gösterir.
+     */
+    public function oturumuBaslat(\DateTimeImmutable $simdi, ScheduledMessageKind $kaynak): static
+    {
+        $this->dailyMessageCount = 1;
+        $this->dailyMessageAt = $simdi;
+        $this->oturumKaynagi = $kaynak;
+        $this->oturumId = bin2hex(random_bytes(16));
+        // "Oturumda bir kez" kuralına tabi bildirimler yeni oturumda yeniden hak kazanır.
+        $this->secenekHatirlatmasiGonderildi = false;
+        $this->akisTamamlandiBildirildi = false;
+        $this->gunlukSinirBildirildiAt = null;
+        // Tercih değişikliği hakkı da oturum başına: yeni oturumda yeniden kazanılır
+        // (2026-10-30, kullanıcı kararı — bkz. {@see self::$oturumdaSayiYazildi}).
+        $this->oturumdaSayiYazildi = false;
+        $this->touch();
+
+        return $this;
+    }
+
+    public function getOturumId(): ?string
+    {
+        return $this->oturumId;
+    }
+
+    public function getOturumKaynagi(): ?ScheduledMessageKind
+    {
+        return $this->oturumKaynagi;
+    }
+
+    public function oturumdaSayiYazildiMi(): bool
+    {
+        return $this->oturumdaSayiYazildi;
+    }
+
+    public function sayiYazildiginiKaydet(): static
+    {
+        $this->oturumdaSayiYazildi = true;
+        $this->touch();
+
+        return $this;
+    }
+
+    public function secenekHatirlatmasiGonderildiMi(): bool
+    {
+        return $this->secenekHatirlatmasiGonderildi;
+    }
+
+    public function secenekHatirlatmasiniKaydet(): static
+    {
+        $this->secenekHatirlatmasiGonderildi = true;
+        $this->touch();
+
+        return $this;
     }
 
     /**

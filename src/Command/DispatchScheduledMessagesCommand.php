@@ -9,6 +9,7 @@ use App\Enum\ScheduledMessageKind;
 use App\Repository\ScheduledMessageRepository;
 use App\Repository\SentMessageLogRepository;
 use App\Repository\StudentProfileRepository;
+use App\Service\OturumMesajLoglayici;
 use App\Service\TriggerMessageSelector;
 use App\Service\WhatsAppTemplateSender;
 use Psr\Log\LoggerInterface;
@@ -54,6 +55,7 @@ class DispatchScheduledMessagesCommand extends Command
         private readonly TriggerMessageSelector $messageSelector,
         private readonly SentMessageLogRepository $sentMessageLogRepository,
         private readonly WhatsAppTemplateSender $templateSender,
+        private readonly OturumMesajLoglayici $oturumMesajlari,
         #[Target('tetikleyici')]
         private readonly LoggerInterface $logger,
     ) {
@@ -150,6 +152,40 @@ class DispatchScheduledMessagesCommand extends Command
             // set edilmesi GEREKİR (aksi halde webhook yanıtı yoksayılırdı).
             $profil = $this->studentProfileRepository->find($kayit->getStudentId());
             $profil?->setPendingFlowStep(FlowStep::Hatirlatma72SaatYanitiBekleniyor);
+        } elseif (ScheduledMessageKind::GunlukKontrol === $kayit->getKind()) {
+            // 2026-10-19 (kullanıcı kararı): T1-T4'ten AYRI bir bütçe — haftalık TETİKLEYİCİ
+            // sayacını (`recordMessageSent()`) KASITLI ARTIRMAZ (bkz. ScheduledMessageKind::
+            // GunlukKontrol docblock'u); rotasyon takibi de yok (tek varyant/tür).
+            //
+            // `pending_flow_step` BİLEREK set EDİLMEZ (2026-10-19, kullanıcı kararı — bulunan
+            // risk: `findStudentIdsWithPendingFlow()`'un süresiz olması nedeniyle, bu SIK
+            // gönderilen düşük-riskli hatırlatmaya öğrenci cevap vermezse `pending_flow_step`
+            // sonsuza kadar dolu kalır ve bu da M1'i SESSİZCE bir daha hiç tetiklenemez hale
+            // getirirdi — bkz. proje notları). Tek butonu ("E-kampüs'e git") artık TAMAMEN
+            // PASİF: öğrenci basarsa metin webhook'a geri gelir ama hiçbir bekleyen akış
+            // olmadığı için "yanıt yoksayıldı" diye loglanıp hiçbir mutasyon yapılmaz —
+            // kasıtlı, M1/varyant akışlarını hiç etkilememesi için.
+            //
+            // 2026-10-30 (kullanıcı kararı) DÜZELTME: butonun URL olmasıyla (2026-10-29) bu
+            // açıklamanın mekanizması değişti — URL butonu webhook'a HİÇ sinyal göndermiyor,
+            // yani öğrenci bassa bile geri bir şey gelmiyor (eskiden QUICK_REPLY metni
+            // geliyor ve yoksayılıyordu). Gerekçe aynı kalıyor: `pending_flow_step` set
+            // edilmez. Ama gövde hâlâ serbest metne davet ettiği için ("1-7 arası bir sayı
+            // yazman yeterli") oturumun KAYNAĞI kaydedilir — webhook sayı olmayan serbest
+            // metne "akış tamamlandı" değil bu kanala özgü bildirimi göndersin diye.
+            $profil = $this->studentProfileRepository->find($kayit->getStudentId());
+            // Proaktif gönderim YENİ BİR OTURUM başlatır (2026-10-28, kullanıcı kararı):
+            // sayaç artırılmaz, 1'e sıfırlanır (bkz. StudentProfile::oturumuBaslat()).
+            $profil?->oturumuBaslat($simdi, $kayit->getKind());
+            if (null !== $profil) {
+                $this->oturumMesajlari->gidenKaydet(
+                    $kayit->getStudentId(),
+                    $profil->getOturumId(),
+                    \sprintf('[şablon: %s]', $kayit->getTemplateMetaName()),
+                    $wamid,
+                    $simdi,
+                );
+            }
         } else {
             $profil = $this->studentProfileRepository->find($kayit->getStudentId());
             if (null !== $profil) {
@@ -160,25 +196,14 @@ class DispatchScheduledMessagesCommand extends Command
 
                     if (EngagementTrigger::T1 === $kayit->getTrigger()) {
                         $profil->setPendingFlowStep(FlowStep::T1YanitiBekleniyor);
-                    } elseif (EngagementTrigger::T2 === $kayit->getTrigger() && str_contains($kayit->getTemplateMetaName(), '_t2_normal_')) {
-                        // T2 Normal varyantı (v1-v3), M1'in açılışıyla AYNI barrier butonlarını
-                        // kullanıyor (Zamanım yok/İçerik zor/Motivasyonum düşük) — bu yüzden aynı
-                        // akışa (ENGEL_BEKLENIYOR) yönlendirilmeli. T2 Sınav Öncesi'nin buton seti
-                        // tamamen farklı (barrier'la ilgisiz) olduğu için bilinçli olarak hariç.
-                        $profil->setPendingFlowStep(FlowStep::EngelBekleniyor);
-                    } elseif (
-                        (EngagementTrigger::T2 === $kayit->getTrigger() && str_contains($kayit->getTemplateMetaName(), '_t2_sinav_oncesi_'))
-                        || (EngagementTrigger::T3 === $kayit->getTrigger() && (
-                            str_contains($kayit->getTemplateMetaName(), '_t3_sinav_oncesi_')
-                            || str_contains($kayit->getTemplateMetaName(), '_t3_normal_')
-                        ))
-                        || EngagementTrigger::T4 === $kayit->getTrigger()
-                    ) {
-                        // T2 Sınav Öncesi / T3 (Normal+Sınav Öncesi) / T4 (Normal+Sınav Öncesi)
-                        // kendi seçenek mesajları (templates.docx Bölüm 3) K1/K2/K3/K4 kapanışına
-                        // ya da (T3 Normal'in "Yoğunum" butonu için, bkz. WebhookYanitRouter)
-                        // Zaman dalına yönlendiriliyor. T3 Normal artık DAHİL (2026-10-12,
-                        // kullanıcı kararı — eskiden KASITLI HARİÇ'ti, bkz. KapanisKodu docblock'u).
+                    } else {
+                        // T2 (Normal+Sınav Öncesi) / T3 (Normal+Sınav Öncesi) / T4 (Normal+Sınav
+                        // Öncesi) kendi seçenek mesajları (templates.docx Bölüm 3) K1/K2/K3/K4
+                        // kapanışına ya da ("Yoğunum" butonu için, bkz. WebhookYanitRouter) Zaman
+                        // dalına yönlendiriliyor. 2026-10-18 (kullanıcı kararı): T2 Normal artık
+                        // M1'le AYNI barrier butonlarını kullanmıyor (bkz. TriggerMessageCatalog::
+                        // t2Normal() docblock'u) — T3 Normal'le AYNI genel dala taşındı, özel
+                        // ENGEL_BEKLENIYOR yönlendirmesi kaldırıldı.
                         $profil->setPendingFlowStep(FlowStep::TetikleyiciSecenekYanitiBekleniyor);
                     }
                 }
@@ -188,7 +213,16 @@ class DispatchScheduledMessagesCommand extends Command
                 // mesajlarıyla AYNI günlük toplam sayaca da ekleniyor (bkz.
                 // StudentProfile::$dailyMessageCount'un docblock'u) -- haftalık proaktif sayaç
                 // (`recordMessageSent()`, yukarıda) KASITLI olarak bundan ayrı, ikisi de uygulanır.
-                $profil->gunlukMesajiKaydet($simdi);
+                // 2026-10-28 (kullanıcı kararı): bu proaktif gönderim YENİ BİR OTURUM
+                // başlatır — sayaç artırılmaz, 1'e SIFIRLANIR.
+                $profil->oturumuBaslat($simdi, $kayit->getKind());
+                $this->oturumMesajlari->gidenKaydet(
+                    $kayit->getStudentId(),
+                    $profil->getOturumId(),
+                    \sprintf('[şablon: %s]', $kayit->getTemplateMetaName()),
+                    $wamid,
+                    $simdi,
+                );
             }
         }
 

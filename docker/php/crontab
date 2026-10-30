@@ -1,0 +1,26 @@
+# Alpine'ın standart bakım görevleri (alpine-baselayout ile gelen varsayılan root crontab'ı) —
+# korunuyor, /etc/periodic/* dizinleri boş olsa da run-parts zararsız.
+# min	hour	day	month	weekday	command
+*/15	*	*	*	*	run-parts /etc/periodic/15min
+0	*	*	*	*	run-parts /etc/periodic/hourly
+0	2	*	*	*	run-parts /etc/periodic/daily
+0	3	*	*	6	run-parts /etc/periodic/weekly
+0	5	1	*	*	run-parts /etc/periodic/monthly
+
+# Günlük etkileşim tetikleyicileri (T1-T4) — her gece 02:30'da çalışır.
+# --no-debug ZORUNLU: dev ortamında Doctrine'ın backtrace-toplayan query profiler'ı, bu
+# job'ın hacmindeki sorgu sayısıyla PHP'nin 128M CLI memory_limit'ini taşırıyor (bkz. proje
+# notları — gerçek bir OOM ile doğrulandı).
+# memory_limit=1024M (2026-10-03 eklendi): --no-debug ile BİRLİKTE bile, mesaj zamanı
+# önceliği (bkz. App\Service\MessageTimePriorityResolver, App\Command\EvaluateDailyTriggersCommand)
+# eklendikten sonra 53k öğrencide 128M'nin üstüne çıkıyor (Doctrine UnitOfWork OOM'u ile
+# doğrulandı); 1024M ile sorunsuz tamamlanıyor.
+30	2	*	*	*	cd /app && php -d memory_limit=1024M bin/console --no-debug app:degerlendir-gunluk-tetikleyiciler >> /app/var/log/tetikleyici-cron.log 2>&1
+
+# Zamanlanmış mesaj dispatcher'ı (2026-10-05 eklendi) — 02:30'daki job artık GERÇEK gönderimi
+# hemen yapmıyor, ScheduledMessage kuyruğuna (öğrencinin observed_days/tercih saatine göre
+# hesaplanmış hedef gün+saatle) bir kayıt ekliyor; bu job o kuyruğu sık aralıkla (15 dakika)
+# tarayıp hedef zamanı gelmiş kayıtları gerçekten gönderir. Sadece BEKLEYEN/zamanı gelmiş
+# kayıtları işlediği için (tipik olarak 0-birkaç satır) 02:30'luk job'un aksine yüksek
+# memory_limit'e gerek yok.
+*/15	*	*	*	*	cd /app && php bin/console --no-debug app:zamanlanmis-mesajlari-gonder >> /app/var/log/zamanlanmis-mesaj-dispatch.log 2>&1

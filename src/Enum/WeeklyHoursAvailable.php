@@ -4,34 +4,52 @@ namespace App\Enum;
 
 /**
  * YBS kayıt anketi (`YBS_Arastirma_Kayit_Formu (2).docx`) Soru 5: "Haftada eğitime ortalama
- * kaç gün ayırabilirsiniz?" — 2026-10-05'te bu değerlerle yeniden oluşturuldu (önceki tur
- * saat aralığı — `1-2`/`3-5`/`6+` — tasarlamıştı, ama hiç toplanmamıştı; asıl form gün
- * SAYISI soruyor).
+ * kaç gün ayırabilirsiniz?" — 2026-10-19 (kullanıcı kararı) 1-6 gün + "Her gün" (7) olarak
+ * genişletildi; eski `4 günden fazla` (sınırsız/`null` üst sınır) kaldırıldı. Sebep: GunlukKontrol
+ * kanalının ({@see \App\Enum\ScheduledMessageKind::GunlukKontrol}) günlük/haftalık sıklığı bu
+ * sayıya göre belirleniyor — "sınırsız" bir seçenek, gün modelinin artık her zaman 7 gün
+ * üretmesiyle (bkz. proje notları, `TOPLAM_GUN_SAYISI`) birleşince GunlukKontrol'ü fiilen HER
+ * GÜN'e çıkarıyordu; artık en üst seçenek de ("Her gün") açıkça 7 — aynı sonuç ama ARTIK
+ * öğrencinin BİLEREK seçtiği bir değer, kodun `null`'ı "sınırsız" diye yorumlamasının yan
+ * etkisi değil.
  *
- * Kullanım (2026-10-05, kullanıcı kararı): {@see \App\Service\MessageDispatchScheduler}
+ * Kullanım (2026-10-05, güncellendi 2026-10-19): {@see \App\Service\MessageDispatchScheduler}
  * bu sayıyı, `observed_days[faz]`'ın (Python'ın zaten sıraladığı "top-N en uygun gün"
  * listesi) BAŞINDAN kaç gün alınacağının üst sınırı olarak kullanır — gün SAYISI tüm
  * fazlarda aynı (bu enum, faz'dan bağımsız tek bir değer), ama HANGİ günler olduğu yine
  * her fazın KENDİ `observed_days` listesinden seçilir (faz bazlı farklılık korunur).
+ *
+ * Anket şu an (2026-10-19) henüz bu yeni seçeneklerle yeniden toplanmadı — mevcut
+ * `student_profile` satırlarının çoğunda bu alan `null`. Kod, anketin dolu olacağı
+ * varsayımıyla yazıldı (kullanıcı kararı: "doldurulacak gibi hareket edelim") — `null` hâlâ
+ * {@see \App\Service\MessageDispatchScheduler::kisisellestirilmisGunListesi()}'de "üst sınır
+ * yok" (tam 7 günlük liste) anlamına geliyor; bu, anket yeniden toplanana kadar geçici bir
+ * veri boşluğu olarak görülmeli, kalıcı bir tasarım kararı değil.
  */
 enum WeeklyHoursAvailable: string
 {
     case BirGun = '1 gün';
     case IkiGun = '2 gün';
     case UcGun = '3 gün';
-    case DortGundenFazla = '4 günden fazla';
+    case DortGun = '4 gün';
+    case BesGun = '5 gün';
+    case AltiGun = '6 gün';
+    case HerGun = 'Her gün';
 
     /**
-     * `observed_days[faz]` listesinden baştan kaç gün alınacağı — `DortGundenFazla` için
-     * `null` (sınırsız/tüm liste kullanılır, Python'ın kendi top-N'i zaten bir üst sınır).
+     * `observed_days[faz]` listesinden baştan kaç gün alınacağı — 1'den 7'ye (`HerGun`),
+     * artık her zaman somut bir sayı (eski `null`/"sınırsız" karşılığı kalmadı).
      */
-    public function gunSayisiUstSiniri(): ?int
+    public function gunSayisiUstSiniri(): int
     {
         return match ($this) {
             self::BirGun => 1,
             self::IkiGun => 2,
             self::UcGun => 3,
-            self::DortGundenFazla => null,
+            self::DortGun => 4,
+            self::BesGun => 5,
+            self::AltiGun => 6,
+            self::HerGun => 7,
         };
     }
 }

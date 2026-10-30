@@ -24,6 +24,12 @@ namespace App\Enum;
  */
 enum WhatsAppTemplate: string
 {
+    // --- Bölüm T0: Tanıtım / ilk temas (elle tetiklenir, otomatik akışa bağlı DEĞİL) ---
+    // 2026-10-25: öğrenciye kendimizi tanıtan ilk mesaj (bkz. templates.docx BÖLÜM T0).
+    // `app:send-tanitim` komutuyla gönderilir; cron/tetikleyici zinciri bu şablona hiç
+    // dokunmaz. "Her dönem öğrenci başına 1 kez" kuralı operatör sorumluluğundadır.
+    case TanitimT0 = 'tanitim_t0_v1';
+
     // --- Bölüm 1: T1 (yalnızca Normal faz) ---
     // `_v2` soneki (2026-10-08): bu PROAKTİF şablonların eski isimleri, 254 şablonun kazara
     // toplu silinmesi yüzünden Meta'da ~4 hafta kilitlendi (bkz. proje notları/[[reactive-messages-no-template-needed]])
@@ -74,10 +80,13 @@ enum WhatsAppTemplate: string
     case KapanisK4 = 'm1_kapanis_k4';
 
     // --- Bölüm 3: T2 ---
-    case T2NormalV1 = 'tetikleyici_t2_normal_v1_v2';
-    case T2NormalV2 = 'tetikleyici_t2_normal_v2_v2';
-    // `_v3` (2026-10-17): "tespit edildi" → "fark edildi" düzeltmesi (bkz. M1AcilisT2 notu).
-    case T2NormalV3 = 'tetikleyici_t2_normal_v3_v3';
+    // `_v3`/`_v4` (2026-10-18, kullanıcı kararı): M1'le birebir aynı barrier butonlarını
+    // (Zamanım yok/İçerik zor/Motivasyonum düşük) soran içerik, T3Normal'deki nötr durum-sorma
+    // desenine (İyi devam ediyorum/Yoğunum/Destek lazım) çevrildi — bkz. TriggerMessageCatalog::t2Normal()
+    // docblock'u. Meta APPROVED şablonun buton seti yerinde değiştirilemediği için isim değişti.
+    case T2NormalV1 = 'tetikleyici_t2_normal_v1_v3';
+    case T2NormalV2 = 'tetikleyici_t2_normal_v2_v3';
+    case T2NormalV3 = 'tetikleyici_t2_normal_v3_v4';
     // `_v3` (2026-10-10): V1/V2/V4'ün metninde literal "{sınav}" harfiyen gönderiliyordu (gerçek
     // bir Meta parametresi DEĞİLDİ) — düzeltme gerçek bir {{2}} parametresi ekliyor, Meta APPROVED
     // şablonun içeriği/parametre sayısı yerinde değiştirilemediği için isim değişti (bkz. proje
@@ -117,6 +126,11 @@ enum WhatsAppTemplate: string
     // başına ayrı). Eski `SinavGunuVize`/`SinavGunuFinal` (tek, kişiselleştirilmemiş) kaldırıldı
     // — `metaAdiPersonaIcin()`'deki özel muafiyetleri de kaldırıldı, artık normal persona-sonekli
     // yoldan geçiyorlar. Eski Meta şablonları (`..._v1_v2`) yetim kaldı, zararsız.
+    //
+    // 2026-10-26 (kullanıcı kararı): 24 şablonu 8'e indirme önerisi DEĞERLENDİRİLDİ ve
+    // REDDEDİLDİ — persona başına ayrı şablon korunuyor. Bilinen durum: 24 şablon 16 eşsiz
+    // metin taşıyor ("etkileşim yok" gruplarında YY/YB/İY/İB bayt bayt aynı, İY dört grupta da
+    // YY'nin kopyası). Tez ekinde sınırlılık olarak belirtilmesi gerekiyor.
     case SinavGunuVizeEtkilesimVar = 'tetikleyici_sinav_gunu_vize_var_v1';
     case SinavGunuVizeEtkilesimYok = 'tetikleyici_sinav_gunu_vize_yok_v1';
     case SinavGunuFinalEtkilesimVar = 'tetikleyici_sinav_gunu_final_var_v1';
@@ -133,9 +147,29 @@ enum WhatsAppTemplate: string
     // haftalık kilit) isim değişti, eski `hatirlatma_72_saat_v2_*` Meta'da yetim kaldı (zararsız).
     case Hatirlatma72Saat = 'hatirlatma_72_saat_aksiyon_v1';
 
+    // --- Bölüm 6: Günlük kontrol (hatırlatma/övgü, T1-T4'ten AYRI kanal) ---
+    // 2026-10-19 (kullanıcı kararı): öğrencinin observed_days'teki gözlem günlerinde, o gün
+    // hiçbir trigger-kaynaklı mesaj gitmediyse devreye giren iki şablon. Metinde, öğrencinin
+    // haftalık sıklığını (`weekly_hours_available`) istediği an serbestçe güncelleyebileceği
+    // bilgisi veriliyor ("1"/"2"/"3" yazması yeterli) — bkz. {@see
+    // \App\Controller\WhatsAppWebhookController::gunlukSayiGuncellemeIstegi()}.
+    // `_v2` (2026-10-19): ipucu metni "1, 2 ya da 3" → "1-7 arası" (WeeklyHoursAvailable'ın
+    // genişlemesiyle senkron, bkz. proje notları) — Meta APPROVED/PENDING bir şablonun
+    // içeriği yerinde değiştirilemediği için isim değişti, eski `_v1_*` Meta'da yetim kaldı.
+    // `_v3` (2026-10-29, kullanıcı kararı): buton QUICK_REPLY -> URL. Öğrenci tek
+    // dokunuşla e-kampüs'e gidiyor; yanıt beklenmediği için akış zaten kapalı sayılıyor.
+    // URL butonu webhook'a sinyal GÖNDERMEZ — tıklama ölçümü bilinçli olarak feda edildi
+    // (takip başka yolla yapılacak). Meta içerik güncellemesine izin vermediği için isim
+    // değişti; eski `_v2_*` silinecek.
+    case GunlukHatirlatmaDuz = 'gunluk_kontrol_duz_v3';
+    case GunlukHatirlatmaOvgu = 'gunluk_kontrol_ovgu_v3';
+
     /**
      * Bu şablonun Meta'da sabit tanımlı QUICK_REPLY buton metinleri — `templates.docx`'ten
      * birebir, persona'dan bağımsız. Boş dizi = buton yok (kapanış ya da zorunlu bilgilendirme).
+     *
+     * Yalnızca REAKTİF gönderimde okunur ({@see \App\Controller\WhatsAppWebhookController}):
+     * şablon gönderiminde butonlar zaten Meta'daki onaylı tanımdan gelir.
      *
      * @return string[]
      */
@@ -147,8 +181,7 @@ enum WhatsAppTemplate: string
             self::T1Secenek3 => ['Şimdi başla', 'Daha sonra'],
             self::T1SimdiBaslaKapanis, self::T1DahaSonraKapanis => [],
 
-            self::M1AcilisT2, self::M1AcilisT3, self::M1AcilisT4,
-            self::T2NormalV1, self::T2NormalV2, self::T2NormalV3 => ['Zamanım yok', 'İçerik zor', 'Motivasyonum düşük'],
+            self::M1AcilisT2, self::M1AcilisT3, self::M1AcilisT4 => ['Zamanım yok', 'İçerik zor', 'Motivasyonum düşük'],
 
             self::ZamanTakip, self::MotivasyonGecerliTakip => ['Haftada 1 oturum', 'Tempo aynı kalsın', 'Ara vermek istiyorum'],
             // 2026-10-12 (kullanıcı kararı): "Gece" "Öğle" ile değiştirildi (Sabah/Öğle/Akşam).
@@ -166,11 +199,17 @@ enum WhatsAppTemplate: string
 
             self::KapanisK1, self::KapanisK2, self::KapanisK3, self::KapanisK4 => [],
 
+            // 2026-10-29 (kullanıcı kararı): bu ikisinin butonu QUICK_REPLY DEĞİL, URL. Metin
+            // yalnızca kayıt amaçlı duruyor -- bu şablonlar hiç reaktif gönderilmiyor, yani
+            // buradan okunup interaktif buton olarak kurulmuyor.
+            self::GunlukHatirlatmaDuz, self::GunlukHatirlatmaOvgu => ["E-kampüs'e git"],
+
             self::T2SinavOncesiV1 => ['Göz atacağım', 'Zaten çalışıyorum', 'Şu an uygun değil'],
             self::T2SinavOncesiV2 => ['İyi gidiyor', 'Biraz zorlanıyorum', 'Henüz başlamadım'],
             self::T2SinavOncesiV3 => ['Göz atacağım', 'Şu an gerek yok'],
             self::T2SinavOncesiV4 => ['Göz atacağım', 'Gerek yok'],
 
+            self::T2NormalV1, self::T2NormalV2, self::T2NormalV3,
             self::T3NormalV1, self::T3NormalV2, self::T3NormalV3 => ['İyi, devam ediyorum', 'Yoğunum', 'Destek lazım'],
             self::T3SinavOncesiV1 => ['Evet', 'Şimdilik gerek yok'],
             self::T3SinavOncesiV2 => ['Konu tekrarı', 'Şu an gerek yok'],
@@ -185,6 +224,8 @@ enum WhatsAppTemplate: string
             self::SinavGunuFinalEtkilesimVar, self::SinavGunuFinalEtkilesimYok => [],
 
             self::Hatirlatma72Saat => ['Evet', '1 hafta sonra', 'Mesaj göndermeyin'],
+
+            self::TanitimT0 => ['Tamam', 'Mesaj göndermeyin'],
         };
     }
 

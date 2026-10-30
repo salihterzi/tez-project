@@ -49,4 +49,33 @@ class ScheduledMessageRepository extends ServiceEntityRepository
             ->executeQuery('SELECT DISTINCT student_id FROM scheduled_message WHERE sent_at IS NULL')
             ->fetchFirstColumn());
     }
+
+    /**
+     * Verilen öğrenciler için en son GERÇEKTEN gönderilmiş (`sent_at IS NOT NULL`) proaktif
+     * mesajın zamanı — tür fark etmez (M1/Variant/Reminder/SinavGunu/GunlukKontrol hepsi
+     * dahil). 2026-10-19 (kullanıcı kararı): {@see \App\Enum\ScheduledMessageKind::GunlukKontrol}
+     * kanalının düz/övgü seçimi, "son gönderilen mesajdan (tetikleyici dahil) sonra gerçek
+     * erişim oldu mu" karşılaştırmasını burada okur. Bir öğrencinin hiç gönderilmiş mesajı
+     * yoksa dizide yer almaz.
+     *
+     * @param int[] $ogrenciNolar
+     *
+     * @return array<int, \DateTimeImmutable>
+     */
+    public function findLatestSentAtByStudent(array $ogrenciNolar): array
+    {
+        if ([] === $ogrenciNolar) {
+            return [];
+        }
+
+        $yerTutucular = implode(', ', array_fill(0, count($ogrenciNolar), '?'));
+        $rows = $this->getEntityManager()->getConnection()->fetchAllKeyValue(
+            "SELECT student_id, MAX(sent_at) FROM scheduled_message
+             WHERE sent_at IS NOT NULL AND student_id IN ({$yerTutucular})
+             GROUP BY student_id",
+            $ogrenciNolar,
+        );
+
+        return array_map(static fn (string $v): \DateTimeImmutable => new \DateTimeImmutable($v), $rows);
+    }
 }

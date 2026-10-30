@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Enum\EngagementTrigger;
 use App\Enum\LearningGoal;
 use App\Enum\Persona;
+use App\Enum\WeeklyHoursAvailable;
 
 /**
  * M1 (engel teşhisi) senaryosunun tüm mesaj metinleri, tek yerde — `templates.docx`'in son
@@ -182,19 +183,104 @@ final class EngagementFlowMessages
     }
 
     /**
-     * Öğrenci bir günde günlük reaktif mesaj sınırına (10, bkz.
-     * {@see \App\Controller\WhatsAppWebhookController}) ulaştığında, akışı nazikçe
-     * sonlandırmak için gönderilen kapanış metni (2026-10-18, kullanıcı kararı).
+     * Öğrenci "1"/"2"/"3" yazarak haftalık gün sayısını kendi isteğiyle güncellediğinde
+     * gönderilen onay metni (2026-10-19, kullanıcı kararı).
+     */
+    public static function gunSayisiGuncellendi(WeeklyHoursAvailable $yeniDeger, Persona $persona): string
+    {
+        $gunMetni = $yeniDeger->value;
+
+        return match ($persona) {
+            Persona::GencYakinlik => "Tamam, haftalık mesaj sıklığını {$gunMetni} olarak güncelledim 🙂",
+            Persona::GencBilgi => "Tamam, haftalık mesaj sıklığın {$gunMetni} olarak güncellendi.",
+            Persona::YetiskinYakinlik => "Anlaşıldı, haftalık mesaj sıklığınızı {$gunMetni} olarak güncelledik.",
+            Persona::YetiskinBilgi => "Anlaşıldı, haftalık mesaj sıklığınız {$gunMetni} olarak güncellenmiştir.",
+            Persona::IleriYasYakinlik => "Anlaşıldı, haftalık mesaj sıklığınızı {$gunMetni} olarak güncelledik.",
+            Persona::IleriYasBilgi => "Anlaşıldı, haftalık mesaj sıklığınız {$gunMetni} olarak güncellenmiştir.",
+        };
+    }
+
+    /**
+     * Günlük kontrol mesajından sonra öğrenci SAYI OLMAYAN serbest metin yazdığında
+     * (2026-10-30, kullanıcı kararı) — oturumda bir kez, bkz.
+     * {@see \App\Controller\WhatsAppWebhookController::oturumBildirimiGonder()}.
+     *
+     * Niye ayrı bir metin: bu kanalda hiç akış açılmadığı için "akış tamamlandı" demek
+     * yanlıştı (hiç konuşma başlamamıştı), {@see self::secenekHatirlatmasi()} demek de
+     * yanlıştı — bu mesajın tek butonu URL, yani cevap butonu DEĞİL, seçenek diye
+     * gösterilecek bir şey yok. Metin bu yüzden öğrencinin gerçekten yapabileceği iki şeyi
+     * söylüyor: butona dokunmak ve gün sayısını değiştirmek.
+     *
+     * "Bekleyen bir soru yok" gibi bir ifade BİLEREK kullanılmıyor (kullanıcı kararı:
+     * "anlamadım") — öğrenci kendisine soru sorulduğunu düşünmüyor ki yokluğu anlamlı olsun.
+     *
+     * Yalnızca tercih hakkı HENÜZ KULLANILMAMIŞKEN gönderilir; kullanıldıysa ikinci cümle
+     * yalan olurdu, o durumda {@see self::sayiHakkiKullanildi()} devreye girer.
+     */
+    public static function gunlukKontrolSerbestMetin(Persona $persona): string
+    {
+        return match ($persona) {
+            Persona::GencYakinlik => 'Mesajın geldi 🙂 Derslerine geçmek için yukarıdaki butonu kullanabilirsin. Çalışma günü sayını değiştirmek istersen 1-7 arası bir sayı yazman yeterli.',
+            Persona::GencBilgi => 'Mesajın alındı. Derslerine geçmek için yukarıdaki butonu kullanabilirsin. Gün sayısını değiştirmek için 1-7 arası bir sayı yazabilirsin.',
+            Persona::YetiskinYakinlik => 'Mesajınız geldi. Derslerinize geçmek için yukarıdaki butonu kullanabilirsiniz. Çalışma günü sayınızı değiştirmek isterseniz 1-7 arası bir sayı yazmanız yeterli.',
+            Persona::YetiskinBilgi => 'Mesajınız alındı. Derslerinize geçmek için yukarıdaki butonu kullanabilirsiniz. Gün sayısını değiştirmek için 1-7 arası bir sayı yazabilirsiniz.',
+            Persona::IleriYasYakinlik => 'Mesajınız geldi. Derslerinize kendi hızınızda geçmek için yukarıdaki butonu kullanabilirsiniz. Çalışma günü sayınızı değiştirmek isterseniz 1-7 arası bir sayı yazmanız yeterli.',
+            Persona::IleriYasBilgi => 'Mesajınız alındı. Derslerinize geçmek için yukarıdaki butonu kullanabilirsiniz. Gün sayısını değiştirmek için 1-7 arası bir sayı yazabilirsiniz.',
+        };
+    }
+
+    /**
+     * Öğrenci aynı oturumda İKİNCİ kez sayı yazdığında (2026-10-30, kullanıcı kararı:
+     * "oturumda bir kez tercih değişikliği") — oturumda bir kez, bkz.
+     * {@see \App\Entity\StudentProfile::$oturumdaSayiYazildi}.
+     *
+     * Niye sessiz kalınmıyor: öğrenci büyük olasılıkla yanlış yazdığını düzeltmeye çalışıyor
+     * ve hiçbir karşılık almazsa hem sistem bozuk görünür (28 Ekim'de tam bu yüzden
+     * {@see self::akisTamamlandiBilgilendirmesi()} eklenmişti) hem de ayarının değişmediğini
+     * ÖĞRENEMEZ. Bu metin ek bir mesaj hacmi getirmiyor: bildirim dalının oturumdaki tek
+     * hakkını daha doğru bir cümleyle harcıyor.
+     *
+     * "Oturum" kelimesi geçmiyor — öğrenciye görünmeyen bir kavram. Karşılığı "her
+     * mesajımızda bir kez": bir oturum tam olarak bir proaktif mesajla açıldığı için bu
+     * ifade kuralı doğru anlatıyor ve düzeltmenin NE ZAMAN mümkün olduğunu söylüyor.
+     */
+    public static function sayiHakkiKullanildi(Persona $persona): string
+    {
+        return match ($persona) {
+            Persona::GencYakinlik => 'Mesajın alındı 🙂 Gün sayısını her mesajda bir kez güncelleyebiliyoruz — bir sonraki mesajımızda yeniden değiştirebilirsin.',
+            Persona::GencBilgi => 'Mesajın alındı. Gün sayısını her mesajda bir kez güncelleyebiliyoruz; bir sonraki mesajımızda yeniden değiştirebilirsin.',
+            Persona::YetiskinYakinlik => 'Mesajınız alındı. Gün sayısını her mesajda bir kez güncelleyebiliyoruz — bir sonraki mesajımızda yeniden değiştirebilirsiniz.',
+            Persona::YetiskinBilgi => 'Mesajınız alındı. Gün sayısını her mesajda bir kez güncelleyebiliyoruz; bir sonraki mesajımızda yeniden değiştirebilirsiniz.',
+            Persona::IleriYasYakinlik => 'Mesajınız alındı. Gün sayısını her mesajda bir kez güncelleyebiliyoruz — bir sonraki mesajımızda yeniden değiştirebilirsiniz.',
+            Persona::IleriYasBilgi => 'Mesajınız alındı. Gün sayısını her mesajda bir kez güncelleyebiliyoruz; bir sonraki mesajımızda yeniden değiştirebilirsiniz.',
+        };
+    }
+
+    /**
+     * Öğrenci oturum içindeki reaktif mesaj sınırına (10, bkz.
+     * {@see \App\Service\MessageFrequencyPolicy::GUNLUK_UST_SINIR}) ulaştığında, AKTİF bir
+     * akışı nazikçe sonlandırmak için gönderilen kapanış metni (2026-10-18, kullanıcı kararı).
+     *
+     * 2026-10-30 (kullanıcı kararı): metinden "yarın devam edebiliriz" taahhüdü KALDIRILDI.
+     * Sınırın birimi 28 Ekim'de günden OTURUMA çevrildi ({@see \App\Entity\StudentProfile::oturumuBaslat()}
+     * sayacı 1'e sıfırlıyor), yani aynı gün ikinci bir proaktif mesaj giderse öğrenci "yarın"
+     * denildikten kısa süre sonra yeniden mesajlaşabiliyor — metin sözünü tutmuyordu. Gün
+     * belirtmeyen bir ifade hem oturum hem gün birimiyle doğru kalıyor.
+     *
+     * Akış KAPALIYSA hiç gönderilmez (2026-10-30, kullanıcı kararı) — bkz.
+     * {@see \App\Controller\WhatsAppWebhookController::handleKararAgaciYaniti()}'ndeki sınır
+     * kontrolü: kapatacak bir akış yoktur ve mesajları zaten yoksaydığımız bir öğrenciye
+     * "mesajlaşma sınırına ulaştık" demek gerçek değildir.
      */
     public static function gunlukMesajSiniriKapanis(Persona $persona): string
     {
         return match ($persona) {
-            Persona::GencYakinlik => 'Bugünlük mesajlaşma sınırımıza ulaştık 🙂 Yarın buradan devam edebiliriz, görüşmek üzere!',
-            Persona::GencBilgi => 'Bugünlük mesajlaşma sınırına ulaşıldı. Yarın devam edilebilir.',
-            Persona::YetiskinYakinlik => 'Bugün için mesajlaşma sınırımıza ulaştık. Yarın tekrar buradayız, görüşmek üzere.',
-            Persona::YetiskinBilgi => 'Bugün için mesajlaşma sınırına ulaşılmıştır. Yarın devam edilebilir.',
-            Persona::IleriYasYakinlik => 'Bugün için mesajlaşma sınırımıza ulaştık. Yarın tekrar buradayız, görüşmek üzere.',
-            Persona::IleriYasBilgi => 'Bugün için mesajlaşma sınırına ulaşılmıştır. Yarın devam edilebilir.',
+            Persona::GencYakinlik => 'Mesajlaşma sınırımıza ulaştık 🙂 Burada kısa bir ara verelim, sonra devam ederiz.',
+            Persona::GencBilgi => 'Mesajlaşma sınırına ulaşıldı. Burada kısa bir ara veriyoruz.',
+            Persona::YetiskinYakinlik => 'Mesajlaşma sınırımıza ulaştık. Burada kısa bir ara verelim, sonra devam ederiz.',
+            Persona::YetiskinBilgi => 'Mesajlaşma sınırına ulaşılmıştır. Burada kısa bir ara veriyoruz.',
+            Persona::IleriYasYakinlik => 'Mesajlaşma sınırımıza ulaştık. Burada kısa bir ara verelim, sonra devam ederiz.',
+            Persona::IleriYasBilgi => 'Mesajlaşma sınırına ulaşılmıştır. Burada kısa bir ara veriyoruz.',
         };
     }
 
@@ -263,11 +349,6 @@ final class EngagementFlowMessages
     // --- DAL 3: Motivasyon -----------------------------------------------------------------
 
     /**
-     * `templates.docx`'in son hali (2026-10-03, kullanıcı kararı): "Değişti" seçeneği tamamen
-     * kaldırıldı, bu soru artık yalnızca 2 seçenekli (Evet geçerli / Emin değilim) —
-     * {@see \App\Enum\MotivasyonResponse}'da da karşılığı yok.
-     */
-    /**
      * `motivasyonTakip()`'in Meta'ya GERÇEKTEN gidecek `{{1}}` parametresi — mesaj metninin
      * kendisiyle aynı değeri üretir, böylece ikisi hiçbir zaman birbirinden sapmaz.
      */
@@ -280,6 +361,11 @@ final class EngagementFlowMessages
         };
     }
 
+    /**
+     * `templates.docx`'in son hali (2026-10-03, kullanıcı kararı): "Değişti" seçeneği tamamen
+     * kaldırıldı, bu soru artık yalnızca 2 seçenekli (Evet geçerli / Emin değilim) —
+     * {@see \App\Enum\MotivasyonResponse}'da da karşılığı yok.
+     */
     public static function motivasyonTakip(?LearningGoal $hedef, Persona $persona): string
     {
         $hedefMetni = self::motivasyonHedefMetni($hedef, $persona);
@@ -378,6 +464,99 @@ final class EngagementFlowMessages
             Persona::YetiskinBilgi => 'İçerikle ilgili yardım için materyallere e-kampüs platformu üzerinden ulaşabilirsiniz: https://ekampus.anadolu.edu.tr. Genel destek için AÖS Destek: https://aosdestek.anadolu.edu.tr',
             Persona::IleriYasYakinlik => 'İçerikle ilgili yardım için materyallere e-kampüs platformu üzerinden, kendi hızınızda ulaşabilirsiniz: https://ekampus.anadolu.edu.tr. Genel bir desteğe ihtiyacınız olursa AÖS Destek\'e ulaşabilirsiniz: https://aosdestek.anadolu.edu.tr',
             Persona::IleriYasBilgi => 'İçerikle ilgili yardım için materyallere e-kampüs platformu üzerinden ulaşabilirsiniz: https://ekampus.anadolu.edu.tr. Genel destek için AÖS Destek: https://aosdestek.anadolu.edu.tr',
+        };
+    }
+
+    /**
+     * Bekleyen bir akış adımı varken öğrenci tanınmayan serbest metin yazdığında gönderilir
+     * (2026-10-28, kullanıcı kararı). OTURUMDA BİR KEZ; öğrenci devam ederse sessiz kalınır
+     * (bkz. {@see \App\Entity\StudentProfile::$secenekHatirlatmasiGonderildi}).
+     *
+     * Önceden bu durum tamamen sessizdi — öğrenci aktif bir soruya cevap vermeye çalışıyor,
+     * beceremiyor ve hiçbir tepki alamıyordu. Akış KAPANMAZ: öğrenci bu uyarıdan sonra da
+     * butona basıp akışa devam edebilir.
+     *
+     * Ton suçlayıcı değil: "geçersiz yanıt" denmez, çünkü öğrenci yanlış bir şey yapmıyor —
+     * yalnızca beklenen biçimi kullanmıyor.
+     */
+    public static function secenekHatirlatmasi(Persona $persona): string
+    {
+        return match ($persona) {
+            Persona::GencYakinlik => 'Yazdığın için teşekkürler 🙂 Bu soruya, yukarıdaki mesajın altındaki butonlardan birine dokunarak cevap verebilirsin.',
+            Persona::GencBilgi => 'Mesajın alındı. Bu soruya yukarıdaki butonlardan biriyle cevap verebilirsin.',
+            Persona::YetiskinYakinlik => 'Yazdığınız için teşekkürler. Bu soruya, yukarıdaki mesajın altındaki butonlardan birine dokunarak cevap verebilirsiniz.',
+            Persona::YetiskinBilgi => 'Mesajınız alındı. Bu soruya yukarıdaki butonlardan biriyle cevap verebilirsiniz.',
+            Persona::IleriYasYakinlik => 'Yazdığınız için teşekkürler. Bu soruya, yukarıdaki mesajın altındaki butonlardan birine dokunarak cevap verebilirsiniz.',
+            Persona::IleriYasBilgi => 'Mesajınız alındı. Bu soruya yukarıdaki butonlardan biriyle cevap verebilirsiniz.',
+        };
+    }
+
+    /**
+     * Akış tamamlandıktan sonra öğrencinin yazdığı serbest metne verilen yanıt (2026-10-28,
+     * kullanıcı kararı). Önceden bu durum sessizce yoksayılıyordu: öğrenci eski bir mesajdaki
+     * butona dokunduğunda ya da bir şey yazdığında hiçbir karşılık almıyor, sistem "bozuk"
+     * izlenimi veriyordu.
+     *
+     * Koşullar çağıran tarafta (bkz. {@see \App\Controller\WhatsAppWebhookController::oturumBildirimiGonder()})
+     * zaten sağlanmış olur: oturum mesaj limiti aşılmamıştır, bekleyen bir akış adımı yoktur ve
+     * bildirim hakkı bu oturumda henüz harcanmamıştır. Döngü riski "oturumda bir kez" kuralıyla
+     * sınırlanır.
+     *
+     * 2026-10-30 (kullanıcı kararı): bu metin artık bu dalın TEK metni değil — oturumu günlük
+     * kontrol kanalı açtıysa {@see self::gunlukKontrolSerbestMetin()}, öğrenci ikinci kez sayı
+     * yazdıysa {@see self::sayiHakkiKullanildi()} gönderilir. Buraya yalnızca gerçekten
+     * tamamlanmış bir alışveriş varken düşülür, yani "bu konuşma tamamlanmıştı" ifadesi
+     * karşılığını bulur.
+     *
+     * Ton kasıtlı olarak "geçersiz yanıt" demez: öğrencinin hatası yoktur, sistem o anda
+     * serbest metin beklemiyordu. Yönlendirme {@see self::kapanisK4()} ile aynı iki adrese
+     * yapılır (e-kampüs + AÖS Destek).
+     */
+    public static function akisTamamlandiBilgilendirmesi(Persona $persona): string
+    {
+        return match ($persona) {
+            Persona::GencYakinlik => 'Mesajın geldi 🙂 Bu konuşmayı tamamlamıştık, o yüzden burada bekleyen bir soru yok. Derslerine e-kampüs\'ten göz atabilirsin: https://ekampus.anadolu.edu.tr — bir desteğe ihtiyacın olursa AÖS Destek de yanında: https://aosdestek.anadolu.edu.tr',
+            Persona::GencBilgi => 'Mesajın alındı. Bu konuşma tamamlanmıştı, bekleyen bir soru yok. Derslerin için e-kampüs: https://ekampus.anadolu.edu.tr. Genel destek için AÖS Destek: https://aosdestek.anadolu.edu.tr',
+            Persona::YetiskinYakinlik => 'Mesajınız geldi. Bu konuşmayı tamamlamıştık, o yüzden burada bekleyen bir soru yok. Derslerinize e-kampüs platformundan göz atabilirsiniz: https://ekampus.anadolu.edu.tr — bir desteğe ihtiyacınız olursa AÖS Destek\'e ulaşabilirsiniz: https://aosdestek.anadolu.edu.tr',
+            Persona::YetiskinBilgi => 'Mesajınız alındı. Bu konuşma tamamlanmıştı, bekleyen bir soru bulunmuyor. Dersleriniz için e-kampüs: https://ekampus.anadolu.edu.tr. Genel destek için AÖS Destek: https://aosdestek.anadolu.edu.tr',
+            Persona::IleriYasYakinlik => 'Mesajınız geldi. Bu konuşmayı tamamlamıştık, bekleyen bir soru yok. Derslerinize kendi hızınızda e-kampüs platformundan göz atabilirsiniz: https://ekampus.anadolu.edu.tr — bir desteğe ihtiyacınız olursa AÖS Destek\'e ulaşabilirsiniz: https://aosdestek.anadolu.edu.tr',
+            Persona::IleriYasBilgi => 'Mesajınız alındı. Bu konuşma tamamlanmıştı, bekleyen bir soru bulunmuyor. Dersleriniz için e-kampüs: https://ekampus.anadolu.edu.tr. Genel destek için AÖS Destek: https://aosdestek.anadolu.edu.tr',
+        };
+    }
+
+    /**
+     * Günlük kontrol kanalı (2026-10-19, kullanıcı kararı — bkz. {@see \App\Enum\ScheduledMessageKind::GunlukKontrol})
+     * — "düz" hali: öğrencinin gözlem gününde, son gönderilen mesajdan bu yana gerçek erişim
+     * TESPİT EDİLEMEDİĞİNDE gider. Haftalık sıklığın (`weekly_hours_available`) öğrenci
+     * tarafından istediği an "1"/"2"/"3" yazarak güncellenebileceği bilgisi metne dahil
+     * edildi (kullanıcı kararı: ayrı bir anahtar kelime/komut değil, bu bilgilendirme yeterli).
+     */
+    public static function gunlukHatirlatmaDuz(string $ad, Persona $persona): string
+    {
+        return match ($persona) {
+            Persona::GencYakinlik => "Selam {$ad}, bugün çalışma günlerinden biri 🙂 Hazır olduğunda aşağıdaki butondan e-kampüs'e geçebilirsin. Not: sıklığı değiştirmek istersen haftada kaç gün istediğini (1-7 arası) yazman yeterli.",
+            Persona::GencBilgi => "Selam {$ad}, bugün planlanan çalışma günlerinden biri. Aşağıdaki butondan e-kampüs'e geçebilirsin. Not: sıklığı değiştirmek istersen haftada kaç gün istediğini (1-7 arası) yazman yeterli.",
+            Persona::YetiskinYakinlik => "Merhaba {$ad}, bugün çalışma günlerinizden biri. Hazır olduğunuzda aşağıdaki butondan e-kampüs'e geçebilirsiniz. Not: sıklığı değiştirmek isterseniz haftada kaç gün istediğinizi (1-7 arası) yazmanız yeterli.",
+            Persona::YetiskinBilgi => "Merhaba {$ad}, bugün planlanan çalışma günlerinizden biri. Aşağıdaki butondan e-kampüs'e geçebilirsiniz. Not: sıklığı değiştirmek isterseniz haftada kaç gün istediğinizi (1-7 arası) yazmanız yeterli.",
+            Persona::IleriYasYakinlik => "Merhaba {$ad}, bugün çalışma günlerinizden biri. Kendi hızınızda, hazır olduğunuzda aşağıdaki butondan e-kampüs'e geçebilirsiniz. Not: sıklığı değiştirmek isterseniz haftada kaç gün istediğinizi (1-7 arası) yazmanız yeterli.",
+            Persona::IleriYasBilgi => "Merhaba {$ad}, bugün planlanan çalışma günlerinizden biri. Aşağıdaki butondan e-kampüs'e geçebilirsiniz. Not: sıklığı değiştirmek isterseniz haftada kaç gün istediğinizi (1-7 arası) yazmanız yeterlidir.",
+        };
+    }
+
+    /**
+     * Günlük kontrol kanalının "övgü" hali — öğrencinin gözlem gününde, son gönderilen
+     * mesajdan bu yana GERÇEK erişim tespit edildiğinde (yani hatırlatmaya gerek kalmadan
+     * kendiliğinden devam ettiğinde) gider. Aynı sıklık-güncelleme bilgisi burada da var.
+     */
+    public static function gunlukHatirlatmaOvgu(string $ad, Persona $persona): string
+    {
+        return match ($persona) {
+            Persona::GencYakinlik => "Selam {$ad}, son zamanlarda güzel bir tempo yakaladın, helal olsun 💪 Devam etmek için aşağıdaki butondan e-kampüs'e geçebilirsin. Not: sıklığı değiştirmek istersen haftada kaç gün istediğini (1-7 arası) yazman yeterli.",
+            Persona::GencBilgi => "Selam {$ad}, son zamanlarda iyi bir tempo yakaladın. Devam etmek için aşağıdaki butondan e-kampüs'e geçebilirsin. Not: sıklığı değiştirmek istersen haftada kaç gün istediğini (1-7 arası) yazman yeterli.",
+            Persona::YetiskinYakinlik => "Merhaba {$ad}, son zamanlarda güzel bir tempo yakaladınız, bunu takdir ediyoruz. Devam etmek için aşağıdaki butondan e-kampüs'e geçebilirsiniz. Not: sıklığı değiştirmek isterseniz haftada kaç gün istediğinizi (1-7 arası) yazmanız yeterli.",
+            Persona::YetiskinBilgi => "Merhaba {$ad}, son zamanlarda iyi bir tempo yakaladınız. Devam etmek için aşağıdaki butondan e-kampüs'e geçebilirsiniz. Not: sıklığı değiştirmek isterseniz haftada kaç gün istediğinizi (1-7 arası) yazmanız yeterli.",
+            Persona::IleriYasYakinlik => "Merhaba {$ad}, son zamanlarda güzel bir tempo yakaladınız, bunu takdir ediyoruz. Kendi hızınızda devam etmek için aşağıdaki butondan e-kampüs'e geçebilirsiniz. Not: sıklığı değiştirmek isterseniz haftada kaç gün istediğinizi (1-7 arası) yazmanız yeterli.",
+            Persona::IleriYasBilgi => "Merhaba {$ad}, son zamanlarda iyi bir tempo yakaladınız. Devam etmek için aşağıdaki butondan e-kampüs'e geçebilirsiniz. Not: sıklığı değiştirmek isterseniz haftada kaç gün istediğinizi (1-7 arası) yazmanız yeterlidir.",
         };
     }
 }

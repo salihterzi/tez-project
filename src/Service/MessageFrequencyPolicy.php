@@ -4,24 +4,20 @@ namespace App\Service;
 
 use App\Enum\EngagementTrigger;
 use App\Enum\TriggerPriority;
-use App\Enum\WeeklyHoursAvailable;
 
 /**
- * Haftalık kişiselleştirilmiş mesaj sıklığı üst sınırı (Zamanlama_Kisisellestirme_Karar_
- * Mantigi.docx, Bölüm 4): varsayılan "haftada en fazla 1 kişiselleştirilmiş mesaj (tüm
- * tetikleyiciler dahil)" — ama kullanıcı kararı (2026-10-06): öğrenci kayıt anketinde (YBS
- * Soru 5, `weekly_hours_available`) kaç gün eğitime vakit ayırabileceğini belirttiyse,
- * haftalık mesaj üst sınırı artık o sayı — "öğrenci haftada kaç mesaj isterse o kadar
- * mesaj gönderilir". `WeeklyHoursAvailable::gunSayisiUstSiniri()` zaten bu sayıyı veriyor
- * (1/2/3/sınırsız) — {@see MessageDispatchScheduler}'ın GÜN seçiminde kullandığı AYNI alan,
- * burada haftalık mesaj SAYISI üst sınırı olarak da kullanılıyor (bkz. `roadmap-faz.md`
- * Faz B, bu yön önceden TODO olarak not edilmişti). Anket doldurulmamışsa (`null`)
- * varsayılan (1) üst sınıra düşülür.
+ * Haftalık tetikleyici-kaynaklı (M1/varyant) mesaj sıklığı üst sınırı: SABİT "haftada en
+ * fazla 1" (2026-10-19, kullanıcı kararı — "her hafta 1 trigger olsun"). `weekly_hours_available`
+ * (YBS Soru 5) bu sayıyı ARTIK ETKİLEMİYOR — eskiden (2026-10-06 kararı) öğrencinin kendi
+ * beyanı tetikleyici sayısını da belirliyordu, ama bu, haftada 4+ gün seçen bir öğrenciye
+ * aynı "ne oldu" sorusunun haftada birden çok kez sorulmasına yol açıyordu (bkz. proje
+ * notları). Artık `weekly_hours_available`'ın rolü SADECE {@see MessageDispatchScheduler}'ın
+ * GÜN seçimi VE {@see \App\Enum\ScheduledMessageKind::GunlukKontrol} (hatırlatma/övgü) kanalının
+ * sıklığı — tetikleyici (bu sınıf) ve hatırlatma artık BAĞIMSIZ iki bütçe.
  *
  * M1 "zamanım yok" dalında öğrenci "Haftada 1 kısa oturum" seçerse
- * ({@see \App\Service\EngagementFlowService::zamanHaftadaBirSecildi()}) bu AYNI alana
- * (`weekly_hours_available = BirGun`) doğrudan yazılır — ayrı bir öncelik kuralına gerek
- * yok, M1'in beyanı anket cevabının üzerine yazılarak güncel/spesifik beyan kazanır.
+ * ({@see \App\Service\EngagementFlowService::zamanHaftadaBirSecildi()}) `weekly_hours_available`
+ * güncellenir — bu artık TETİKLEYİCİ sıklığını değil, hatırlatma kanalının gün sayısını etkiler.
  *
  * Not: Bölüm 6'nın "yüksek öncelikte mümkünse eğitmen/danışman imzalı" önerisi kullanıcı
  * kararıyla tamamen kaldırıldı ("eğitmen imzalı mesaj olmayacak") — {@see TriggerPriority}
@@ -38,19 +34,38 @@ use App\Enum\WeeklyHoursAvailable;
  */
 final class MessageFrequencyPolicy
 {
-    private const int VARSAYILAN_HAFTALIK_UST_SINIR = 1;
+    private const int HAFTALIK_UST_SINIR = 1;
 
-    public function siklikUygunMu(int $buHaftaGonderilen, ?WeeklyHoursAvailable $gunSayisiTercihi = null): bool
+    /**
+     * Bir öğrenciye bir GÜN içinde gidebilecek toplam mesaj sayısı (gelen + giden, proaktif +
+     * reaktif — bkz. {@see \App\Entity\StudentProfile::$dailyMessageCount}). Haftalık
+     * TETİKLEYİCİ sınırından ({@see self::HAFTALIK_UST_SINIR}) bağımsızdır.
+     *
+     * 2026-10-28: Bu sabit önce {@see \App\Controller\WhatsAppWebhookController}'ın özel
+     * sabitiydi ve YALNIZCA webhook'un gelen mesaj yolunda kontrol ediliyordu. Proaktif
+     * gönderim ({@see \App\Command\DispatchScheduledMessagesCommand}) sayacı artırıyor ama
+     * hiç KONTROL etmiyordu — yani günlük bütçesi dolu bir öğrenciye kuyruktaki mesajlar
+     * gönderilmeye devam ediyordu. Sabit buraya taşındı ki iki taraf aynı kaynağı kullansın.
+     */
+    public const int GUNLUK_UST_SINIR = 10;
+
+    public function siklikUygunMu(int $buHaftaGonderilen): bool
     {
-        if (null === $gunSayisiTercihi) {
-            return $buHaftaGonderilen < self::VARSAYILAN_HAFTALIK_UST_SINIR;
-        }
+        return $buHaftaGonderilen < self::HAFTALIK_UST_SINIR;
+    }
 
-        // `gunSayisiUstSiniri()` burada `null` dönerse "4 günden fazla" (sınırsız) demektir —
-        // tercih YOK anlamına gelmez, bu yüzden `??` ile varsayılana düşülMEZ.
-        $ustSinir = $gunSayisiTercihi->gunSayisiUstSiniri();
-
-        return null === $ustSinir || $buHaftaGonderilen < $ustSinir;
+    /**
+     * Bugün bu öğrenciye daha mesaj gönderilebilir mi? `$bugunGonderilen`, gönderimden ÖNCEKİ
+     * sayaçtır ({@see \App\Entity\StudentProfile::gunlukMesajSayisi()}); bu yüzden sınırın
+     * kendisi dahil değildir — sayaç {@see self::GUNLUK_UST_SINIR}'a ulaştıysa artık
+     * gönderilmez, böylece günde en fazla o kadar mesaj gider.
+     *
+     * Sınav günü mesajı ve 72 saat hatırlatması bu sınırın DIŞINDADIR (zorunlu/tek seferlik
+     * kanallar; günlük sayacı da artırmazlar — bkz. {@see \App\Enum\ScheduledMessageKind}).
+     */
+    public function gunlukSiklikUygunMu(int $bugunGonderilen): bool
+    {
+        return $bugunGonderilen < self::GUNLUK_UST_SINIR;
     }
 
     /**

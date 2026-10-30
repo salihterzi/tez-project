@@ -41,9 +41,6 @@ use App\Enum\ZorlukResponse;
  */
 class EngagementFlowService
 {
-    /** last_barrier_type kaç hafta geçerli sayılır (kullanıcı tarafından netleştirilmedi — varsayılan). */
-    public const int BARRIER_GECERLILIK_HAFTASI = 4;
-
     /**
      * "Şimdilik mesaj göndermeyin" seçildiğinde `silence_until` kaç gün ileriye ayarlanır
      * (2026-10-16, kullanıcı kararı: artık otomatik geri dönüş YOK — eskiden 180 gündü,
@@ -61,7 +58,6 @@ class EngagementFlowService
         ?EngagementTrigger $trigger,
         StudentProfile $profile,
         ?Phase $aktifFaz,
-        \DateTimeImmutable $today,
     ): bool {
         if (!in_array($trigger, [EngagementTrigger::T2, EngagementTrigger::T3, EngagementTrigger::T4], true)) {
             return false;
@@ -75,22 +71,17 @@ class EngagementFlowService
             return false;
         }
 
-        return !$this->isBarrierTypeValid($profile, $today);
+        return !$this->isBarrierTypeValid($profile);
     }
 
     /**
-     * `student_profile.last_barrier_type` bu "dönem/geçerlilik penceresi" içinde dolu mu?
-     * (bkz. {@see self::BARRIER_GECERLILIK_HAFTASI}). Tek bir yüklü entity için — toplu
-     * (53k öğrenci) tarama için {@see \App\Repository\StudentProfileRepository::findStudentIdsWithValidBarrierType()}.
+     * `student_profile.last_barrier_type` dolu VE öğrenci henüz `current_state=AKTİF`'e
+     * dönmemiş mi (2026-10-18, kullanıcı kararı — bkz. {@see \App\Repository\StudentProfileRepository::findStudentIdsWithValidBarrierType()}'in
+     * docblock'u, aynı mantığın toplu/53k öğrenci tarama hali). Tek bir yüklü entity için.
      */
-    public function isBarrierTypeValid(StudentProfile $profile, \DateTimeImmutable $today): bool
+    public function isBarrierTypeValid(StudentProfile $profile): bool
     {
-        $setAt = $profile->getLastBarrierTypeSetAt();
-        if (null === $profile->getLastBarrierType() || null === $setAt) {
-            return false;
-        }
-
-        return $setAt >= $today->modify(sprintf('-%d weeks', self::BARRIER_GECERLILIK_HAFTASI));
+        return null !== $profile->getLastBarrierType() && StudentState::Aktif !== $profile->getCurrentState();
     }
 
     /**

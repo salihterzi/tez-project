@@ -45,15 +45,21 @@ class DailyTriggerEvaluator
     /** T1: dönem başlangıcından bu yana en az bu kadar gün geçmiş olmalı. */
     private const int T1_MIN_DAYS_SINCE_TERM_START = 7;
 
-    /** T2: normal/sınav günü fazında, son erişimden bu yana eşik (gün). */
-    private const int T2_THRESHOLD_DAYS_NORMAL = 5;
+    /** T2: normal fazda, son erişimden bu yana eşik (gün). 2026-10-22 kullanıcı kararı:
+     * "bir hafta" — 2024/2 geçmiş dönem verisiyle yapılan F1-optimum kalibrasyonu (bkz.
+     * python/t2_esik_kalibrasyonu.py) 30 gün civarını işaret etmişti, ama bu, daha
+     * kademeli/temkinli bir ilk adım olarak tercih edildi. */
+    private const int T2_THRESHOLD_DAYS_NORMAL = 7;
 
     /**
-     * T2: sınav öncesi fazında eşik gevşer (gün). Doküman "5-7 gün yerine 10-12 gün" diyor;
-     * üst sınır (daha az rahatsız edici) seçildi — kendi başına sınava çalışan bir öğrenciye
-     * yanlışlıkla "seni göremedik" mesajı gitmesin diye.
+     * T2: sınav öncesi fazda eşik. 2026-10-22 kullanıcı kararı: ŞİMDİLİK Normal ile AYNI
+     * değer kullanılıyor — kalibrasyon betiği bu fazlarda recall'un veri setinin takvim
+     * yapısı yüzünden doyuma uğradığını gösterdi (bkz. python/t2_esik_kalibrasyonu.py modül
+     * docstring'i), yani ayrı bir sınav-öncesi değerini şu an için ayrıca gerekçelendirecek
+     * veri yok. Faz ayrımının kendisi (sinavOncesiMi() kontrolü) BİLEREK kaldırılmadı — iki
+     * sabit birbirinden bağımsız kalmaya devam ediyor, ileride ayrışabilir.
      */
-    private const int T2_THRESHOLD_DAYS_SINAV_ONCESI = 12;
+    private const int T2_THRESHOLD_DAYS_SINAV_ONCESI = 7;
 
     /** T3: bu haftaki erişim, geçen haftanın bu oranının altına düşerse tetiklenir. */
     private const float T3_DUSUS_ORANI = 0.5;

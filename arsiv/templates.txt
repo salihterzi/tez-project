@@ -1,0 +1,758 @@
+TEZ PROJESİ — WHATSAPP MESAJ SENARYOSU (YAŞ × İLETİŞİM TARZI KİŞİSELLEŞTİRMELİ)
+Örnek yer tutucu değerler: {ad}=Ahmet (YALNIZCA ad, soyad YOK — kod zaten
+EngagementFlowMessages::m1(string $ad) ve TriggerMessageCatalog'daki {ad}
+yer tutucusu tek başına ada karşılık geliyor), {sınav}=Vize sınavı. Belirli bir
+ders adı KULLANILMIYOR — sistem öğrenci bazlı çalıştığı için (tek bir dersi
+değil genel davranışı izliyor) mesajlarda "derslerin/dersleriniz" gibi genel/
+çoğul ifade var.
+
+════════════════════════════════════════════════════════════════════════════
+BÖLÜM 0 — KİŞİSELLEŞTİRME ÇERÇEVESİ (kuramsal dayanak + uygulama kuralı)
+════════════════════════════════════════════════════════════════════════════
+
+1) YAŞ EKSENİ — Baltes, Lindenberger & Staudinger (2006), Yaşam Boyu Gelişim
+   Kuramı (Life-Span Theory)
+   Gelişim doğumdan yaşlılığa kadar sürekli bir adaptasyon sürecidir. İleri yaş
+   gruplarında öne çıkan "seçici optimizasyon ve telafi" (SOC) ilkesine göre
+   yetişkin bireyler sınırlı zaman/enerjilerini önceliklendirerek yönetir
+   (genelde iş/aile sorumluluklarıyla birlikte).
+
+   ÜÇ YAŞ GRUBU (kod karşılığı: App\Enum\YasGrubu; eşikler GENC_UST_SINIR=24,
+   ILERI_YAS_ALT_SINIR=65):
+     - Genç Yetişkin (yaş ≤ 24): enerjik, alışkanlık-kurma odaklı, teşvik edici.
+     - Yetişkin (25 ≤ yaş ≤ 64): kısa, saygılı, özerkliği vurgulayan, baskısız.
+     - İleri Yaş (yaş ≥ 65): kısa ve tek eylemli, şimdiki zamana ve duygusal
+       anlama dayalı, özerkliği açıkça güvenceye alan — ama BASİTLEŞTİRİLMİŞ
+       DEĞİL (aşağıya bakınız).
+
+   İLERİ YAŞ GRUBUNUN DİLSEL KARŞILIĞI (2026-10-25'te eklendi; önceki sürümde
+   bu grup tanımsızdı, kod ise İY/İB personalarını zaten üretiyordu)
+   Dört ilke ve her birinin kuramsal dayanağı:
+
+   (i) ŞİMDİKİ ZAMAN > UZAK GELECEK.
+       Sosyo-duygusal Seçicilik Kuramı'na (SDSK) göre algılanan zaman ufku
+       kısaldıkça bireyin sosyal/bilişsel hedefleri bilgi edinmeden duygu
+       düzenlemeye kayar; uzak gelecekteki kazanımlara yapılan atıflar belirginlik
+       kaybeder (Carstensen, Isaacowitz & Charles, 1999). Bu nedenle İleri Yaş
+       versiyonlarında "ileride işine yarayacak / kariyerine katkı sağlayacak"
+       türü gelecek-odaklı çerçeveleme KULLANILMAZ; yerine şimdiki zamandaki
+       anlam/haz vurgusu ("bugün keyifli bir yarım saat") konur.
+       ⚠ TÜRETİLEN SONUÇ — BÖLÜM 2'Yİ ETKİLİYOR: Bölüm 2'deki M1 Motivasyon
+       dalının "Vizyoner Yönlendirme" kurgusu (öğrencinin hedefine/kariyerine bağ
+       kurma, Knowles, 1980) tam olarak gelecek-odaklı çerçevelemedir ve SDSK'ya
+       göre İleri Yaş grubunda kuramsal olarak DAHA ZAYIF beklenir. Bu dalın
+       İY/İB metinleri şu an diğer personalarla aynı mantıkla yazılmış durumda;
+       gözden geçirilmesi gerekiyor (açık madde).
+
+   (ii) OLUMLU ÇERÇEVELEME.
+       Yaşa bağlı "pozitiflik etkisi" uyarınca ileri yaş grubunda dikkat ve
+       bellek olumlu uyaranlara doğru kayar; olumsuz/eksiklik vurgulu çerçeveleme
+       görece daha az işlenir (Mather & Carstensen, 2005). Bu nedenle İleri Yaş
+       versiyonlarında gözlem cümlesi eksiklik değil fırsat olarak kurulur
+       ("bir süredir ara verilmiş" yerine "yeniden başlamak için iyi bir zaman").
+       Bu, Bölüm 0.2'deki Bilgi-odaklı ton ile çelişmez: durum tespiti yine
+       yapılır, yalnızca kusur atfı yapılmaz.
+
+   (iii) DÜŞÜK BİLİŞSEL YÜK — TEK EYLEM.
+       İşlemleme Hızı Kuramı'na göre yaşla birlikte işlemleme hızı düşer; bu,
+       "sınırlı süre" ve "eşzamanlılık" mekanizmaları üzerinden çok adımlı veya
+       çok seçenekli içeriğin anlaşılmasını zorlaştırır (Salthouse, 1996). Bu
+       nedenle İleri Yaş versiyonlarında: tek cümlede tek eylem, iç içe yan cümle
+       yok, zincirleme koşul yok. Buton SAYISI değişmez (özerklik hiçbir
+       personada kısıtlanmaz — bkz. Bölüm 0.2) ama GÖVDE metni en kısa varyanttır.
+
+   (iv) ELDERSPEAK YASAĞI — basitleştirme ≠ çocuklaştırma.
+       Bu, (iii)'ün sınırını çizen kritik kısıttır. Deneysel olarak sözdizimsel
+       basitleştirme VEYA anlamsal ayrıntılandırma ileri yaş grubunda anlamayı
+       tek tek iyileştiriyor, ancak ikisi birlikte ek fayda üretmiyor; dahası
+       abartılı/aşırı özenli ton (yüksek perde, aşırı vurgu, gereksiz tekrar)
+       algılanan anlamayı DÜŞÜRÜYOR — katılımcılar gerçek anlama artmış olsa bile
+       kendilerini daha az anlamış hissediyor (Kemper & Harden, 1999). Pratik
+       kural: cümle YAPISI sadeleşir, hitap ve ton SADELEŞMEZ. Yasaklar:
+       küçültme/sevgi ekleri, gereksiz tekrar, abartılı emoji dizileri,
+       "merak etmeyin, çok kolay" türü güvence cümleleri, yaşa yapılan hiçbir
+       açık atıf.
+
+   İLERİ YAŞ × TON KESİŞİMİ: Yukarıdaki dört ilke yaş eksenine aittir ve Bölüm
+   0.2'nin Yakınlık/Bilgi ekseniyle ÇARPILIR, onu geçersiz kılmaz. İY (Yakınlık)
+   emoji ve bağ kurma ifadesi taşır ama (iv) gereği ölçülü; İB (Bilgi) sade
+   kalır ama (ii) gereği kusur atfı yapmaz.
+
+   SINIRLILIK: Bu dört ilke kuramsal türetmedir; İleri Yaş × WhatsApp
+   yönlendirme mesajı bağlamında doğrudan sınanmış değildir. Ayrıca açık öğretim
+   popülasyonunda ≥65 grubu büyük olasılıkla küçük bir n'e sahip olacaktır —
+   tez metninde hem varsayım hem de örneklem sınırlılığı olarak belirtilmelidir.
+
+2) İLETİŞİM TARZI EKSENİ — Deborah Tannen (1990), Cinsiyet Kültürü Kuramı
+   (Genderlect Theory)
+   Kadınlar genelde "yakınlık-odaklı" (rapport), erkekler genelde "bilgi-odaklı"
+   (report) konuşma tarzını tercih eder (istatistiksel eğilim varsayımı, kesin
+   bir genelleme değil — tez sınırlılıklar bölümünde belirtilmesi önerilir).
+     - Cinsiyet = K → Yakınlık-odaklı ton
+     - Cinsiyet = E → Bilgi-odaklı ton
+   Bu eksen yalnızca ÇAĞRI CÜMLESİNİN TONUNU belirler; SEÇENEKLER/BUTONLAR her
+   öğrenci için AYNI kalır — öğrenci özerkliği hiçbir versiyonda kısıtlanmaz.
+
+   DİLSEL İŞARETLER (her mesajda tutarlı uygulanan somut fark — önceden yalnızca
+   emoji farkıydı, artık cümle YAPISI da farklı):
+   ┌─────────────────────┬───────────────────────────┬───────────────────────────┐
+   │                     │ Yakınlık-odaklı (Y)       │ Bilgi-odaklı (B)          │
+   ├─────────────────────┼───────────────────────────┼───────────────────────────┤
+   │ Açılış              │ Duygu tanıma / empati     │ Kısa durum tespiti        │
+   │                     │ ("merak ettim", "bu gayet │ ("bir süredir hareket     │
+   │                     │ normal", "yalnız değilsin")│ yok", "tempo düştü")      │
+   │ Bağ kurma           │ "Birlikte", "yanındayım", │ Yok / minimal             │
+   │                     │ "buradayım"               │                           │
+   │ Kapanış/çağrı       │ Davetkâr soru             │ Doğrudan talimat          │
+   │                     │ ("...seçelim mi?")        │ ("...seçmeniz yeterli")   │
+   │ Emoji               │ Var (🙂💪🎉 vb.), ölçülü  │ Yok                       │
+   └─────────────────────┴───────────────────────────┴───────────────────────────┘
+
+3) ALTI PERSONA (3 yaş grubu × 2 ton): GY=Genç+Yakınlık, GB=Genç+Bilgi,
+   YY=Yetişkin+Yakınlık, YB=Yetişkin+Bilgi, İY=İleri Yaş+Yakınlık,
+   İB=İleri Yaş+Bilgi. Kaynak alanlar: yaş→dogum_tarihi, ton→cinsiyet.
+   Kod karşılığı: PersonaResolver.php → Persona enum; şablon adlarındaki ekler
+   _gy/_gb/_yy/_yb/_iy/_ib (config/whatsapp/templates.json).
+   (2026-10-25'e kadar bu madde "DÖRT PERSONA" diyordu; kod ise baştan beri 6
+   üretiyordu — düzeltildi, bkz. Bölüm 0.1 ve 0.7.)
+
+4) M1'İN AÇILIŞ CÜMLESİ ARTIK TETİKLEYİCİYE (T2/T3/T4) GÖRE DE DEĞİŞİYOR
+   Önceki sürümde M1 tüm tetikleyiciler için aynı genel cümleydi — artık hangi
+   sinyalin (uzun süredir yokluk / bu haftaki düşüş / genel yavaşlama) M1'i
+   başlattığına göre gözlem cümlesi de farklılaşıyor (bkz. Bölüm 2). T4 kaynaklı
+   sürüm KASITLI olarak kohort/akran kıyaslaması yapmıyor (nötr kalmalı) —
+   sosyal kıyaslama içeriği yalnızca Bölüm 3'ün T4-norm seçenekında var.
+
+5) SINAV GÜNÜ MESAJLARI KİŞİSELLEŞTİRİLMEDİ (bilinçli karar)
+   Kod bunu "rotasyon/kişiselleştirme yok, herkese AYNI mesaj" olarak tanımlıyor
+   (zorunlu bilgilendirme kanalı) — bu ilkeyle çelişmemek için Bölüm 4 tek ve
+   nötr bırakıldı.
+
+6) GÖNDEREN KİMLİĞİ: BÖLÜM ADINA, SAMİMİ TONDA (2026-10-24 kararı)
+   Mesajlar bölüm adına gönderilir ve gönderen kimliği her mesajda görünür olur.
+   Gerekçe üç ayrı katmanda duruyor:
+
+   a) Kimlik ZORUNLU (hukuki/teknik)
+      KVKK aydınlatma yükümlülüğü veri sorumlusunun kimliğinin bildirilmesini
+      gerektiriyor; WhatsApp Business Policy de işletme kimliğini ve çıkış
+      (opt-out) imkânını şart koşuyor. Kimliksiz mesaj ayrıca engelleme/şikâyet
+      üretip Meta numara kalite puanını düşürür — bu, pilot ortasında gönderim
+      limitinin kısılması ve veri kaybı riski demek.
+
+   b) Kimlik ETKİLİ (kaynak güvenilirliği)
+      Kaynak güvenilirliği, alıcı mesajı derinlemesine işlemeye istekli
+      olmadığında kararın ana belirleyicisi olan çevresel (peripheral) ipuçtur
+      (Hovland & Weiss, 1951; Petty & Cacioppo, 1986). WhatsApp'ta saniyeler
+      içinde okunup geçilen bir mesaj tam olarak bu düşük-işleme rejiminde
+      değerlendirilir. MINDSPACE çerçevesinin ilk ilkesi de doğrudan budur:
+      "Messenger" — bilgiyi kimin ilettiği (Dolan ve ark., 2010). Deneysel
+      olarak, tek ve belirli bir kaynağa atfedilen mesaj belirsiz/dağınık
+      kaynağa kıyasla uyum niyetini 13-17 puan artırıyor ve bu etkiyi açıklayan
+      aracı mekanizma güvenilirliktir (Li & Shi, 2025). Alan deneyinde yalnızca
+      gönderenin adını eklemek katılımı %10,5'ten %17,4'e çıkarmış; karşılıklılık
+      ifadesiyle birlikte %26,8'e ulaşmıştır — mesajın bilgi içeriği dört kolda
+      da aynıydı (Sanders & Kirkman, 2019). İçerik sabitken otorite imzasının
+      tek başına davranış değiştirdiği klinik ölçekte de gösterilmiştir
+      (Hallsworth ve ark., 2016).
+
+   c) Kimlik SAMİMİ olmalı (yakınlık + reaktans)
+      Aynı deneyde, tanımlı kaynaklar içinde sosyal yakınlığı olan kaynaklar
+      profesyonel uzman otoritesini 11-16 puan geçiyor; ikinci aracı mekanizma
+      AZALMIŞ REAKTANS (Li & Shi, 2025). Kontrol edici dil ("...malı/meli",
+      "gerekiyor", "zorunlu") içerik sabit kalsa bile daha fazla direnç, daha az
+      davranış değişimi ve kaynağı değersizleştirme (source derogation)
+      üretiyor; özerklik destekleyici dil ("isterseniz", "bir seçenek",
+      "ne dersin") tehdit algısını düşürüyor (Brehm, 1966; Miller ve ark., 2007;
+      ÖBK: Öz-Belirleme Kuramı'nın özerklik bileşeni, Ryan & Deci, 2000).
+      Bu ilke Bölüm 0.2'deki Yakınlık/Bilgi ekseniyle ÇELİŞMEZ: Bilgi
+      personasında ton soğuk değil yalnızca sadedir — emir kipi hiçbir personada
+      kullanılmaz.
+
+   d) Asıl gerekçe: TEKRAR
+      Tek seferlik bir duyuru resmî olabilir; bu sistem ise bir dönem boyunca
+      aynı öğrenciye defalarca yazıyor. Tutarlı ve tanınabilir bir gönderen,
+      tekrarlanan hatırlatmayı "sistem bildirimi"nden çıkarıp sürdürülen bir
+      ilişkiye dönüştürüyor — her mesaj sıfırdan başlamak yerine birikiyor.
+      Buna karşılık, gönderen kimliğinden bağımsız ölçekli mesaj kampanyaları
+      etkisiz çıkıyor: 800.000+ öğrenciye ulaşan ulusal denemede içerik,
+      zamanlama, görsel sunum ve kişiselleştirilmiş yardım teklifi
+      varyasyonlarının hiçbiri sonuç üretmedi ve yazarların başlıca açıklaması
+      önceki başarılı çalışmalardaki YEREL, öğrenciyi tanıyan partnerin
+      yokluğuydu (Bird ve ark., 2021). Tek yönlü mesajların akademik sonuçları
+      etkilemediği, kısmi etkinin yalnızca insan ilişkisi içeren koçluk kolunda
+      görüldüğü büyük ölçekli çalışma da aynı yöne işaret ediyor
+      (Oreopoulos & Petronijevic, 2019).
+
+   UYGULAMA KURALI
+   - Tam tanıtım YALNIZCA ilk temasta yapılır (bkz. Bölüm T0).
+   - Sonraki tüm mesajlarda yalnızca kısa ve SABİT bir kimlik ibaresi bulunur.
+     Tanıtımın her mesajda tekrarı gürültü yaratır, metni resmî duyuru
+     registerine kaydırır ve (c)'deki yakınlık etkisini yok eder.
+   - Kimlik dönem boyunca DEĞİŞMEZ; tanınırlık tutarlılığa bağlıdır.
+   - Kimliğin bir kısmı mesajda değil WhatsApp Business profilinde taşınır
+     (görünen ad + hakkında + profil fotoğrafı): öğrencinin mesajı açmadan ÖNCE
+     gördüğü ilk kimlik yüzeyi budur.
+   - Birim seçimi: bölüm düzeyi kullanılır. Fakülte/üniversite düzeyi
+     soyutlaştığı ölçüde (c)'deki yakınlık etkisini kaybeder.
+
+7) PERSONA SAYISI TUTARSIZLIĞI — ÇÖZÜLDÜ (2026-10-25)
+   Tespit: PersonaResolver.php yaş eksenini ÜÇ gruba ayırıyor (YasGrubu: Genç
+   ≤24, Yetişkin 25-64, İleri Yaş ≥65) ve her biri Yakınlık/Bilgi ile
+   çarpılıyor → 6 persona. config/whatsapp/templates.json da baştan beri 6 ekli
+   (_gy/_gb/_yy/_yb/_iy/_ib) yazılmış. Buna karşın bu dokümanın Bölüm 0.1'i iki
+   yaş grubu, Bölüm 0.3'ü "DÖRT PERSONA" diyordu ve İleri Yaş grubunun dilsel
+   karşılığı HİÇ tanımlı değildi — yani 6 personanın 2'si kuramsal dayanaksız
+   üretiliyordu.
+   Yapılan düzeltme:
+     - Bölüm 0.1'e üç yaş grubu ve eşikleri yazıldı; İleri Yaş grubunun dilsel
+       karşılığı dört ilke + kuramsal dayanakla tanımlandı (SDSK, pozitiflik
+       etkisi, işlemleme hızı, elderspeak yasağı).
+     - Bölüm 0.3 "ALTI PERSONA" olarak güncellendi.
+   AÇIK KALAN MADDELER (bu dosyada henüz yapılmadı):
+     a) Bölüm 2'deki M1 Motivasyon dalı ("Vizyoner Yönlendirme") gelecek-odaklı
+        çerçeveleme kullanıyor; Bölüm 0.1(i)'e göre İleri Yaş grubunda kuramsal
+        olarak zayıf. İY/İB metinleri gözden geçirilmeli.
+     b) Bölüm 1-4'teki mevcut mesaj metinleri yalnızca 4 persona (GY/GB/YY/YB)
+        için yazılmış; İY/İB karşılıkları bu dokümanda YOK (templates.json'da
+        şablon olarak var ama metinleri bu dosyadan türetilmemiş). Bölüm 0.1'in
+        yeni ilkelerine göre yazılması gerekiyor.
+     c) Bölüm 0.2'nin dilsel işaretler tablosu yaş eksenini hiç içermiyor;
+        İleri Yaş × ton kesişimi şu an yalnızca Bölüm 0.1'in son paragrafında
+        prozaik olarak anlatılıyor. Tabloya üçüncü boyut eklenebilir.
+
+════════════════════════════════════════════════════════════════════════════
+BÖLÜM T0 — TANITIM / İLK TEMAS (bir kez; tüm tetikleyicilerden ÖNCE)
+════════════════════════════════════════════════════════════════════════════
+
+KARAR NOTU (teorik çerçeve): İlk temas → Kaynak Güvenilirliği + Özerklik
+(MINDSPACE'in "Messenger" ilkesi; ÖBK: Öz-Belirleme Kuramı'nın özerklik
+bileşeni) → Tanıtıcı Yönlendirme. Kimliksiz ilk mesaj, alıcı için atfedilemez
+bir kaynaktır ve deneysel olarak en düşük uyum üreten kategoridir; ilk temas
+aynı zamanda sonraki tüm mesajların değerlendirileceği çerçeveyi kurar. Aşağıdaki
+metin bu nedenle dört işlevi tek mesajda birleştirir: kaynak kimliği, "neden ben"
+(onam hatırlatması), "ne bekleyeyim" (sıklık taahhüdü) ve "nasıl çıkarım"
+(özerklik güvencesi) (Hovland & Weiss, 1951; Dolan ve ark., 2010; Miller ve ark.,
+2007; Li & Shi, 2025).
+
+ZAMANLAMA: Tanıtım mesajı, YBS araştırma formunun gönderildiği ana en yakın
+noktada gider. Öğrenci WhatsApp ön koşulunu (S2) o dakika onayladığı için
+"formu doldururken işaretlemiştin" cümlesi tam karşılığını bulur; haftalar
+sonra gelen aynı cümle çok daha zayıftır (EAST çerçevesinin "Timely" bileşeni,
+BIT, 2014).
+
+Yer tutucular: {ad}=Ahmet, {bölüm}=bölüm adı. {bölüm} tek bir bölüm için sabit
+metin olarak şablona gömülebilir (parametre olmasına gerek yok); {ad} mevcut
+{{1}} parametresine karşılık gelir.
+
+--- T0 Tanıtım ---  (buton: Tamam / Mesaj göndermeyin)
+  [GY] Selam Ahmet! Biz {bölüm}'den yazıyoruz 👋 YBS araştırma formunu doldururken WhatsApp'tan hatırlatma almayı işaretlemiştin, o yüzden buradayız. Dönem boyunca ara ara kısa bir ders çalışma hatırlatması göndereceğiz — haftada birden fazla değil. İstemediğin an "Mesaj göndermeyin" demen yeterli, hemen keseriz 🙂
+  [GB] Selam Ahmet, {bölüm} adına yazıyoruz. YBS araştırma formunda WhatsApp'tan hatırlatma almayı işaretlemiştin. Dönem boyunca kısa ders çalışma hatırlatmaları göndereceğiz; sıklık haftada en fazla 1. Durdurmak için "Mesaj göndermeyin" yazman yeterli.
+  [YY] Merhaba Ahmet, biz {bölüm}'den yazıyoruz 👋 YBS araştırma formunu doldururken WhatsApp'tan hatırlatma almayı işaretlemiştiniz. Dönem boyunca ara ara kısa bir ders çalışma hatırlatması göndereceğiz — haftada birden fazla değil. Dilediğiniz an "Mesaj göndermeyin" demeniz yeterli 🙂
+  [YB] Merhaba Ahmet, {bölüm} adına yazıyoruz. YBS araştırma formunda WhatsApp'tan hatırlatma almayı işaretlemiştiniz. Dönem boyunca kısa ders çalışma hatırlatmaları göndereceğiz; sıklık haftada en fazla 1. Durdurmak için "Mesaj göndermeyin" yazmanız yeterlidir.
+  [İY] Merhaba Ahmet, biz {bölüm}'den yazıyoruz 👋 YBS araştırma formunda WhatsApp'tan hatırlatma almayı işaretlemiştiniz. Dönem boyunca ara ara kısa bir ders çalışma hatırlatması göndereceğiz — kendi hızınızda, hiçbir baskı yok. Dilediğiniz an "Mesaj göndermeyin" demeniz yeterli 🙂
+  [İB] Merhaba Ahmet, {bölüm} adına yazıyoruz. YBS araştırma formunda WhatsApp'tan hatırlatma almayı işaretlemiştiniz. Dönem boyunca kısa ders çalışma hatırlatmaları göndereceğiz; haftada en fazla 1 ve yanıt vermek zorunda değilsiniz. Durdurmak için "Mesaj göndermeyin" yazmanız yeterlidir.
+
+BUTON KARARI: Çıkış, yazdırmak yerine BUTON olarak sunuluyor — eylemi
+kolaylaştırmak (EAST'in "Easy" bileşeni) özerklik güvencesini sembolik değil
+gerçek kılıyor. "Tamam" butonu ise ilk temasta bir yanıt alınmasını sağlıyor;
+yanıt veren öğrencilerde etkinin belirgin biçimde yükseldiği bulgusu var
+(Castleman & Page, 2015).
+
+UYGULAMA NOTLARI (henüz yapılmadı)
+- config/whatsapp/templates.json'daki 186 şablonun HİÇBİRİ tanıtım şablonu
+  değil; şu an öğrencinin aldığı ilk mesaj doğrudan bir tetikleyici mesajı.
+  Bu 6 varyantın Meta'ya yeni şablon olarak gönderilmesi gerekiyor.
+- Kategori: mevcut şablonlar MARKETING. Tanıtım/onam mesajı UTILITY adayıdır ve
+  UTILITY teslim açısından avantajlı olabilir — ancak Meta onay sırasında
+  yeniden sınıflandırabilir, garanti değil. Şablon sayısı tavanı 250 olduğu için
+  (mevcut: 186) 6 yeni şablon sorun değil.
+- "Mesaj göndermeyin" butonu kodda şu an yalnızca akışa özel enum'larla
+  karşılanıyor (ZamanDonusSuresi, Hatirlatma72SaatResponse). Tanıtım mesajı için
+  kendi yanıt enum'u + WebhookYanitRouter dalı gerekiyor; mevcut opt-out'un
+  kendiliğinden çalıştığı VARSAYILMAMALI.
+- Sonraki tüm mesajlara eklenecek kısa kimlik ibaresi henüz yazılmadı; Bölüm
+  0.6'nın uygulama kuralı gereği ayrı bir karar olarak ele alınmalı (şablon
+  gövdelerinin tamamı değişeceği için Meta onay turu gerektirir).
+
+════════════════════════════════════════════════════════════════════════════
+BÖLÜM 1 — T1: Hiç Başlamamış (yalnızca Normal faz, M1'e asla girmez)
+════════════════════════════════════════════════════════════════════════════
+
+--- T1 Seçenek 1 ---  (buton: Bugün / Bu hafta içinde / Yardım lazım)
+  [GY] Selam Ahmet, bu dönem derslerin seni bekliyor — ilk adımı atmak güzel hissettirir, ne zaman bir göz atmak istersin? 🙂
+  [GB] Selam Ahmet, bu dönem derslerin açık ve henüz başlanmamış. Ne zaman göz atmayı planlıyorsun?
+  [YY] Merhaba Ahmet, bu döneme hoş geldiniz — kendi hızınızda başlamanız yeterli. Ne zaman göz atmak istersiniz?
+  [YB] Merhaba Ahmet, bu dönem dersleriniz erişime açık, henüz başlanmamış. Ne zaman inceleyeceğinizi belirtmeniz yeterli.
+
+--- T1 Seçenek 2 ---  (buton: Şimdi başla / Daha sonra)
+  [GY] Selam Ahmet, derslerin seni bekliyor 🙂 İlk adım küçük, sadece bir göz atmak — birlikte başlayalım mı?
+  [GB] Selam Ahmet, derslerin açık. İlk adım kısa: sadece göz atmak. Şimdi mi başlıyorsun?
+  [YY] Merhaba Ahmet, dersleriniz sizi bekliyor. İlk adım küçük bir göz atmaktan ibaret, aceleniz yok — ne zaman uygun olursa.
+  [YB] Merhaba Ahmet, dersleriniz erişime açık. İlk adım yalnızca göz atmaktır; şimdi başlamak isteyip istemediğinizi belirtebilirsiniz.
+
+--- T1 Seçenek 3 ---  (buton: Evet / Yardım lazım)
+  [GY] Selam Ahmet, derslerine henüz başlamamışsın, bu gayet normal 🙂 Küçük bir adımla başlamak ister misin?
+  [GB] Selam Ahmet, derslerine henüz başlamadın. Küçük bir adımla başlamak ister misin?
+  [YY] Merhaba Ahmet, derslerinize henüz başlamadığınızı görüyoruz — bu tamamen normal, herkesin kendi zamanlaması vardır. Küçük bir adımla başlamak ister misiniz?
+  [YB] Merhaba Ahmet, derslerinize henüz başlanmamış görünüyor. Küçük bir adımla başlamak isteyip istemediğinizi belirtmeniz yeterli.
+
+════════════════════════════════════════════════════════════════════════════
+BÖLÜM 2 — T2/T3/T4 + M1 uygun → TAM KONUŞMA AĞACI (kişiselleştirilmiş)
+════════════════════════════════════════════════════════════════════════════
+(M1'in açılış cümlesi tetikleyiciye göre değişir — bkz. Bölüm 0.4. Ağacın geri
+kalanı, hangi tetikleyicinin başlattığından bağımsız olarak AYNIDIR. Butonlar
+tüm 4 versiyonda AYNIDIR — yalnızca çağrı cümlesi değişir.)
+
+[BAŞLANGIÇ] M1 — T2: Uzun Süredir Sessiz kaynaklı  (buton: Zamanım yok / İçerik zor / Motivasyonum düşük)
+  [GY] Selam Ahmet, bir süredir seni göremeyince merak ettim, umarım her şey yolundadır 🙂 Konuşmak istersen buradayım — seni şu an en çok ne zorluyor?
+  [GB] Selam Ahmet, sistemde bir süredir hareketin yok. Seni en çok ne zorluyor, aşağıdan seç:
+  [YY] Merhaba Ahmet, bir süredir sizi göremedik — bu gayet normal olabilir, herkesin yoğun dönemleri olur. Sizi şu an en çok ne zorluyor, paylaşmak ister misiniz?
+  [YB] Merhaba Ahmet, bir süredir hareketlilik tespit edilmedi. Sizi en çok ne zorladığını belirtmeniz yeterli.
+
+[BAŞLANGIÇ] M1 — T3: Bu Hafta Düşüş kaynaklı  (aynı buton seti)
+  [GY] Selam Ahmet, bu hafta biraz farklıydın, merak ettim 🙂 Seni şu an en çok ne zorluyor?
+  [GB] Selam Ahmet, bu hafta tempon geçen haftaya göre düştü. Seni en çok ne zorluyor?
+  [YY] Merhaba Ahmet, bu hafta temponuzda bir değişiklik oldu — bu gayet normal olabilir. Sizi şu an en çok ne zorluyor, paylaşmak ister misiniz?
+  [YB] Merhaba Ahmet, bu hafta bir tempo düşüşü tespit edildi. Sizi en çok ne zorladığını belirtmeniz yeterli.
+
+[BAŞLANGIÇ] M1 — T4: Genel Gerilik kaynaklı (kohort AÇIK edilmez)  (aynı buton seti)
+  [GY] Selam Ahmet, genel gidişatına bakınca seni merak ettim, umarım iyisindir 🙂 Seni şu an en çok ne zorluyor?
+  [GB] Selam Ahmet, genel ilerlemende bir yavaşlama var. Seni en çok ne zorluyor?
+  [YY] Merhaba Ahmet, genel ilerlemenizde bir yavaşlama gözlemledik — bu gayet normal olabilir. Sizi şu an en çok ne zorluyor, paylaşmak ister misiniz?
+  [YB] Merhaba Ahmet, genel ilerlemenizde bir yavaşlama tespit edildi. Sizi en çok ne zorladığını belirtmeniz yeterli.
+
+────────────────────────────────────────────────────────────
+DAL 1: "Zamanım yok"
+────────────────────────────────────────────────────────────
+  → ZAMAN_TAKIP  (buton: Haftada 1 kısa oturum / Tempo aynı kalsın / Şimdilik ara vermek istiyorum)
+    [GY] Anlıyorum, zaman bulmak gerçekten zor olabiliyor — bunda yalnız değilsin 🙂 Sana en rahat geleni birlikte seçelim mi?
+    [GB] Anlaşıldı, zaman kısıtlı. Üç seçenek var, sana uygun olanı seçmen yeterli.
+    [YY] Anlıyorum, zaman bulmak pek çok kişi için gerçekten zor — bunda yalnız değilsiniz. Sizin için en rahat olan neyse onu birlikte seçelim mi?
+    [YB] Anlaşıldı, zaman kısıtlı. Üç seçenek var, size uygun olanı seçmeniz yeterli.
+
+    ── "Haftada 1 kısa oturum" ──
+      → ZAMAN_SAAT_SORUSU  (buton: Sabah / Akşam / Gece)
+        [GY] Güzel seçim 🙂 Haftada 1 kısa oturuma göre ayarlıyorum — sana en rahat gelen saat hangisi?
+        [GB] Tamam, haftada 1 kısa oturuma göre ayarlanıyor. Saat aralığını seç:
+        [YY] Güzel bir tercih. Haftada 1 kısa oturuma göre ayarlıyorum — size en rahat gelen saat aralığı hangisi olur?
+        [YB] Anlaşıldı, haftalık tek oturuma göre planlanacak. Saat aralığını seçmeniz yeterli.
+
+        → ZAMAN_SAAT_KAPANIS (yanıt ne olursa olsun — akış burada biter)
+          [GY] Süper, seni bu saate göre hatırlatacağım — yanındayım 🙂 Başarılar!
+          [GB] Tamam, hatırlatma bu saate göre ayarlandı. Başarılar.
+          [YY] Teşekkür ederim, bu tercihinize göre sizi hatırlatacağım — istediğiniz zaman buradayız. Başarılar dilerim.
+          [YB] Anlaşıldı, hatırlatmalar bu saate göre ayarlandı. Başarılar dileriz.
+
+    ── "Tempo aynı kalsın" ──
+      → ZAMAN_TEMPO_KAPANIS (kapanış — akış burada biter)
+        [GY] Anladım, aynı tempoda devam edelim 💪 İyi gidiyorsun, arkandayım!
+        [GB] Anlaşıldı, mevcut tempo korunuyor. İyi gidiyorsun.
+        [YY] Anladım, mevcut temponuzla devam ediyoruz. İyi gidiyorsunuz, bunu takdir ediyorum.
+        [YB] Anlaşıldı, mevcut tempo değiştirilmeyecek. İyi gidiyorsunuz.
+
+    ── "Şimdilik ara vermek istiyorum" ──
+      → ZAMAN_DONUS_SORUSU  (buton: 1 hafta sonra / 2 hafta sonra / Şimdilik mesaj göndermeyin)
+        [GY] Anlıyorum, biraz alana ihtiyacın var, bu çok normal 🙂 Sana ne zaman tekrar yazayım, birlikte karar verelim mi?
+        [GB] Anlaşıldı, sana alan tanıyorum. Ne zaman tekrar yazmamı istersin?
+        [YY] Anlıyorum, size alan tanımak isteriz — bu tamamen sizin kararınız. Ne zaman tekrar yazmamızı istersiniz?
+        [YB] Anlaşıldı. Size ne zaman tekrar ulaşmamızı istediğinizi belirtmeniz yeterli.
+
+        → ZAMAN_DONUS_KAPANIS (yanıt ne olursa olsun aynı kapanış — akış burada biter)
+          [GY] Tamam, belirlediğin zamanda tekrar yazarım 🙂 İstersen daha önce de buradayım.
+          [GB] Tamam, belirttiğin zamanda tekrar iletişime geçilecek.
+          [YY] Anlaşıldı, belirttiğiniz zamanda tekrar sizinle iletişime geçeceğiz — istediğiniz an da buradayız.
+          [YB] Anlaşıldı, belirttiğiniz zamanda tekrar ulaşılacaktır.
+
+────────────────────────────────────────────────────────────
+DAL 2: "İçerik zor"
+────────────────────────────────────────────────────────────
+  → ZORLUK_TAKIP  (buton: Materyali baştan gözden geçir / Notumu bırak, sonra değerlendirilsin)
+    [GY] Anlıyorum, içerik zorlayıcı olabiliyor, bu senin suçun değil 🙂 Şu ikisinden hangisi sana daha iyi gelir?
+    [GB] Anlaşıldı. Şu an kişiye özel kaynak yok, ama iki seçenek var — birini seç:
+    [YY] Anlıyorum, içerik bazen gerçekten zorlayıcı olabiliyor. Şu an size özel bir kaynak sunamasak da, şu ikisinden hangisi işinize yarar?
+    [YB] Anlaşıldı. Şu anda kişiye özel kaynak bulunmamaktadır; uygun seçeneği belirtmeniz yeterli.
+
+    ── "Materyali baştan gözden geçir" ──
+      → ZORLUK_MATERYAL_KAPANIS (kapanış — akış burada biter)
+        [GY] Tamam, materyallere e-kampüs üzerinden ulaşabilirsin: https://ekampus.anadolu.edu.tr 🙂 Kolay gelsin, başarabilirsin!
+        [GB] Materyallere e-kampüs üzerinden ulaşabilirsin: https://ekampus.anadolu.edu.tr
+        [YY] Elbette, materyallere e-kampüs platformu üzerinden ulaşabilirsiniz: https://ekampus.anadolu.edu.tr. Kolay gelsin.
+        [YB] Materyallere e-kampüs platformu üzerinden ulaşabilirsiniz: https://ekampus.anadolu.edu.tr
+
+    ── "Notumu bırak, sonra değerlendirilsin" ──
+      → ZORLUK_NOT_SORUSU  (buton: Konuyu anlamadım / Örnekler yetersizdi / Çok karmaşık geldi
+        — ARTIK SERBEST METİN DEĞİL, seçenekli; kod tarafında da difficultyNoteText'in
+        serbest string yerine bu 3 seçenekten birini tutan yeni bir enum olması gerekecek)
+        [GY] Anlıyorum, hangisi sana daha yakın? 🙂
+        [GB] Tamam, hangisi sana daha yakın?
+        [YY] Anlıyorum, hangisi size daha yakın?
+        [YB] Uygun seçeneği belirtmeniz yeterli.
+
+        → ZORLUK_NOT_KAPANIS (yanıt ne olursa olsun — akış biter)
+          [GY] Teşekkürler, bunu not aldım 🙂 Hemen bir çözüm değil ama unutmayacağız.
+          [GB] Not alındı. Anlık çözüm değil, ileride kaynak geliştirmede değerlendirilecek.
+          [YY] Teşekkür ederim, bunu aldım. Bu an itibarıyla bir çözüm sunmasa da, dikkate alınacaktır.
+          [YB] Bildiriminiz kaydedildi. İçerik geliştirme sürecinde değerlendirilecektir.
+
+────────────────────────────────────────────────────────────
+DAL 3: "Motivasyonum düşük"
+────────────────────────────────────────────────────────────
+  → MOTIVASYON_TAKIP  (buton: Evet, geçerli / Emin değilim — "Değişti" seçeneği kaldırıldı, kullanıcı kararı)
+    [GY] Kayıt olurken hedefin "İyi bir not almak" idi 🙂 Hâlâ geçerli mi?
+    [GB] Kayıt sırasında hedefin "İyi bir not almak" olarak belirtilmişti. Hâlâ geçerli mi?
+    [YY] Kayıt olduğunuzda hedefiniz "İyi bir not almak" olarak belirtilmişti. Bu hâlâ sizin için geçerli mi, merak ettim.
+    [YB] Kayıt sırasında belirttiğiniz hedef "İyi bir not almak" idi. Güncel durumunuzu belirtmeniz yeterli.
+
+    ── "Evet, geçerli" ──
+      → MOTIVASYON_GECERLI_TAKIP  (buton: Haftada 1 kısa oturum / Tempo aynı kalsın / Şimdilik ara vermek istiyorum — DAL 1'in ZAMAN_TAKIP'iyle AYNI buton seti, her soru kendi seçenekleriyle birlikte gösterilmeli)
+        [GY] Güzel, hedefin hâlâ geçerli 🙂 Küçük adımlarla ilerlemek ister misin, birlikte bakalım mı?
+        [GB] Anlaşıldı, hedef geçerli. Küçük adımlarla ilerlemek ister misin?
+        [YY] Memnuniyetle, hedefiniz hâlâ geçerli. Size uygun şekilde küçük adımlarla ilerlemek ister misiniz?
+        [YB] Hedefin geçerliliği teyit edildi. Küçük adımlarla ilerlemek isteyip istemediğinizi belirtmeniz yeterli.
+        (BURADAN SONRASI DAL 1'in "ZAMAN_TAKIP" sonrası alt ağacıyla BİREBİR aynıdır,
+        tekrar yazılmadı — bkz. yukarıdaki üç alt dal.)
+
+    [MOTIVASYON_DEGISTI_KAPANIS ve "Değişti" dalı KALDIRILDI — kullanıcı kararı,
+    MOTIVASYON_TAKIP artık yalnızca 2 seçenekli (yukarı bakınız)]
+
+    ── "Emin değilim" ──
+      → MOTIVASYON_EMIN_DEGIL_KAPANIS (kapanış — akış burada biter)
+        [GY] Sorun değil, net olmasa da ilerlemeye devam edebilirsin, yanındayım 🙂
+        [GB] Sorun değil, net olmasa da ilerlemeye devam edebilirsin.
+        [YY] Sorun değil, net olmasa da ilerlemeye devam edebilirsiniz.
+        [YB] Belirsizlik bir engel teşkil etmez; ilerlemeye devam edebilirsiniz.
+
+════════════════════════════════════════════════════════════════════════════
+BÖLÜM 3 — T2/T3/T4 + M1 UYGUN DEĞİL → tetikleyicinin kendi seçenek mesajı
+════════════════════════════════════════════════════════════════════════════
+(Not: ARTIK Bölüm 3'teki her sorunun bir kapanışı var — aşağıdaki K1-K3 ortak
+şablonlarına ya da Bölüm 2 dallarına referansla. Butonlar 4 versiyonda da aynıdır,
+yalnız çağrı metni değişir.)
+
+── ORTAK KAPANIŞLAR (K1-K3) — yukarıdaki "→ Kapanış:" satırlarının karşılığı ──
+Kullanıcı isteği: "sorulara verilecek cevaplara da yer ver" — Bölüm 3'teki her
+sorunun bir kapanışı olmalı. Çoğu buton anlam olarak üç kalıptan birine düşüyor,
+o yüzden tekrar tekrar aynı metni yazmak yerine 3 ortak şablon tanımlanıp her
+seçeneğin altında hangisinin geçerli olduğu belirtildi.
+
+K1 — Olumlu/"göz atmak isterim" yanıtı → e-kampüs'e yönlendirme
+  [GY] Materyallere e-kampüs üzerinden ulaşabilirsin: https://ekampus.anadolu.edu.tr 🙂
+  [GB] Materyallere e-kampüs üzerinden ulaşabilirsin: https://ekampus.anadolu.edu.tr
+  [YY] Materyallere e-kampüs platformu üzerinden ulaşabilirsiniz: https://ekampus.anadolu.edu.tr
+  [YB] Materyallere e-kampüs platformu üzerinden ulaşabilirsiniz: https://ekampus.anadolu.edu.tr
+
+K2 — "Zaten iyi gidiyorum/hazırım" türü olumlu yanıt → pekiştirme
+  [GY] Harika, böyle devam! 💪 Seninle gurur duyuyorum.
+  [GB] Anlaşıldı, iyi gidiyorsun.
+  [YY] Ne güzel, böyle devam etmeniz çok değerli.
+  [YB] Anlaşıldı, mevcut durumunuz kaydedildi.
+
+K3 — "Hayır/şimdi değil/gerek yok" türü erteleme → nötr kabul
+  [GY] Tamam, sorun değil 🙂 İstediğin zaman buradayım.
+  [GB] Tamam, anlaşıldı.
+  [YY] Anlaşıldı, sorun değil. İstediğiniz zaman buradayız.
+  [YB] Anlaşıldı.
+
+
+── T2: Uzun Süredir Sessiz — Normal faz ──
+(Not: Butonlar M1'inkiyle AYNI — "Zamanım yok / İçerik zor / Motivasyonum düşük". Yanıtlar Bölüm 2'deki DAL 1/DAL 2/DAL 3 ile BİREBİR aynı şekilde işlenir, burada tekrar yazılmadı.)
+
+Seçenek 1  (buton: Zamanım yok / İçerik zor / Motivasyonum düşük)
+  [GY] Selam Ahmet, kaldığın yer hazır duruyor, merak etme 🙂 Seni şu an en çok ne zorluyor?
+  [GB] Selam Ahmet, kaldığın yer hazır. Seni en çok ne zorluyor?
+  [YY] Merhaba Ahmet, kaldığınız yer hazır duruyor. Sizi şu an en çok ne zorluyor, paylaşmak ister misiniz?
+  [YB] Merhaba Ahmet, kaldığınız yer hazır. Sizi en çok ne zorladığını belirtmeniz yeterli.
+
+Seçenek 2  (aynı butonlar)
+  [GY] Selam Ahmet, bir süredir yoktun, seni merak ettim 🙂 Şu an en çok ne zorluyor?
+  [GB] Selam Ahmet, bir süredir aktif değilsin. Seni en çok ne zorluyor?
+  [YY] Merhaba Ahmet, bir süredir sizi göremedik. Sizi şu an en çok ne zorluyor, paylaşmak ister misiniz?
+  [YB] Merhaba Ahmet, bir süredir hareketlilik gözlenmedi. Sizi en çok ne zorladığını belirtmeniz yeterli.
+
+Seçenek 3  (aynı butonlar, ders adı yok)
+  [GY] Selam Ahmet, derslerinde bir süredir sessizlik var, merak ettim 🙂 Şu an seni en çok ne zorluyor?
+  [GB] Selam Ahmet, derslerinde bir süredir hareket yok. Şu an seni en çok ne zorluyor?
+  [YY] Merhaba Ahmet, derslerinizde bir süredir hareket gözlenmedi. Şu an sizi en çok ne zorluyor, paylaşmak ister misiniz?
+  [YB] Merhaba Ahmet, derslerinizde hareketsizlik tespit edildi. Sizi en çok ne zorladığını belirtmeniz yeterli.
+
+── T2: Uzun Süredir Sessiz — Sınav Öncesi faz ──
+
+Seçenek 1  (buton: Göz atacağım / Zaten çalışıyorum / Şu an uygun değil — "plan yapma" vaadi kaldırıldı, sistemde bu servis yok; yönlendirme ekampus.anadolu.edu.tr'ye)
+  [GY] Selam Ahmet, Vize sınavı yaklaşıyor, heyecanlanman gayet normal 🙂 Ekampüsteki özetlere göz atmak ister misin?
+  [GB] Selam Ahmet, Vize sınavı yaklaşıyor. Ekampüsteki özetlere göz atmak ister misin?
+  [YY] Merhaba Ahmet, Vize sınavı yaklaşıyor. Ekampüsteki özetlere göz atmak ister misiniz?
+  [YB] Merhaba Ahmet, Vize sınavı yaklaşıyor. Ekampüsteki özetlere göz atmak isteyip istemediğinizi belirtmeniz yeterli.
+  → Kapanış: "Göz atacağım" = K1 · "Zaten çalışıyorum" = K2 · "Şu an uygun değil" = K3
+
+Seçenek 2  (buton: İyi gidiyor / Biraz zorlanıyorum / Henüz başlamadım)
+  [GY] Selam Ahmet, Vize sınavı'a 2 hafta kaldı, nasılsın merak ettim 🙂
+  [GB] Selam Ahmet, Vize sınavı'a 2 hafta kaldı. Nasıl gidiyor?
+  [YY] Merhaba Ahmet, Vize sınavı'a 2 hafta kaldı. Nasıl gidiyorsunuz, paylaşmak ister misiniz?
+  [YB] Merhaba Ahmet, Vize sınavı'a 2 hafta kaldı. Durumunuzu belirtmeniz yeterli.
+  → Kapanış: "İyi gidiyor" = K2 · "Biraz zorlanıyorum" = K1 · "Henüz başlamadım" = K1
+
+Seçenek 3  (buton: Göz atacağım / Şu an gerek yok — açık uçlu "nasıl yardımcı olabilirim" kaldırıldı, sistem kişiye özel destek sunamıyor; yönlendirme ekampus.anadolu.edu.tr'ye)
+  [GY] Selam Ahmet, sınav dönemi başladı 📚 Ekampüsteki özetlere göz atmak ister misin?
+  [GB] Selam Ahmet, sınav dönemine girdik. Ekampüsteki özetlere göz atmak ister misin?
+  [YY] Merhaba Ahmet, sınav dönemine girdik. Ekampüsteki özetlere göz atmak ister misiniz?
+  [YB] Merhaba Ahmet, sınav dönemi başlamıştır. Ekampüsteki özetlere göz atmak isteyip istemediğinizi belirtmeniz yeterli.
+  → Kapanış: "Göz atacağım" = K1 · "Şu an gerek yok" = K3
+
+Seçenek 4  (buton: Göz atacağım / Gerek yok — "hedef" sorusu kaldırıldı; yönlendirme ekampus.anadolu.edu.tr'ye)
+  [GY] Selam Ahmet, Vize sınavı'na son günler, kendine iyi bak 💪 Ekampüsteki özetlere göz atmak ister misin?
+  [GB] Selam Ahmet, Vize sınavı öncesi son günler. Ekampüsteki özetlere göz atmak ister misin?
+  [YY] Merhaba Ahmet, Vize sınavı öncesi son günlerdeyiz. Ekampüsteki özetlere göz atmak ister misiniz?
+  [YB] Merhaba Ahmet, Vize sınavı öncesi son günler. Ekampüsteki özetlere göz atmak isteyip istemediğinizi belirtmeniz yeterli.
+  → Kapanış: "Göz atacağım" = K1 · "Gerek yok" = K3
+
+── T3: Bu Hafta Düşüş — Normal faz ──
+(Not: Bu üç seçeneğin de butonu "İyi, devam ediyorum / Yoğunum / Destek lazım" — "Yoğunum" yanıtı, Bölüm 2 DAL 1'in ZAMAN_TAKIP akışına AYNI şekilde yönlendirilir, kullanıcı kararı: "yoğunum" = "zamanım yok" gibi işlenir.)
+
+Seçenek 1  (buton: İyi, devam ediyorum / Yoğunum / Destek lazım — TODO: "Destek lazım" seçilirse gerçekte ne sunulacağı henüz netleşmedi, araştırılacak)
+  [GY] Selam, bu hafta nasıl geçiyor, seni merak ettim 🙂
+  [GB] Selam, bu hafta nasıl gidiyor?
+  [YY] Merhaba, bu hafta nasıl gidiyor, paylaşmak ister misiniz?
+  [YB] Bu haftaki durumunuzu belirtmeniz yeterli.
+
+Seçenek 2  (aynı butonlar)
+  [GY] Selam Ahmet, bu hafta biraz sakindi, her şey yolunda mı diye sormak istedim 🙂
+  [GB] Selam Ahmet, bu hafta biraz daha sakin geçti. Her şey yolunda mı?
+  [YY] Merhaba Ahmet, bu hafta biraz daha sakin geçti. Her şey yolunda mı, paylaşmak ister misiniz?
+  [YB] Merhaba Ahmet, bu hafta daha az hareketlilik gözlendi. Durumunuzu belirtmeniz yeterli.
+
+Seçenek 3  (aynı butonlar)
+  [GY] Selam Ahmet, geçen haftaya göre biraz yavaşladın, sorun değil, hepimiz böyle anlar yaşarız 🙂 Nasıl gidiyor?
+  [GB] Selam Ahmet, geçen haftaya göre biraz yavaşladın. Nasıl gidiyor?
+  [YY] Merhaba Ahmet, geçen haftaya göre bir miktar yavaşlama gözlendi. Nasıl gidiyor, paylaşmak ister misiniz?
+  [YB] Merhaba Ahmet, geçen haftaya kıyasla bir yavaşlama tespit edildi. Durumunuzu belirtmeniz yeterli.
+
+── T3: Bu Hafta Düşüş — Sınav Öncesi faz (eski Seçenek 4 kaldırıldı) ──
+
+Seçenek 1  (buton: Evet / Şimdilik gerek yok)
+  [GY] Selam Ahmet, bu hafta tempon değişti, muhtemelen sınava çalışıyorsundur, seni tebrik ederim 🙂 Materyale de göz atman için hatırlatayım mı?
+  [GB] Selam Ahmet, bu hafta tempon değişti. Materyale göz atman için hatırlatayım mı?
+  [YY] Merhaba Ahmet, bu hafta temponuzda bir değişiklik gözlendi, muhtemelen sınav hazırlığındasınızdır. Materyale göz atmanız için hatırlatma yapmamı ister misiniz?
+  [YB] Merhaba Ahmet, bu hafta tempo değişikliği tespit edildi. Materyale yönelik hatırlatma yapılmasını ister misiniz?
+  → Kapanış: "Evet" = K1 (aşağıya bakınız) · "Şimdilik gerek yok" = K3 (aşağıya bakınız)
+
+Seçenek 2  (buton: Konu tekrarı / Şu an gerek yok — "Zaman planı" seçeneği kaldırıldı; "Konu tekrarı" seçilirse ekampus.anadolu.edu.tr bağlantısı gönderilir, ZORLUK_MATERYAL_KAPANIS ile aynı kapanış)
+  [GY] Selam Ahmet, sınav haftasına yaklaşırken herkesin temposu değişir, bu gayet normal 🙂 Konu tekrarı için ekampüse göz atmak ister misin?
+  [GB] Selam Ahmet, sınav haftasına yaklaşırken tempo değişir. Konu tekrarı için ekampüse göz atmak ister misin?
+  [YY] Merhaba Ahmet, sınav haftasına yaklaşırken herkesin temposu değişebilir. Konu tekrarı için ekampüse göz atmak ister misiniz?
+  [YB] Merhaba Ahmet, sınav haftası öncesinde tempo değişimi olağandır. Konu tekrarı için ekampüse göz atmak isteyip istemediğinizi belirtebilirsiniz.
+  → Kapanış: "Konu tekrarı" = K1 · "Şu an gerek yok" = K3
+
+Seçenek 3  (buton: Planlı gidiyor / Biraz dağınık / Henüz oturmadı)
+  [GY] Selam Ahmet, Vize sınavı öncesi çalışma düzenin nasıl gidiyor, merak ettim 🙂
+  [GB] Selam Ahmet, Vize sınavı öncesi çalışma düzenin nasıl gidiyor?
+  [YY] Merhaba Ahmet, Vize sınavı öncesi çalışma düzeniniz nasıl gidiyor, paylaşmak ister misiniz?
+  [YB] Merhaba Ahmet, Vize sınavı öncesi çalışma düzeninizi belirtmeniz yeterli.
+  → Kapanış: "Planlı gidiyor" = K2 · "Biraz dağınık" = K1 · "Henüz oturmadı" = K1
+
+[T3 Sınav Öncesi eski Seçenek 4 KALDIRILDI — kullanıcı kararı]
+
+── T4: Genel Gerilik — Normal faz (1 norm içerikli, 2 nötr; ders adı yok — eski Seçenek 1 kaldırıldı) ──
+
+[T4 Normal eski Seçenek 1 (norm içerikli, "ek kaynaklar") KALDIRILDI — kullanıcı kararı]
+
+Seçenek 1 [norm içerikli]  (buton: Evet / Şimdi değil — "plan yapalım mı" kaldırıldı,
+  sistemde plan servisi yok; onun yerine e-kampüs'e girmek isteyip istemediği soruluyor)
+  [GY] Selam Ahmet, sınıfın genel ilerlemesine göre biraz gerideyiz ama bu hiç sorun değil 🙂 E-kampüs'e girip göz atmak ister misin?
+  [GB] Selam Ahmet, sınıfın genel ilerlemesine göre biraz gerideyiz. E-kampüs'e girip göz atmak ister misin?
+  [YY] Merhaba Ahmet, sınıfın genel ilerlemesine göre şu an biraz geride görünüyorsunuz. E-kampüs'e girip göz atmak ister misiniz?
+  [YB] Merhaba Ahmet, sınıf ortalamasına göre bir gerilik tespit edildi. E-kampüs'e girmek isteyip istemediğinizi belirtmeniz yeterli.
+  → Kapanış: "Evet" = K1 · "Şimdi değil" = K3
+
+Seçenek 2 [nötr]  (buton: Olur / Şimdilik geç)
+  [GY] Selam Ahmet, bu dönem derslerine göz atma sıran bu hafta olabilir, ne dersin 🙂
+  [GB] Selam Ahmet, bu dönem derslerine göz atma sıran bu hafta olabilir. Ne dersin?
+  [YY] Merhaba Ahmet, bu dönem derslerinize göz atmanız için uygun bir zaman olabilir. Ne dersiniz?
+  [YB] Merhaba Ahmet, bu dönem derslerinizi bu hafta incelemeyi düşünür müsünüz?
+  → Kapanış: "Olur" = K1 (e-kampüs bağlantısı gönderilir) · "Şimdilik geç" = K3
+
+── T4: Genel Gerilik — Sınav Öncesi faz (norm karşılaştırması yok, hepsi nötr — eski Seçenek 1 ve 3 kaldırıldı) ──
+
+[T4 Sınav Öncesi eski Seçenek 1 KALDIRILDI — kullanıcı kararı]
+
+Seçenek 1  (buton: Evet / Hayır — "genel özet ister misin" yerine "özetlere göz atmak" ifadesi; "Evet" seçilirse ekampus.anadolu.edu.tr bağlantısı gönderilir, sistem özet ÜRETMEZ, var olana yönlendirir)
+  [GY] Selam Ahmet, sınav öncesi özetlere göz atmak ister misin? 🙂
+  [GB] Selam Ahmet, sınav öncesi özetlere göz atmak ister misin?
+  [YY] Merhaba Ahmet, sınav öncesi özetlere göz atmak ister misiniz?
+  [YB] Merhaba Ahmet, sınav öncesi özetlere göz atmak isteyip istemediğinizi belirtmeniz yeterli.
+  → Kapanış: "Evet" = K1 · "Hayır" = K3
+
+[T4 Sınav Öncesi eski Seçenek 3 KALDIRILDI — kullanıcı kararı, "yardım edemem, merak edemem"]
+
+Seçenek 2  (buton: Evet, netleştirdim / Henüz değil)
+  [GY] Selam Ahmet, son 2 haftada nelere odaklanacağını netleştirdin mi, merak ettim 🙂
+  [GB] Selam Ahmet, son 2 haftada nelere odaklanacağını netleştirdin mi?
+  [YY] Merhaba Ahmet, son 2 haftada nelere odaklanacağınızı netleştirdiniz mi?
+  [YB] Merhaba Ahmet, son 2 haftalık odak alanlarınızı netleştirip netleştirmediğinizi belirtmeniz yeterli.
+  → Kapanış: "Evet, netleştirdim" = K2 · "Henüz değil" = K1
+
+════════════════════════════════════════════════════════════════════════════
+BÖLÜM 4 — Sınav Günü (T1-T4/M1 tamamen devre dışı; kişiselleştirilMEDİ — bkz. Bölüm 0.5)
+════════════════════════════════════════════════════════════════════════════
+Buton yok, yanıt beklenmiyor, tek yönlü zorunlu bilgilendirme. Ders adı yok,
+genel/çoğul ifade.
+
+── Vize günü ──
+Merhaba Ahmet, bugüne kadarki emeğin için seninle gurur duyuyoruz — vizende harika bir sınav çıkar, kendine güven! 💪
+
+── Final günü ──
+Merhaba Ahmet, buraya kadar getirdiğin emek çok değerli — finalinde elinden geleni yap, sonucu ne olursa olsun bununla gurur duy! 💪
+
+════════════════════════════════════════════════════════════════════════════
+KAYNAKÇA — Bölüm 0.1 (İleri Yaş dil ilkeleri), Bölüm 0.6 ve Bölüm T0
+            (gönderen kimliği / tanıtım kararı)
+════════════════════════════════════════════════════════════════════════════
+Bölüm 0.1-0.5 ve Bölüm 2'deki KARAR NOTU'larının kaynakları (Baltes ve ark.,
+2006; Tannen, 1990; Kosovich ve ark., 2014; Bälter & Jemstedt, 2023; Reeve &
+Cheon, 2021; Knowles, 1980) bu listede YOK — künyeleri doğrulanmadı, tez
+kaynakçasından alınmalı.
+
+Behavioural Insights Team (2014). EAST: Four simple ways to apply behavioural
+   insights. London: BIT.
+Bird, K. A., Castleman, B. L., Denning, J. T., Goodman, J., Lamberton, C., &
+   Rosinger, K. O. (2021). Nudging at scale: Experimental evidence from FAFSA
+   completion campaigns. Journal of Economic Behavior & Organization, 183,
+   105-128.
+Brehm, J. W. (1966). A theory of psychological reactance. New York: Academic
+   Press.
+Carstensen, L. L., Isaacowitz, D. M., & Charles, S. T. (1999). Taking time
+   seriously: A theory of socioemotional selectivity. American Psychologist,
+   54(3), 165-181.
+Castleman, B. L., & Page, L. C. (2015). Summer nudging: Can personalized text
+   messages and peer mentor outreach increase college going among low-income
+   high school graduates? Journal of Economic Behavior & Organization, 115,
+   144-160.
+Dolan, P., Hallsworth, M., Halpern, D., King, D., & Vlaev, I. (2010). MINDSPACE:
+   Influencing behaviour through public policy. London: Institute for Government
+   & Cabinet Office.
+Hallsworth, M., Chadborn, T., Sallis, A., Sanders, M., Berry, D., Greaves, F.,
+   Clements, L., & Davies, S. C. (2016). Provision of social norm feedback to
+   high prescribers of antibiotics in general practice: A pragmatic national
+   randomised controlled trial. The Lancet, 387(10029), 1743-1752.
+Hovland, C. I., & Weiss, W. (1951). The influence of source credibility on
+   communication effectiveness. Public Opinion Quarterly, 15(4), 635-650.
+Kemper, S., & Harden, T. (1999). Experimentally disentangling what's beneficial
+   about elderspeak from what's not. Psychology and Aging, 14(4), 656-670.
+Li, J., & Shi, C. (2025). Who do we follow online? An experimental study on
+   source clarity and social proximity in digital health communication.
+   Frontiers in Public Health, 13, 1661328.
+Mather, M., & Carstensen, L. L. (2005). Aging and motivated cognition: The
+   positivity effect in attention and memory. Trends in Cognitive Sciences,
+   9(10), 496-502.
+Miller, C. H., Lane, L. T., Deatrick, L. M., Young, A. M., & Potts, K. A. (2007).
+   Psychological reactance and promotional health messages: The effects of
+   controlling language, lexical concreteness, and the restoration of freedom.
+   Human Communication Research, 33(2), 219-240.
+Oreopoulos, P., & Petronijevic, U. (2019). The remarkable unresponsiveness of
+   college students to nudging and what we can learn from it (NBER Working Paper
+   No. 26059). Cambridge, MA: National Bureau of Economic Research.
+Petty, R. E., & Cacioppo, J. T. (1986). Communication and persuasion: Central
+   and peripheral routes to attitude change. New York: Springer-Verlag.
+Ryan, R. M., & Deci, E. L. (2000). Self-determination theory and the
+   facilitation of intrinsic motivation, social development, and well-being.
+   American Psychologist, 55(1), 68-78.
+Salthouse, T. A. (1996). The processing-speed theory of adult age differences in
+   cognition. Psychological Review, 103(3), 403-428.
+Sanders, M., & Kirkman, E. (2019). I've booked you a place, good luck: A field
+   experiment applying behavioral science to improve attendance at high-impact
+   recruitment events. Journal of Behavioral Public Administration, 2(1).
+
+NOT: Castleman & Page (2015) künyesi ikincil kaynaklardan derlendi; cilt/sayfa
+bilgisi tez kaynakçasına girmeden önce birincil kaynaktan teyit edilmelidir.
+Diğer tüm künyeler birincil/yayıncı kaydından doğrulandı.
+
+════════════════════════════════════════════════════════════════════════════
+NOTLAR
+════════════════════════════════════════════════════════════════════════════
+- 6 persona (GY/GB/YY/YB/İY/İB) tanımı Bölüm 0.3'te, yaş gruplarının dilsel
+  karşılıkları Bölüm 0.1'de, Yakınlık/Bilgi işaretler tablosu Bölüm 0.2'de.
+  DİKKAT: Bölüm 1-4'teki mesaj metinleri hâlâ yalnızca 4 persona için yazılmış;
+  İY/İB metinleri bu dosyada YOK — bkz. Bölüm 0.7(b).
+- Gönderen kimliği / tanıtım mesajı kararının kuramsal gerekçesi Bölüm 0.6'da,
+  mesaj metinleri ve zamanlaması Bölüm T0'da; künyeler KAYNAKÇA bölümünde.
+- Bölüm 2'deki M1 ağacının açılış cümlesi artık tetikleyiciye (T2/T3/T4) göre
+  3 ayrı versiyon olarak yazıldı; ağacın geri kalanı ortak.
+- Bölüm 3'teki tetikleyici-özel seçenek mesajları M1 koşulları sağlanmadığında
+  gönderilir; yanıtları şu an backend'de işlenmiyor (kapsam dışı).
+- Hiçbir mesajda tekil/belirli bir ders adı geçmiyor — sistem öğrenci bazlı
+  çalıştığı için "derslerin/dersleriniz" gibi genel/çoğul ifade kullanıldı.
+  {sınav} (Vize/Final) korunuyor çünkü sınav dönemi zaten tüm dersler için
+  ortak/tek bir tarih aralığı (proje kararı, kod içinde de böyle).
+- Tannen (1990) kuramına dayalı cinsiyet-ton eşlemesi bir VARSAYIMDIR, kesin
+  bir genelleme değildir — tez metninde sınırlılık olarak belirtilmesi önerilir.
+- Bu dosyadaki metinlerin makine-okunur (Meta WhatsApp template) karşılıkları
+  henüz config/whatsapp/templates.json'a işlenmedi — onay verirseniz oraya da
+  aktarırım.
+
+
+════════════════════════════════════════════════════════════════════════════
+DEĞİŞİKLİK GÜNLÜĞÜ (Word yorum turu — 2026-09-29/30)
+════════════════════════════════════════════════════════════════════════════
+- Tüm mesajlarda "Ahmet Yılmaz" → "Ahmet" (soyad kaldırıldı, kod zaten yalnızca
+  ad kullanıyor).
+- 💛 (kalp emojisi) tüm dosyadan kaldırıldı; GY'nin sıcaklık işareti olarak
+  yerine 🙂/💪/🎉/📚 gibi kalp-dışı emojiler kullanılıyor.
+- T2 Sınav Öncesi Seçenek 1, 3, 4: sistemde olmayan "plan yapma" ve açık uçlu
+  "nasıl yardımcı olabilirim"/"hedef" soruları kaldırıldı; hepsi ekampus.
+  anadolu.edu.tr'ye yönlendirmeye çevrildi.
+- T3 Sınav Öncesi Seçenek 2: "Zaman planı" seçeneği kaldırıldı, "Konu tekrarı"
+  artık ekampüs yönlendirmesi anlamına geliyor.
+- T3 Sınav Öncesi Seçenek 4, T4 Normal eski Seçenek 1, T4 Sınav Öncesi eski
+  Seçenek 1 ve 3: tamamen KALDIRILDI (kullanıcı kararı).
+- T4 Sınav Öncesi eski Seçenek 2: "genel özet ister misin" → "özetlere göz
+  atmak ister misin", "Evet" ekampüs bağlantısına yönlendiriyor.
+- T3 Normal Seçenek 1 ("Destek lazım" butonu): metne dokunulmadı, TODO notu
+  eklendi — bu seçilirse gerçekte ne sunulacağı henüz netleşmedi.
+
+
+════════════════════════════════════════════════════════════════════════════
+DEĞİŞİKLİK GÜNLÜĞÜ (2026-10-24)
+════════════════════════════════════════════════════════════════════════════
+- Terminoloji kararı: bu projedeki mesajların adı "YÖNLENDİRME MESAJI"dır.
+  "Dürtme mesajı" / "nudge" adlandırması kullanılmaz. (Dosyada bu terimler hiç
+  geçmiyordu, düzeltme gerekmedi; kural ileriye dönük geçerli.) Not: "yönlendirme"
+  kelimesi bu dosyada ikinci bir anlamda da geçiyor — K1-K4 kapanışlarındaki
+  "ekampüs'e yönlendirme" = link verme. Karışıklık riski olan yerde mesaj türü
+  için "yönlendirme mesajı", link verme için "ekampüs yönlendirmesi" denmeli.
+- Bölüm 0'a 6. madde eklendi: GÖNDEREN KİMLİĞİ: BÖLÜM ADINA, SAMİMİ TONDA.
+  Kimliğin neden zorunlu (KVKK + Meta kalite puanı), neden etkili (kaynak
+  güvenilirliği / MINDSPACE "Messenger") ve neden samimi olması gerektiği
+  (sosyal yakınlık + azalmış reaktans) akademik literatürle gerekçelendirildi.
+- Bölüm 0'a 7. madde eklendi: Bölüm 0.1/0.3'ün persona sayısı kodla uyumsuz
+  (4 yazıyor, kod 6 üretiyor). Tez metninde düzeltilmesi gereken bir tutarsızlık.
+- Yeni BÖLÜM T0 — TANITIM / İLK TEMAS: KARAR NOTU, zamanlama gerekçesi, 6 persona
+  varyantı, buton kararı ve uygulama notları. 186 mevcut şablonun hiçbiri tanıtım
+  şablonu olmadığı için bu bölümün tamamı HENÜZ UYGULANMADI.
+- Yeni KAYNAKÇA bölümü: Bölüm 0.6 ve T0'da atıf yapılan 13 kaynağın künyesi
+  (Castleman & Page, 2015 hariç hepsi birincil kayıttan doğrulandı).
+
+
+════════════════════════════════════════════════════════════════════════════
+DEĞİŞİKLİK GÜNLÜĞÜ (2026-10-25) — İLERİ YAŞ GRUBU
+════════════════════════════════════════════════════════════════════════════
+- Bölüm 0.1 genişletildi: iki yaş grubu yerine ÜÇ yaş grubu (kod eşikleriyle
+  birlikte: Genç ≤24, Yetişkin 25-64, İleri Yaş ≥65) ve İleri Yaş grubunun
+  dilsel karşılığı dört ilkeyle tanımlandı:
+    (i)   şimdiki zaman > uzak gelecek  (SDSK — Carstensen ve ark., 1999)
+    (ii)  olumlu çerçeveleme            (pozitiflik etkisi — Mather &
+                                         Carstensen, 2005)
+    (iii) düşük bilişsel yük, tek eylem (işlemleme hızı — Salthouse, 1996)
+    (iv)  elderspeak yasağı             (Kemper & Harden, 1999)
+  (iv), (iii)'ün sınırını çizer: cümle YAPISI sadeleşir, hitap ve ton
+  SADELEŞMEZ — abartılı/aşırı özenli ton algılanan anlamayı düşürüyor.
+- Bölüm 0.1'e İleri Yaş × ton kesişimi ve sınırlılık paragrafı eklendi
+  (kuramsal türetme, bu bağlamda sınanmamış; ≥65 örneklemi küçük olacak).
+- Bölüm 0.3 "DÖRT PERSONA" → "ALTI PERSONA" olarak düzeltildi, kod karşılıkları
+  (PersonaResolver → Persona enum, şablon ekleri) yazıldı.
+- Bölüm 0.7 yeniden yazıldı: tutarsızlığın çözüldüğü, ancak üç maddenin açık
+  kaldığı belirtildi — (a) M1 Motivasyon dalının "Vizyoner Yönlendirme" kurgusu
+  gelecek-odaklı olduğu için Bölüm 0.1(i)'e göre İleri Yaş'ta kuramsal olarak
+  zayıf, (b) Bölüm 1-4'te İY/İB mesaj metinleri hiç yok, (c) Bölüm 0.2 tablosu
+  yaş eksenini içermiyor.
+- KAYNAKÇA'ya 4 künye eklendi (Carstensen ve ark., 1999; Kemper & Harden, 1999;
+  Mather & Carstensen, 2005; Salthouse, 1996) — dördü de birincil/yayıncı
+  kaydından cilt-sayı-sayfa düzeyinde doğrulandı.

@@ -4,6 +4,7 @@ namespace App\Command;
 
 use App\Entity\ScheduledMessage;
 use App\Entity\StudentProfile;
+use App\Enum\Cinsiyet;
 use App\Enum\EngagementTrigger;
 use App\Enum\FlowStep;
 use App\Enum\GozlemYontemi;
@@ -13,8 +14,8 @@ use App\Enum\Phase;
 use App\Enum\ScheduledMessageKind;
 use App\Enum\SocialComparisonOptin;
 use App\Enum\StudentState;
-use App\Enum\WeeklyHoursAvailable;
 use App\Enum\WhatsAppTemplate;
+use App\Repository\OgrenciErisimOzetiRepository;
 use App\Repository\OgrenciRepository;
 use App\Repository\ScheduledMessageRepository;
 use App\Repository\SentMessageLogRepository;
@@ -117,6 +118,7 @@ class EvaluateDailyTriggersCommand extends Command
         private readonly EngagementFlowService $engagementFlowService,
         private readonly ScheduledMessageRepository $scheduledMessageRepository,
         private readonly MessageDispatchScheduler $dispatchScheduler,
+        private readonly OgrenciErisimOzetiRepository $erisimOzetiRepository,
         #[Target('tetikleyici')]
         private readonly LoggerInterface $logger,
     ) {
@@ -165,8 +167,9 @@ class EvaluateDailyTriggersCommand extends Command
         }
 
         // --- Mesaj kararı için ön koşullar ---------------------------------------------
-        $esikTarih = $today->modify(sprintf('-%d weeks', EngagementFlowService::BARRIER_GECERLILIK_HAFTASI));
-        $gecerliBarrierIdleri = array_flip($this->studentProfileRepository->findStudentIdsWithValidBarrierType($esikTarih));
+        // current_state geçişi YUKARIDA zaten uygulandı (satır ~164) — bu sorgu bugünün GÜNCEL
+        // current_state'ini okur (bkz. findStudentIdsWithValidBarrierType() docblock'u).
+        $gecerliBarrierIdleri = array_flip($this->studentProfileRepository->findStudentIdsWithValidBarrierType());
         $bekleyenFlowIdleri = array_flip($this->studentProfileRepository->findStudentIdsWithPendingFlow());
         // Zaten BEKLEYEN (gönderilmemiş) bir ScheduledMessage'ı olan öğrenciler — bugün onlar
         // için yeni bir karar üretilmez (bkz. ScheduledMessage'ın docblock'u: observed_days
@@ -214,19 +217,28 @@ class EvaluateDailyTriggersCommand extends Command
                         continue;
                     }
 
+                    // 2026-10-22 (gerçek bir OOM ile bulunan bug, düzeltildi): telefon kontrolü
+                    // BİLEREK `find()`'DAN ÖNCE yapılıyor -- aksi halde telefonu olmayan ~53k
+                    // öğrencinin HER BİRİ için gereksiz yere StudentProfile hydrate edilirdi
+                    // (aynı sınıf bug, bkz. Günlük Kontrol bloğundaki 2026-10-20 notu; bu blok
+                    // o düzeltmeyi almamıştı çünkü yalnızca Sınav Günü'nde çalışır).
                     $ogrenci = $ogrencilerByNo[$ogrenciNo] ?? null;
-                    $telefon = $ogrenci?->getTelefonNumarasi();
-                    $profil = $this->studentProfileRepository->find($ogrenciNo);
+                    $telefon = $ogrenci['telefonNumarasi'] ?? null;
 
-                    if (null === $telefon || null === $ogrenci || null === $profil) {
+                    if (null === $telefon || null === $ogrenci) {
                         continue;
                     }
 
-                    $persona = $this->personaResolver->resolve($ogrenci);
+                    $profil = $this->studentProfileRepository->find($ogrenciNo);
+                    if (null === $profil) {
+                        continue;
+                    }
+
+                    $persona = $this->personaHesapla($ogrenci);
                     $etkilesimVar = ($kumulatifByOgrenciNo[$ogrenciNo] ?? 0) > 0;
                     $sinavGunuMesaji = TriggerMessageCatalog::sinavGunuMesaji($sinavTuru, $etkilesimVar, $persona);
 
-                    $ad = $ogrenci->getAd() ?? '';
+                    $ad = $ogrenci['ad'] ?? '';
                     $this->logger->info('Sınav günü "iyi şanslar" mesajı zamanlandı', [
                         'ogrenciNo' => $ogrenciNo,
                         'sinavTuru' => $sinavTuru,
@@ -283,8 +295,13 @@ class EvaluateDailyTriggersCommand extends Command
             'T1' => 0, 'T2' => 0, 'T3' => 0, 'T4' => 0,
             'tetiklenmedi' => 0, 'susturuldu' => 0, 'siklik_sinirinda' => 0, 'tetikleyici_sessizde' => 0,
             'm1_uygun' => 0, 'varyant_secildi' => 0, 'hatirlatma_gerekli' => 0, 'hatirlatma_zamanlandi' => 0,
-            'zamanlanmis_bekliyor' => 0,
+            'zamanlanmis_bekliyor' => 0, 'gunluk_kontrol_duz' => 0, 'gunluk_kontrol_ovgu' => 0,
         ];
+
+        // 2026-10-19 (kullanıcı kararı): Günlük kontrol kanalı (hatırlatma/övgü), bugün
+        // GERÇEKTEN bir trigger-kaynaklı (M1/Variant) mesaj zamanlanan öğrencilere gitmemeli —
+        // aşağıdaki iki yerde (M1 ve Variant zamanlama noktaları) doldurulur.
+        $tetikleyiciGonderilenIdler = [];
 
         // --- 72 saat: hatırlatma gereken (öğrenci, tetikleyici) çiftlerini zamanla -------
         // Bugünün tetikleyici sonucundan bağımsız — geçmişte gönderilmiş, hâlâ yanıtsız kalan
@@ -313,13 +330,19 @@ class EvaluateDailyTriggersCommand extends Command
                 }
 
                 $ogrenci = $ogrencilerByNo[$ogrenciNo] ?? null;
-                $telefon = $ogrenci?->getTelefonNumarasi();
-                $persona = null !== $ogrenci ? $this->personaResolver->resolve($ogrenci) : null;
+                $telefon = $ogrenci['telefonNumarasi'] ?? null;
+
+                if (null === $telefon || null === $ogrenci) {
+                    // Telefonu olmayan öğrenciler için gerçek gönderim altyapısı yok (bkz.
+                    // proje notları) — yalnızca yukarıdaki log ile bilgi amaçlı kalır. Kontrol
+                    // BİLEREK find()'dan ÖNCE (bkz. Günlük Kontrol bloğundaki 2026-10-20 notu).
+                    continue;
+                }
+
+                $persona = $this->personaHesapla($ogrenci);
                 $profil = $this->studentProfileRepository->find($ogrenciNo);
 
-                if (null === $telefon || null === $persona || null === $profil) {
-                    // Telefonu olmayan öğrenciler için gerçek gönderim altyapısı yok (bkz.
-                    // proje notları) — yalnızca yukarıdaki log ile bilgi amaçlı kalır.
+                if (null === $profil) {
                     continue;
                 }
 
@@ -329,8 +352,8 @@ class EvaluateDailyTriggersCommand extends Command
                     $sonKayit->getTrigger(),
                     null,
                     WhatsAppTemplate::Hatirlatma72Saat->metaAdiPersonaIcin($persona),
-                    [$ogrenci->getAd() ?? ''],
-                    EngagementFlowMessages::hatirlatma72Saat($ogrenci->getAd() ?? '', $persona),
+                    [$ogrenci['ad'] ?? ''],
+                    EngagementFlowMessages::hatirlatma72Saat($ogrenci['ad'] ?? '', $persona),
                     $telefon,
                     $persona,
                     $profil,
@@ -363,12 +386,23 @@ class EvaluateDailyTriggersCommand extends Command
                 'trigger' => $sonuc->trigger->value,
             ]);
 
-            $siklik = $siklikBilgileri[$sonuc->ogrenciNo] ?? ['messagesSentThisWeek' => 0, 'weeklyHoursAvailable' => null];
-            $gunSayisiTercihi = null !== $siklik['weeklyHoursAvailable']
-                ? WeeklyHoursAvailable::from($siklik['weeklyHoursAvailable'])
-                : null;
+            // 2026-10-19 (kullanıcı kararı): tetikleyici sıklığı artık `weekly_hours_available`'dan
+            // bağımsız, SABİT haftada-1 (bkz. MessageFrequencyPolicy docblock'u).
+            //
+            // 2026-10-20 (kullanıcı kararı, gerçek bir bug'dan bulundu): ham `messagesSentThisWeek`
+            // sütunu OKUMA anında hafta-farkındalıksız kullanılırsa, haftanın son günü (örn.
+            // Pazar) mesaj alan bir öğrenci yeni hafta başladıktan SONRA bile (sayaç sadece bir
+            // SONRAKİ gerçek gönderimde sıfırlandığı için) KALICI olarak sıklık sınırında
+            // kilitlenebiliyordu — bkz. StudentProfile::haftalikMesajSayisi()'nin docblock'u. Bu
+            // sayede sıfır kalmayan ama BAYAT olan değer burada OKUMA anında da düzeltiliyor
+            // (aynı `'o-W'` karşılaştırması, `recordMessageSent()`'in YAZMA anında yaptığıyla
+            // birebir aynı).
+            $siklik = $siklikBilgileri[$sonuc->ogrenciNo] ?? ['messagesSentThisWeek' => 0, 'lastMessageSentAt' => null];
+            $ayniHaftaMi = null !== $siklik['lastMessageSentAt']
+                && (new \DateTimeImmutable($siklik['lastMessageSentAt']))->format('o-W') === $today->format('o-W');
+            $buHaftaGonderilen = $ayniHaftaMi ? $siklik['messagesSentThisWeek'] : 0;
 
-            if (!$this->frequencyPolicy->siklikUygunMu($siklik['messagesSentThisWeek'], $gunSayisiTercihi)) {
+            if (!$this->frequencyPolicy->siklikUygunMu($buHaftaGonderilen)) {
                 ++$sayaclar['siklik_sinirinda'];
                 $this->logger->info('Haftalık sıklık sınırı nedeniyle ertelendi', [
                     'ogrenciNo' => $sonuc->ogrenciNo,
@@ -408,9 +442,9 @@ class EvaluateDailyTriggersCommand extends Command
                 // $m1Sonuc null kalır; M1 KARARININ kendisi (sayaç, pending_flow_step hariç) bundan
                 // etkilenmez, yalnızca metin/şablon alanları loglanamaz.
                 $ogrenci = $ogrencilerByNo[$sonuc->ogrenciNo] ?? null;
-                $persona = null !== $ogrenci ? $this->personaResolver->resolve($ogrenci) : null;
+                $persona = null !== $ogrenci ? $this->personaHesapla($ogrenci) : null;
                 $profil = $this->studentProfileRepository->find($sonuc->ogrenciNo);
-                $telefon = $ogrenci?->getTelefonNumarasi();
+                $telefon = $ogrenci['telefonNumarasi'] ?? null;
 
                 // Telefonu olan öğrenciler (2026-10-04, kullanıcı kararı — varyant dalıyla
                 // simetrik; 2026-10-05 güncellemesi: artık ANINDA değil, ScheduledMessage
@@ -426,7 +460,7 @@ class EvaluateDailyTriggersCommand extends Command
                 if (null !== $profil && null !== $ogrenci && null !== $persona) {
                     if (null !== $telefon) {
                         $m1Sonuc = new FlowOutcome(
-                            EngagementFlowMessages::m1($ogrenci->getAd() ?? '', $sonuc->trigger, $persona),
+                            EngagementFlowMessages::m1($ogrenci['ad'] ?? '', $sonuc->trigger, $persona),
                             FlowStep::EngelBekleniyor,
                             EngagementFlowService::m1Sablonu($sonuc->trigger),
                         );
@@ -436,7 +470,7 @@ class EvaluateDailyTriggersCommand extends Command
                             $sonuc->trigger,
                             null,
                             $m1Sonuc->template->metaAdiPersonaIcin($persona),
-                            [$ogrenci->getAd() ?? ''],
+                            [$ogrenci['ad'] ?? ''],
                             $m1Sonuc->message,
                             $telefon,
                             $persona,
@@ -444,8 +478,9 @@ class EvaluateDailyTriggersCommand extends Command
                             $aktifFaz,
                             $today,
                         );
+                        $tetikleyiciGonderilenIdler[$sonuc->ogrenciNo] = true;
                     } else {
-                        $m1Sonuc = $this->engagementFlowService->baslatM1($profil, $ogrenci->getAd() ?? '', $sonuc->trigger, $persona);
+                        $m1Sonuc = $this->engagementFlowService->baslatM1($profil, $ogrenci['ad'] ?? '', $sonuc->trigger, $persona);
                     }
                 }
 
@@ -496,7 +531,7 @@ class EvaluateDailyTriggersCommand extends Command
             // metnin/şablonun ({@see \App\Service\TriggerMessageVariant::metinIcin()}/`sablon->metaAdiPersonaIcin()`)
             // gönderileceğini belirler (bkz. proje kararı 2026-10-04: "tonlama benim için önemli").
             $ogrenci = $ogrencilerByNo[$v['ogrenciNo']] ?? null;
-            $persona = null !== $ogrenci ? $this->personaResolver->resolve($ogrenci) : null;
+            $persona = null !== $ogrenci ? $this->personaHesapla($ogrenci) : null;
 
             ++$sayaclar['varyant_secildi'];
             $this->logger->info('Tetikleyici varyant mesajı seçildi', [
@@ -511,11 +546,11 @@ class EvaluateDailyTriggersCommand extends Command
                 'etkinMesajSaati' => $this->etkinMesajSaati($mesajZamaniBilgileri[$v['ogrenciNo']] ?? null, $today),
             ]);
 
-            $telefon = $ogrenci?->getTelefonNumarasi();
+            $telefon = $ogrenci['telefonNumarasi'] ?? null;
             if (null !== $telefon && null !== $persona) {
                 $profil = $this->studentProfileRepository->find($v['ogrenciNo']);
                 if (null !== $profil) {
-                    $bodyParametreleri = [$ogrenci->getAd() ?? ''];
+                    $bodyParametreleri = [$ogrenci['ad'] ?? ''];
                     if ($varyant->sinavTuruGerekli) {
                         // `{{2}}` — gerçek Meta parametresi (bkz. proje notları, 2026-10-10
                         // bulgusu: önceden hiç doldurulmuyordu, literal "{sınav}" metni gerçek
@@ -538,6 +573,7 @@ class EvaluateDailyTriggersCommand extends Command
                         $aktifFaz,
                         $today,
                     );
+                    $tetikleyiciGonderilenIdler[$v['ogrenciNo']] = true;
                 }
             }
         }
@@ -546,6 +582,98 @@ class EvaluateDailyTriggersCommand extends Command
         // getirir (M1 dalının flush'ı — satır ~378 — bu döngüden ÖNCE çalıştığı için onları
         // kapsamaz).
         $this->studentProfileRepository->getEntityManager()->flush();
+
+        // --- Günlük kontrol kanalı (hatırlatma/övgü, T1-T4'ten AYRI) -------------------
+        // 2026-10-19 (kullanıcı kararı): öğrencinin gözlem gününde ({@see MessageDispatchScheduler::bugunGozlemGunuMu()}),
+        // bugün HİÇBİR trigger-kaynaklı mesaj (M1/Variant) zamanlanmadıysa devreye girer.
+        // Barrier geçerliliği ({@see \App\Repository\StudentProfileRepository::findStudentIdsWithValidBarrierType()})
+        // bu kanalı ETKİLEMEZ — kullanıcı kararı: kapsam dar tutuldu, sadece M1'i bastırıyor.
+        // Sınav Günü'nde ({@see $sinavGunuMu}) hiç çalışmaz — o gün tek mesaj zorunlu "iyi
+        // şanslar"dır.
+        if (!$sinavGunuMu) {
+            $erisimOzetleri = $this->erisimOzetiRepository->findByStudentIds($tumOgrenciNolar);
+            $sonMesajTarihleri = $this->scheduledMessageRepository->findLatestSentAtByStudent($tumOgrenciNolar);
+            $faz = $aktifFaz ?? Phase::Normal;
+
+            foreach ($sonuclar as $sonuc) {
+                $ogrenciNo = $sonuc->ogrenciNo;
+
+                if ($sonuc->susturuldu
+                    || isset($tetikleyiciGonderilenIdler[$ogrenciNo])
+                    || isset($zamanlanmisBekleyenIdler[$ogrenciNo])
+                ) {
+                    continue;
+                }
+
+                // 2026-10-20 (gerçek bir OOM ile bulunan bug, düzeltildi): telefon/ogrenci
+                // kontrolü BİLEREK `find()`'DAN ÖNCE yapılıyor — $ogrencilerByNo zaten
+                // bellekte (ek sorgu yok), ama `studentProfileRepository->find()` her
+                // çağrıldığında Doctrine'ın UnitOfWork'üne YENİ bir entity kaydediyor ve
+                // bunlar HİÇ temizlenmiyor. Eski sıralamada (önce find(), sonra telefon
+                // kontrolü) bu, telefonu olmayan ~53k öğrencinin HER BİRİ için gereksiz
+                // yere StudentProfile hydrate ediyordu — `php -d memory_limit=1G` ile bile
+                // "Allowed memory size exhausted" ile çöküyordu (gerçek 53k koşusunda
+                // doğrulandı). Artık SADECE telefonu olan (gerçekte birkaç kişi) öğrenciler
+                // için `find()` çağrılıyor.
+                $ogrenci = $ogrencilerByNo[$ogrenciNo] ?? null;
+                $telefon = $ogrenci['telefonNumarasi'] ?? null;
+
+                if (null === $telefon || null === $ogrenci) {
+                    // Telefonu olmayan öğrenciler için (örnek 53k verisi) gerçek gönderim
+                    // altyapısı yok — bu kanal onlar için anlamsız, M1/Variant'la aynı gate.
+                    continue;
+                }
+
+                $profil = $this->studentProfileRepository->find($ogrenciNo);
+                $persona = $this->personaHesapla($ogrenci);
+
+                if (null === $profil) {
+                    continue;
+                }
+
+                if (!$this->dispatchScheduler->bugunGozlemGunuMu($profil, $faz, $today)) {
+                    continue;
+                }
+
+                // Övgü/düz seçimi: son gönderilen mesajdan (tür fark etmez) SONRA gerçek
+                // erişim oldu mu? Hiç mesaj gönderilmemişse (ilk kez) ve erişim varsa da övgü.
+                $sonErisim = $erisimOzetleri[$ogrenciNo]['sonErisimTarihi'] ?? null;
+                $sonMesaj = $sonMesajTarihleri[$ogrenciNo] ?? null;
+                $erisimVarMi = null !== $sonErisim && (null === $sonMesaj || $sonErisim > $sonMesaj);
+
+                $ad = $ogrenci['ad'] ?? '';
+                $sablon = $erisimVarMi ? WhatsAppTemplate::GunlukHatirlatmaOvgu : WhatsAppTemplate::GunlukHatirlatmaDuz;
+                $metin = $erisimVarMi
+                    ? EngagementFlowMessages::gunlukHatirlatmaOvgu($ad, $persona)
+                    : EngagementFlowMessages::gunlukHatirlatmaDuz($ad, $persona);
+
+                ++$sayaclar[$erisimVarMi ? 'gunluk_kontrol_ovgu' : 'gunluk_kontrol_duz'];
+                $this->logger->info('Günlük kontrol mesajı zamanlandı', [
+                    'ogrenciNo' => $ogrenciNo,
+                    'ovgu' => $erisimVarMi,
+                    'persona' => $persona->value,
+                    'sablon' => $sablon->metaAdiPersonaIcin($persona),
+                ]);
+
+                $this->zamanla(
+                    ScheduledMessageKind::GunlukKontrol,
+                    $ogrenciNo,
+                    null,
+                    null,
+                    $sablon->metaAdiPersonaIcin($persona),
+                    [$ad],
+                    $metin,
+                    $telefon,
+                    $persona,
+                    $profil,
+                    $aktifFaz,
+                    $today,
+                );
+                $zamanlanmisBekleyenIdler[$ogrenciNo] = true;
+            }
+
+            $this->studentProfileRepository->getEntityManager()->flush();
+        }
 
         $io->table(
             ['Sonuç', 'Öğrenci sayısı'],
@@ -564,6 +692,8 @@ class EvaluateDailyTriggersCommand extends Command
                 ['Zamanlanmış (gönderilmemiş) mesajı var — bugün atlandı', $sayaclar['zamanlanmis_bekliyor']],
                 ['M1 gönderime uygun (T2/T3/T4 + barrier boş/süresi geçmiş + Normal faz)', $sayaclar['m1_uygun']],
                 ['Tetikleyici varyant mesajı seçildi (M1 uygun değil)', $sayaclar['varyant_secildi']],
+                ['Günlük kontrol — düz hatırlatma', $sayaclar['gunluk_kontrol_duz']],
+                ['Günlük kontrol — övgü', $sayaclar['gunluk_kontrol_ovgu']],
                 ['Toplam', count($sonuclar)],
             ],
         );
@@ -577,6 +707,13 @@ class EvaluateDailyTriggersCommand extends Command
      * kararı: öğrencinin `observed_days`/tercih saatinin gerçekten bir karşılığı olsun).
      * Gerçek HTTP gönderimi ve gönderim-sonrası mutasyonlar (pending_flow_step / recordSent /
      * recordMessageSent) artık {@see \App\Command\DispatchScheduledMessagesCommand}'da.
+     *
+     * 2026-10-19 (kullanıcı kararı): GÜN seçimi artık SADECE {@see ScheduledMessageKind::GunlukKontrol}
+     * için uygulanıyor ({@see MessageDispatchScheduler::hedefZaman()}) — diğer tüm türler
+     * (M1/Variant/Reminder/SinavGunu) {@see MessageDispatchScheduler::hedefZamanBugun()} ile
+     * HER ZAMAN bugünü hedefler, sadece saat tercihi uygulanır. Sebep: bu türler acil/nadir
+     * sinyaller taşıyor (düşüş tespiti, sınav günü, 72 saat yanıtsızlık) — "tercih edilen güne
+     * kaydırma" bunları günlerce geciktirebiliyordu (bkz. proje notları).
      */
     private function zamanla(
         ScheduledMessageKind $kind,
@@ -593,7 +730,10 @@ class EvaluateDailyTriggersCommand extends Command
         \DateTimeImmutable $today,
         ?int $ilgiliSentMessageLogId = null,
     ): void {
-        $hedefZaman = $this->dispatchScheduler->hedefZaman($profil, $aktifFaz ?? Phase::Normal, $today);
+        $faz = $aktifFaz ?? Phase::Normal;
+        $hedefZaman = ScheduledMessageKind::GunlukKontrol === $kind
+            ? $this->dispatchScheduler->hedefZaman($profil, $faz, $today)
+            : $this->dispatchScheduler->hedefZamanBugun($profil, $faz, $today);
 
         $kayit = new ScheduledMessage(
             $ogrenciNo,
@@ -614,6 +754,20 @@ class EvaluateDailyTriggersCommand extends Command
         }
 
         $this->studentProfileRepository->getEntityManager()->persist($kayit);
+    }
+
+    /**
+     * `$ogrencilerByNo`'daki ham dizi kaydından (bkz. {@see OgrenciRepository::findIndexedByOgrenciNolar()}
+     * docblock'u -- OOM nedeniyle entity değil) Persona hesaplar.
+     *
+     * @param array{ad: ?string, soyad: ?string, telefonNumarasi: ?string, cinsiyet: string, dogumTarihi: string} $ogrenci
+     */
+    private function personaHesapla(array $ogrenci): Persona
+    {
+        return $this->personaResolver->resolveFromAlanlar(
+            Cinsiyet::from($ogrenci['cinsiyet']),
+            new \DateTimeImmutable($ogrenci['dogumTarihi']),
+        );
     }
 
     /**

@@ -40,7 +40,7 @@ class ScheduledMessage
     #[ORM\Column(name: 'student_id', type: 'integer')]
     private int $studentId;
 
-    #[ORM\Column(enumType: ScheduledMessageKind::class, columnDefinition: "ENUM('m1','variant','reminder','sinav_gunu') NOT NULL")]
+    #[ORM\Column(enumType: ScheduledMessageKind::class, columnDefinition: "ENUM('m1','variant','reminder','sinav_gunu','gunluk_kontrol') NOT NULL")]
     private ScheduledMessageKind $kind;
 
     // `trigger` MySQL'in rezerve kelimesi — `name` tırnaklı verilmezse Doctrine'ın ürettiği

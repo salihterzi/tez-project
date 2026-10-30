@@ -82,49 +82,63 @@ final class TriggerMessageCatalog
     }
 
     /** @var TriggerMessageVariant[] */
+    /**
+     * 2026-10-18 (kullanıcı kararı): eskiden bu set M1'le BİREBİR AYNI barrier butonlarını
+     * (Zamanım yok/İçerik zor/Motivasyonum düşük) kullanıyordu — yani "M1 uygun değilse
+     * varyant gönderilsin" kuralı T2 için hiçbir şey kazandırmıyordu, aynı soru farklı bir
+     * Meta şablonuyla TEKRAR soruluyordu (bkz. proje notları). T3Normal'in nötr durum-sorma
+     * deseni + buton seti (`İyi, devam ediyorum`/`Yoğunum`/`Destek lazım`) buraya da taşındı
+     * — "Yoğunum" {@see \App\Service\WebhookYanitRouter}'da T3'teki gibi doğrudan
+     * `BarrierType::Zaman`'a yönlendirilir, açık bir barrier sorusu TEKRAR sorulmaz. Meta
+     * APPROVED bir şablonun içeriği/buton seti yerinde değiştirilemediği için isim değişti
+     * (`_v2`→`_v3`, `_v3`→`_v4`), eski `tetikleyici_t2_normal_*_v2_*`/`_v3_*` Meta'da yetim
+     * kaldı (zararsız, bkz. proje notları).
+     *
+     * @var TriggerMessageVariant[]
+     */
     public static function t2Normal(): array
     {
         return [
             new TriggerMessageVariant(
                 1,
-                'Merhaba {ad}, kaldığınız yer hazır. Sizi en çok ne zorladığını belirtmeniz yeterli.',
-                ['Zamanım yok', 'İçerik zor', 'Motivasyonum düşük'],
+                'Merhaba {ad}, kaldığınız yer hazır duruyor. Şu anki durumunuzu belirtmeniz yeterli.',
+                ['İyi, devam ediyorum', 'Yoğunum', 'Destek lazım'],
                 sablon: WhatsAppTemplate::T2NormalV1,
                 metinVaryantlari: [
-                    Persona::GencYakinlik->value => 'Selam {ad}, kaldığın yer hazır duruyor, merak etme 🙂 Seni şu an en çok ne zorluyor?',
-                    Persona::GencBilgi->value => 'Selam {ad}, kaldığın yer hazır. Seni en çok ne zorluyor?',
-                    Persona::YetiskinYakinlik->value => 'Merhaba {ad}, kaldığınız yer hazır duruyor. Sizi şu an en çok ne zorluyor, paylaşmak ister misiniz?',
-                    Persona::YetiskinBilgi->value => 'Merhaba {ad}, kaldığınız yer hazır. Sizi en çok ne zorladığını belirtmeniz yeterli.',
-                    Persona::IleriYasYakinlik->value => 'Merhaba {ad}, kaldığınız yer hazır duruyor, hiç merak etmeyin. Sizi şu an en çok ne zorluyor, paylaşmak ister misiniz?',
-                    Persona::IleriYasBilgi->value => 'Merhaba {ad}, kaldığınız yer hazır. Sizi en çok ne zorladığını belirtmeniz yeterlidir.',
+                    Persona::GencYakinlik->value => 'Selam {ad}, kaldığın yer hazır duruyor, merak etme 🙂 Şu an nasıl gidiyor?',
+                    Persona::GencBilgi->value => 'Selam {ad}, kaldığın yer hazır. Şu anki durumun nedir?',
+                    Persona::YetiskinYakinlik->value => 'Merhaba {ad}, kaldığınız yer hazır duruyor. Şu anki durumunuzu paylaşmak ister misiniz?',
+                    Persona::YetiskinBilgi->value => 'Merhaba {ad}, kaldığınız yer hazır duruyor. Şu anki durumunuzu belirtmeniz yeterli.',
+                    Persona::IleriYasYakinlik->value => 'Merhaba {ad}, kaldığınız yer hazır duruyor, hiç merak etmeyin. Şu anki durumunuzu paylaşmak ister misiniz?',
+                    Persona::IleriYasBilgi->value => 'Merhaba {ad}, kaldığınız yer hazır duruyor. Şu anki durumunuzu belirtmeniz yeterlidir.',
                 ],
             ),
             new TriggerMessageVariant(
                 2,
-                'Merhaba {ad}, bir süredir hareketlilik gözlenmedi. Sizi en çok ne zorladığını belirtmeniz yeterli.',
-                ['Zamanım yok', 'İçerik zor', 'Motivasyonum düşük'],
+                'Merhaba {ad}, bir süredir hareketlilik fark edilmedi. Şu anki durumunuzu belirtmeniz yeterli.',
+                ['İyi, devam ediyorum', 'Yoğunum', 'Destek lazım'],
                 sablon: WhatsAppTemplate::T2NormalV2,
                 metinVaryantlari: [
-                    Persona::GencYakinlik->value => 'Selam {ad}, bir süredir yoktun, nasılsın diye sormak istedim 🙂 Şu an en çok ne zorluyor?',
-                    Persona::GencBilgi->value => 'Selam {ad}, bir süredir aktif değilsin. Seni en çok ne zorluyor?',
-                    Persona::YetiskinYakinlik->value => 'Merhaba {ad}, bir süredir sizi göremedik. Sizi şu an en çok ne zorluyor, paylaşmak ister misiniz?',
-                    Persona::YetiskinBilgi->value => 'Merhaba {ad}, bir süredir hareketlilik gözlenmedi. Sizi en çok ne zorladığını belirtmeniz yeterli.',
-                    Persona::IleriYasYakinlik->value => 'Merhaba {ad}, bir süredir sizi göremedik. Sizi şu an en çok ne zorluyor, paylaşmak ister misiniz?',
-                    Persona::IleriYasBilgi->value => 'Merhaba {ad}, bir süredir hareketlilik gözlenmedi. Sizi en çok ne zorladığını belirtmeniz yeterlidir.',
+                    Persona::GencYakinlik->value => 'Selam {ad}, bir süredir yoktun, nasılsın diye sormak istedim 🙂 Şu an durumun ne?',
+                    Persona::GencBilgi->value => 'Selam {ad}, bir süredir aktif değilsin. Şu anki durumun nedir?',
+                    Persona::YetiskinYakinlik->value => 'Merhaba {ad}, bir süredir sizi göremedik. Şu anki durumunuzu paylaşmak ister misiniz?',
+                    Persona::YetiskinBilgi->value => 'Merhaba {ad}, bir süredir hareketlilik fark edilmedi. Şu anki durumunuzu belirtmeniz yeterli.',
+                    Persona::IleriYasYakinlik->value => 'Merhaba {ad}, bir süredir sizi göremedik. Şu anki durumunuzu paylaşmak ister misiniz?',
+                    Persona::IleriYasBilgi->value => 'Merhaba {ad}, bir süredir hareketlilik fark edilmedi. Şu anki durumunuzu belirtmeniz yeterlidir.',
                 ],
             ),
             new TriggerMessageVariant(
                 3,
-                'Merhaba {ad}, derslerinizde hareketsizlik fark edildi. Sizi en çok ne zorladığını belirtmeniz yeterli.',
-                ['Zamanım yok', 'İçerik zor', 'Motivasyonum düşük'],
+                'Merhaba {ad}, derslerinizde hareketsizlik fark edildi. Şu anki durumunuzu belirtmeniz yeterli.',
+                ['İyi, devam ediyorum', 'Yoğunum', 'Destek lazım'],
                 sablon: WhatsAppTemplate::T2NormalV3,
                 metinVaryantlari: [
-                    Persona::GencYakinlik->value => 'Selam {ad}, derslerinde bir süredir sessizlik var, nasılsın diye sormak istedim 🙂 Şu an seni en çok ne zorluyor?',
-                    Persona::GencBilgi->value => 'Selam {ad}, derslerinde bir süredir hareket yok. Şu an seni en çok ne zorluyor?',
-                    Persona::YetiskinYakinlik->value => 'Merhaba {ad}, derslerinizde bir süredir hareket gözlenmedi. Şu an sizi en çok ne zorluyor, paylaşmak ister misiniz?',
-                    Persona::YetiskinBilgi->value => 'Merhaba {ad}, derslerinizde hareketsizlik fark edildi. Sizi en çok ne zorladığını belirtmeniz yeterli.',
-                    Persona::IleriYasYakinlik->value => 'Merhaba {ad}, derslerinizde bir süredir hareket gözlenmedi. Şu an sizi en çok ne zorluyor, paylaşmak ister misiniz?',
-                    Persona::IleriYasBilgi->value => 'Merhaba {ad}, derslerinizde hareketsizlik fark edildi. Sizi en çok ne zorladığını belirtmeniz yeterlidir.',
+                    Persona::GencYakinlik->value => 'Selam {ad}, derslerinde bir süredir sessizlik var, nasılsın diye sormak istedim 🙂 Şu an durumun ne?',
+                    Persona::GencBilgi->value => 'Selam {ad}, derslerinde bir süredir hareket yok. Şu anki durumun nedir?',
+                    Persona::YetiskinYakinlik->value => 'Merhaba {ad}, derslerinizde bir süredir hareket fark edilmedi. Şu anki durumunuzu paylaşmak ister misiniz?',
+                    Persona::YetiskinBilgi->value => 'Merhaba {ad}, derslerinizde hareketsizlik fark edildi. Şu anki durumunuzu belirtmeniz yeterli.',
+                    Persona::IleriYasYakinlik->value => 'Merhaba {ad}, derslerinizde bir süredir hareket fark edilmedi. Şu anki durumunuzu paylaşmak ister misiniz?',
+                    Persona::IleriYasBilgi->value => 'Merhaba {ad}, derslerinizde hareketsizlik fark edildi. Şu anki durumunuzu belirtmeniz yeterlidir.',
                 ],
             ),
         ];
