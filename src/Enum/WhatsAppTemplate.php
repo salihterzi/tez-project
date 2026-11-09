@@ -28,7 +28,14 @@ enum WhatsAppTemplate: string
     // 2026-10-25: öğrenciye kendimizi tanıtan ilk mesaj (bkz. templates.docx BÖLÜM T0).
     // `app:send-tanitim` komutuyla gönderilir; cron/tetikleyici zinciri bu şablona hiç
     // dokunmaz. "Her dönem öğrenci başına 1 kez" kuralı operatör sorumluluğundadır.
-    case TanitimT0 = 'tanitim_t0_v1';
+    // `_v1` → `_v2` (2026-11-04, kullanıcı kararı): metne İKİNCİ bir parametre (`{{2}}`)
+    // eklendi — öğrenciye söylenen sıklık, artık onun kendi beyanından üretiliyor
+    // ({@see \App\Enum\WeeklyHoursAvailable::siklikIfadesi()}). `_v1` metni "sıklık haftada
+    // en fazla 1" diyordu ama {@see \App\Enum\ScheduledMessageKind::GunlukKontrol} kanalı
+    // haftalık tetikleyici tavanına dahil olmadığı için haftada 7 mesaja kadar çıkabiliyordu;
+    // ilk mesajda verilen söz tutulmuyordu. `_v1` şablonları Meta'da SİLİNMEDİ (sil + yeniden
+    // oluştur = 4 hafta kilit), atıl bırakıldı.
+    case TanitimT0 = 'tanitim_t0_v2';
 
     // --- Bölüm 1: T1 (yalnızca Normal faz) ---
     // `_v2` soneki (2026-10-08): bu PROAKTİF şablonların eski isimleri, 254 şablonun kazara

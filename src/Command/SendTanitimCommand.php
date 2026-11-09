@@ -4,6 +4,7 @@ namespace App\Command;
 
 use App\Enum\WhatsAppTemplate;
 use App\Repository\OgrenciRepository;
+use App\Repository\StudentProfileRepository;
 use App\Service\PersonaResolver;
 use App\Service\WhatsAppTemplateSender;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -22,7 +23,14 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  * uygulanır — komut bilinçli olarak durum tutmuyor. Mükerrer gönderimi engelleyen bir
  * veritabanı kısıtı yok; aynı öğrenci için ikinci kez çalıştırılırsa mesaj ikinci kez gider.
  *
- * Mesaj metinleri: templates.docx → BÖLÜM T0. Meta şablonları: `tanitim_t0_v1_{gy,gb,yy,yb,iy,ib}`.
+ * Mesaj metinleri: templates.docx → BÖLÜM T0. Meta şablonları:
+ * `tanitim_t0_v2_{gy,gb,yy,yb,iy,ib}`.
+ *
+ * Şablon İKİ parametre alır (2026-11-04, kullanıcı kararı): `{{1}}` = öğrencinin adı,
+ * `{{2}}` = sıklık ifadesi, öğrencinin kendi anket beyanından üretiliyor
+ * ({@see \App\Enum\WeeklyHoursAvailable::siklikIfadesi()}). Beyan YOKSA komut mesajı
+ * GÖNDERMEZ — `_v1` metninin tutulmayan "haftada en fazla 1" sözünü tekrar etmemek için
+ * (bkz. {@see WhatsAppTemplate::TanitimT0} yorumu).
  */
 #[AsCommand(
     name: 'app:send-tanitim',
@@ -34,6 +42,7 @@ class SendTanitimCommand extends Command
         private readonly OgrenciRepository $ogrenciRepository,
         private readonly PersonaResolver $personaResolver,
         private readonly WhatsAppTemplateSender $templateSender,
+        private readonly StudentProfileRepository $studentProfileRepository,
     ) {
         parent::__construct();
     }
@@ -75,12 +84,33 @@ class SendTanitimCommand extends Command
         $persona = $this->personaResolver->resolve($ogrenci);
         $sablonAdi = WhatsAppTemplate::TanitimT0->metaAdiPersonaIcin($persona);
 
+        // `{{2}}` — öğrenciye söylenen sıklık, kendi anket beyanından üretilir. Beyan yoksa
+        // dürüst bir söz kurulamaz (kod `null`'ı fiilen "7 gün" sayıyor, bkz.
+        // MessageDispatchScheduler) ve T0'ın sıklık garantisi yine tutulmaz — bu yüzden
+        // gönderim engellenir, varsayılana düşülmez.
+        $haftalikGun = $this->studentProfileRepository->find($ogrenciNo)?->getWeeklyHoursAvailable();
+
+        if (null === $haftalikGun) {
+            $io->error(sprintf(
+                'Öğrenci %d için haftalık gün beyanı (YBS anketi Soru 5) yok — şablonun {{2}} '
+                .'parametresi üretilemez. Tanıtım mesajı, sıklık sözü dürüst kurulamadığı için '
+                .'gönderilmedi. Önce `app:import-ybs-anketi` ile anket yüklenmeli.',
+                $ogrenciNo,
+            ));
+
+            return Command::FAILURE;
+        }
+
+        $siklik = $haftalikGun->siklikIfadesi();
+
         $io->definitionList(
             ['Öğrenci' => sprintf('%d — %s', $ogrenciNo, $ad)],
             ['Telefon' => $telefon],
             ['Yaş' => $ogrenci->getYas()],
             ['Persona' => $persona->value],
             ['Şablon' => $sablonAdi],
+            ['Beyan edilen gün' => $haftalikGun->value],
+            ['{{2}} (sıklık)' => $siklik],
         );
 
         if ($input->getOption('dry-run')) {
@@ -98,7 +128,7 @@ class SendTanitimCommand extends Command
         }
 
         try {
-            $sonuc = $this->templateSender->sendTemplateMessage($telefon, $sablonAdi, 'tr', [$ad]);
+            $sonuc = $this->templateSender->sendTemplateMessage($telefon, $sablonAdi, 'tr', [$ad, $siklik]);
         } catch (\Throwable $e) {
             $io->error('İstek başarısız: '.$e->getMessage());
 

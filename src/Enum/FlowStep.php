@@ -6,9 +6,14 @@ namespace App\Enum;
  * Bir öğrencinin M1 (engel teşhisi) senaryosundaki bekleyen adımı. `null` (kolon boş):
  * öğrenci için bekleyen bir senaryo yok. Adım tamamlanınca tekrar `null`'a döner.
  *
- * Not: Bu adımın gerçek bir WhatsApp yanıtıyla nasıl ilerletileceği (webhook tarafı) henüz
- * bağlanmadı — telefon numarası <-> öğrenci eşlemesi şemada yok (bkz. proje notları). Bu enum
- * ve {@see \App\Service\EngagementFlowService} yalnızca karar/mutasyon mantığını taşır.
+ * Bu adımın gerçek bir yanıtla nasıl ilerletileceği {@see \App\Service\WebhookYanitRouter}'da:
+ * bekleyen adıma göre doğru {@see \App\Service\EngagementFlowService} metodu seçilir. Router
+ * durumsuz ve taşıma katmanından bağımsızdır — canlı
+ * {@see \App\Controller\WhatsAppWebhookController} ile
+ * {@see \App\Command\SimulateWebhookReplyCommand} aynı yolu kullanır.
+ *
+ * (2026-11-03 düzeltme: buradaki "webhook tarafı henüz bağlanmadı — telefon eşlemesi şemada
+ * yok" notu BAYATTI; eşleme yapıldı ve akış canlı doğrulandı.)
  */
 enum FlowStep: string
 {

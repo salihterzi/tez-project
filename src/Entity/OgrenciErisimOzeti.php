@@ -51,6 +51,24 @@ class OgrenciErisimOzeti
     private int $gecenHaftaErisimSayisi = 0;
 
     /** Dönem başlangıcından özetin hesaplandığı güne kadar toplam erişim — T4 için. */
+    /**
+     * [bugün-21, bugün-14) penceresindeki erişim sayısı — yani "geçen haftadan ÖNCEKİ hafta"
+     * (2026-11-06, kullanıcı kararı). T3 artık tek değil İKİ ardışık yarılanma istiyor
+     * (bu < geçen × 0,5 VE geçen < önceki × 0,5), bu alan ikinci karşılaştırmanın tabanıdır.
+     *
+     * NİYE: tek haftalık karşılaştırma geçici dalgalanmayı kalıcı düşüşten ayırt edemiyordu.
+     * 2024-2025 bahar verisinde (12 haftalık pencere, 48.786 öğrenci) eski kural
+     * öğrenci-günlerin %55,4'ünde, öğrencilerin %95,1'inde tetikleniyordu — yani yarılanma
+     * bu popülasyonda anomali değil olağan ritim. Salınan bir öğrenci (10·4·11·5·12·4)
+     * aşağı-sonra-yukarı gider ve eski kuralda üç kez yanlış alarm üretirdi; iki ardışık
+     * yarılanma şartı salınımı filtreler çünkü salınımda ikinci hafta yükselir.
+     *
+     * Bkz. {@see \App\Service\DailyTriggerEvaluator} T3 koşulu ve
+     * `Kisisellestirilmis_Mesaj_Modeli.docx` Bölüm 9.
+     */
+    #[ORM\Column(name: 'onceki_hafta_erisim_sayisi', type: 'integer')]
+    private int $oncekiHaftaErisimSayisi = 0;
+
     #[ORM\Column(name: 'donem_kumulatif_erisim_sayisi', type: 'integer')]
     private int $donemKumulatifErisimSayisi = 0;
 
@@ -99,6 +117,11 @@ class OgrenciErisimOzeti
     public function getGecenHaftaErisimSayisi(): int
     {
         return $this->gecenHaftaErisimSayisi;
+    }
+
+    public function getOncekiHaftaErisimSayisi(): int
+    {
+        return $this->oncekiHaftaErisimSayisi;
     }
 
     public function getDonemKumulatifErisimSayisi(): int

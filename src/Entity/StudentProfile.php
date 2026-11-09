@@ -766,6 +766,22 @@ class StudentProfile
      * ({@see \App\Service\MessageFrequencyPolicy}) — {@see self::$dailyMessageCount}'tan
      * (günlük TOPLAM trafik sınırı) KASITLI olarak ayrı, ikisi de ayrı ayrı uygulanır.
      */
+    /**
+     * SAYACIN YAN ÜRÜNÜ — TASARLANMIŞ BİR KURAL DEĞİL (2026-11-06'da belgelendi):
+     * sayaç ISO hafta (Pazartesi) bazında sıfırlandığı ve karar motoru her gece çalıştığı
+     * için, haftalık tavana tabi tetikleyiciler fiilen **her haftanın ilk uygun gününde**
+     * (Pazartesi) gönderilir. Örnek (dönem başlangıcı 2027-02-23 Salı):
+     *
+     *   2 Mart Salı        T1 ilk kez ateşlenir (başlangıç+7), haftalık bütçe dolar
+     *   8 Mart Pazartesi   sayaç sıfırlanır → ilk fırsatta yeniden
+     *   15 Mart Pazartesi  aynı
+     *
+     * Yani ilk mesajdan sonra kadans kendiliğinden haftalık/Pazartesi'ye oturur ve
+     * "Pazar gönderimi + Pazartesi tekrarı" gibi 1 günlük aralıklar pratikte oluşmaz.
+     * ÖNEMLİ: bu davranış sayacın ISO-hafta tabanlı olmasına BAĞLI. Sayaç kayan 7 güne
+     * çevrilirse kadans da değişir — o değişikliği yapan, tetikleyici aralıklarının
+     * bozulacağını bilmeli.
+     */
     public function recordMessageSent(\DateTimeImmutable $simdi): static
     {
         $ayniHaftaMi = null !== $this->lastMessageSentAt

@@ -24,8 +24,13 @@ use Doctrine\ORM\EntityManagerInterface;
  *   bkz. o entity'nin docblock'u).
  *
  * `chooseVariant()` salt-okunurdur (DB'ye yazmaz) — gerçek gönderim gerçekleştiğinde
- * {@see self::recordSent()} çağrılmalıdır. Taşıma katmanı (WhatsApp gönderimi) bu tez
- * turunun kapsamında değil (bkz. proje notları: telefon numarası <-> öğrenci eşlemesi yok).
+ * {@see self::recordSent()} çağrılmalıdır. Çağıran taraf
+ * {@see \App\Command\DispatchScheduledMessagesCommand}'dır: karar motoru bir
+ * {@see \App\Entity\ScheduledMessage} kuyruk kaydı üretir, dispatcher gönderim BAŞARILI
+ * olduğunda `recordSent()`'i çağırır — böylece mesaj gitmeden rotasyon ilerlemez.
+ *
+ * (2026-11-03 düzeltme: "taşıma katmanı bu tez turunun kapsamında değil, telefon eşlemesi
+ * yok" notu BAYATTI; gönderim kuyruk üzerinden canlı çalışıyor.)
  */
 class TriggerMessageSelector
 {

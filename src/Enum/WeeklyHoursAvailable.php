@@ -52,4 +52,27 @@ enum WeeklyHoursAvailable: string
             self::HerGun => 7,
         };
     }
+
+    /**
+     * Tanıtım mesajının ({@see \App\Enum\WhatsAppTemplate::TanitimT0}) `{{2}}` parametresi —
+     * öğrenciye söylenen sıklık ifadesi (2026-11-04, kullanıcı kararı).
+     *
+     * NİYE PARAMETRE: T0'ın `_v1` metni "haftada birden fazla değil" / "sıklık haftada en
+     * fazla 1" diyordu, ama {@see \App\Enum\ScheduledMessageKind::GunlukKontrol} kanalının
+     * sıklığı bu enum'a bağlı (1-7 gün) ve haftalık TETİKLEYİCİ tavanına KASITLI olarak dahil
+     * değil. Yani "Her gün" diyen bir öğrenci haftada 7 günlük kontrol + 1 tetikleyici
+     * alabiliyordu; ilk mesajda verilen sıklık sözü tutulmuyordu. `_v2` metni sözü öğrencinin
+     * KENDİ beyanından üretiyor.
+     *
+     * İfade, şablon metnindeki "— {{2}}." kalıbına oturacak şekilde "haftada" ön ekini
+     * KENDİSİ taşır; `HerGun` için "haftada 7 gün" kulağa tuhaf geldiği için ayrı karşılık
+     * verilir.
+     */
+    public function siklikIfadesi(): string
+    {
+        return match ($this) {
+            self::HerGun => 'her gün',
+            default => sprintf('haftada %d gün', $this->gunSayisiUstSiniri()),
+        };
+    }
 }

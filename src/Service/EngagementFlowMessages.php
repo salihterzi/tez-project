@@ -67,15 +67,32 @@ final class EngagementFlowMessages
 
     // --- Bölüm 1.1/1.2: T1 yanıtı kapanışları (templates.docx) ----------------------------
 
+    /**
+     * "Şimdi başla" yanıtının kapanışı — **e-kampüs linki ZORUNLU** (2026-11-06, kullanıcı
+     * kararı).
+     *
+     * NİYE: bu, sistemdeki en yüksek niyet anı — öğrenci az önce "başlıyorum" dedi. T1'in
+     * kuramsal gerekçesi Fogg'un (2009) denklemi (davranış = motivasyon + yapabilme +
+     * uyaran); "Şimdi başla" motivasyonun beyan edildiği an, yapabilme bileşeni ise burada
+     * tek bir şeye bağlı: e-kampüs'e ulaşmak. Motivasyonu yakalayıp linki vermemek, tam
+     * olarak o modelin öngördüğü başarısızlık biçimiydi.
+     *
+     * Metin bu tarihe kadar linksizdi — oysa {@see self::zorlukMateryalKapanis()} ("içerik
+     * zor" dalı) ve {@see self::kapanisK1()} linki veriyor, günlük kontrol kanalının tek
+     * butonu da 2026-10-29'dan beri bir URL ("öğrenci tek dokunuşla hedefe gitsin" diye
+     * tıklama ölçümü bile feda edildi). Aynı ilke T1'in en kritik yanıtında uygulanmamıştı.
+     *
+     * Reaktif mesaj olduğu için şablon onayı GEREKMEZ (24 saatlik yanıt penceresi).
+     */
     public static function t1SimdiBaslaKapanis(Persona $persona): string
     {
         return match ($persona) {
-            Persona::GencYakinlik => 'Harika, hemen başlıyorsun 🙂 Küçük bir göz atmak bile fark yaratır, iyi çalışmalar!',
-            Persona::GencBilgi => 'Harika, şimdi başlıyorsun. İyi çalışmalar.',
-            Persona::YetiskinYakinlik => 'Ne güzel, şimdi başlıyorsunuz — küçük bir göz atmak bile iyi bir başlangıç. İyi çalışmalar dilerim.',
-            Persona::YetiskinBilgi => 'Anlaşıldı, şimdi başlıyorsunuz. İyi çalışmalar dileriz.',
-            Persona::IleriYasYakinlik => 'Ne güzel, şimdi başlıyorsunuz — kendi hızınızda devam edebilirsiniz. İyi çalışmalar dilerim.',
-            Persona::IleriYasBilgi => 'Anlaşıldı, şimdi başlıyorsunuz. İyi çalışmalar dileriz.',
+            Persona::GencYakinlik => 'Harika, hemen başlıyorsun 🙂 Buradan girebilirsin: https://ekampus.anadolu.edu.tr — küçük bir göz atmak bile fark yaratır, iyi çalışmalar!',
+            Persona::GencBilgi => 'Harika, şimdi başlıyorsun. Materyaller burada: https://ekampus.anadolu.edu.tr İyi çalışmalar.',
+            Persona::YetiskinYakinlik => 'Ne güzel, şimdi başlıyorsunuz — materyallere buradan ulaşabilirsiniz: https://ekampus.anadolu.edu.tr. Küçük bir göz atmak bile iyi bir başlangıç. İyi çalışmalar dilerim.',
+            Persona::YetiskinBilgi => 'Anlaşıldı, şimdi başlıyorsunuz. Materyallere e-kampüs platformu üzerinden ulaşabilirsiniz: https://ekampus.anadolu.edu.tr İyi çalışmalar dileriz.',
+            Persona::IleriYasYakinlik => 'Ne güzel, şimdi başlıyorsunuz — materyallere buradan, kendi hızınızda ulaşabilirsiniz: https://ekampus.anadolu.edu.tr. İyi çalışmalar dilerim.',
+            Persona::IleriYasBilgi => 'Anlaşıldı, şimdi başlıyorsunuz. Materyallere e-kampüs platformu üzerinden ulaşabilirsiniz: https://ekampus.anadolu.edu.tr İyi çalışmalar dileriz.',
         };
     }
 

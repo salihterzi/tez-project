@@ -4,7 +4,6 @@ namespace App\Command;
 
 use App\Entity\ScheduledMessage;
 use App\Entity\StudentProfile;
-use App\Enum\Cinsiyet;
 use App\Enum\EngagementTrigger;
 use App\Enum\FlowStep;
 use App\Enum\GozlemYontemi;
@@ -760,12 +759,14 @@ class EvaluateDailyTriggersCommand extends Command
      * `$ogrencilerByNo`'daki ham dizi kaydından (bkz. {@see OgrenciRepository::findIndexedByOgrenciNolar()}
      * docblock'u -- OOM nedeniyle entity değil) Persona hesaplar.
      *
+     * 2026-11-03: `cinsiyet` artık persona hesabına girmiyor (bkz. {@see PersonaResolver}
+     * docblock'u). Dizi şeklinde alan duruyor — sorgu değişmedi, yalnızca kullanılmıyor.
+     *
      * @param array{ad: ?string, soyad: ?string, telefonNumarasi: ?string, cinsiyet: string, dogumTarihi: string} $ogrenci
      */
     private function personaHesapla(array $ogrenci): Persona
     {
         return $this->personaResolver->resolveFromAlanlar(
-            Cinsiyet::from($ogrenci['cinsiyet']),
             new \DateTimeImmutable($ogrenci['dogumTarihi']),
         );
     }

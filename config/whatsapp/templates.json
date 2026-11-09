@@ -5752,5 +5752,197 @@
         ]
       }
     ]
+  },
+  {
+    "name": "tanitim_t0_v2_gy",
+    "language": "tr",
+    "category": "MARKETING",
+    "components": [
+      {
+        "type": "BODY",
+        "text": "Selam {{1}}! Biz Yönetim Bilişim Sistemleri Bölümü'nden yazıyoruz 👋 Kişisel iletişim formunu doldururken WhatsApp'tan hatırlatma almayı işaretlemiştin, o yüzden buradayız. Hatırlatmalar, ankette belirttiğin çalışma günlerine göre gelecek — {{2}}. Arada bir de kısa bir durum sorusu gelebilir. İstemediğin an \"Mesaj göndermeyin\" demen yeterli, hemen keseriz 🙂",
+        "example": {
+          "body_text": [
+            [
+              "Ahmet",
+              "haftada 4 gün"
+            ]
+          ]
+        }
+      },
+      {
+        "type": "BUTTONS",
+        "buttons": [
+          {
+            "type": "QUICK_REPLY",
+            "text": "Tamam"
+          },
+          {
+            "type": "QUICK_REPLY",
+            "text": "Mesaj göndermeyin"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "tanitim_t0_v2_gb",
+    "language": "tr",
+    "category": "MARKETING",
+    "components": [
+      {
+        "type": "BODY",
+        "text": "Selam {{1}}, Yönetim Bilişim Sistemleri Bölümü adına yazıyoruz. Kişisel iletişim formunda WhatsApp'tan hatırlatma almayı işaretlemiştin. Hatırlatmalar ankette belirttiğin çalışma günlerine göre gelecek — {{2}}. Arada bir kısa bir durum sorusu da gelebilir. Durdurmak için \"Mesaj göndermeyin\" yazman yeterli.",
+        "example": {
+          "body_text": [
+            [
+              "Ahmet",
+              "haftada 4 gün"
+            ]
+          ]
+        }
+      },
+      {
+        "type": "BUTTONS",
+        "buttons": [
+          {
+            "type": "QUICK_REPLY",
+            "text": "Tamam"
+          },
+          {
+            "type": "QUICK_REPLY",
+            "text": "Mesaj göndermeyin"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "tanitim_t0_v2_yy",
+    "language": "tr",
+    "category": "MARKETING",
+    "components": [
+      {
+        "type": "BODY",
+        "text": "Merhaba {{1}}, biz Yönetim Bilişim Sistemleri Bölümü'nden yazıyoruz 👋 Kişisel iletişim formunu doldururken WhatsApp'tan hatırlatma almayı işaretlemiştiniz. Hatırlatmalar, ankette belirttiğiniz çalışma günlerinize göre gelecek — {{2}}. Arada bir de kısa bir durum sorusu gelebilir. Dilediğiniz an \"Mesaj göndermeyin\" demeniz yeterli 🙂",
+        "example": {
+          "body_text": [
+            [
+              "Ahmet",
+              "haftada 4 gün"
+            ]
+          ]
+        }
+      },
+      {
+        "type": "BUTTONS",
+        "buttons": [
+          {
+            "type": "QUICK_REPLY",
+            "text": "Tamam"
+          },
+          {
+            "type": "QUICK_REPLY",
+            "text": "Mesaj göndermeyin"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "tanitim_t0_v2_yb",
+    "language": "tr",
+    "category": "MARKETING",
+    "components": [
+      {
+        "type": "BODY",
+        "text": "Merhaba {{1}}, Yönetim Bilişim Sistemleri Bölümü adına yazıyoruz. Kişisel iletişim formunda WhatsApp'tan hatırlatma almayı işaretlemiştiniz. Hatırlatmalar ankette belirttiğiniz çalışma günlerinize göre gelecek — {{2}}. Arada bir kısa bir durum sorusu da gelebilir. Durdurmak için \"Mesaj göndermeyin\" yazmanız yeterlidir.",
+        "example": {
+          "body_text": [
+            [
+              "Ahmet",
+              "haftada 4 gün"
+            ]
+          ]
+        }
+      },
+      {
+        "type": "BUTTONS",
+        "buttons": [
+          {
+            "type": "QUICK_REPLY",
+            "text": "Tamam"
+          },
+          {
+            "type": "QUICK_REPLY",
+            "text": "Mesaj göndermeyin"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "tanitim_t0_v2_iy",
+    "language": "tr",
+    "category": "MARKETING",
+    "components": [
+      {
+        "type": "BODY",
+        "text": "Merhaba {{1}}, biz Yönetim Bilişim Sistemleri Bölümü'nden yazıyoruz 👋 Kişisel iletişim formunda WhatsApp'tan hatırlatma almayı işaretlemiştiniz. Hatırlatmalar, ankette kendiniz belirttiğiniz çalışma günlerine göre gelecek — {{2}}. Sıklığı siz belirlersiniz; arada bir de kısa bir durum sorusu gelebilir. Durdurmak için \"Mesaj göndermeyin\" demeniz yeterli 🙂",
+        "example": {
+          "body_text": [
+            [
+              "Ahmet",
+              "haftada 4 gün"
+            ]
+          ]
+        }
+      },
+      {
+        "type": "BUTTONS",
+        "buttons": [
+          {
+            "type": "QUICK_REPLY",
+            "text": "Tamam"
+          },
+          {
+            "type": "QUICK_REPLY",
+            "text": "Mesaj göndermeyin"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "tanitim_t0_v2_ib",
+    "language": "tr",
+    "category": "MARKETING",
+    "components": [
+      {
+        "type": "BODY",
+        "text": "Merhaba {{1}}, Yönetim Bilişim Sistemleri Bölümü adına yazıyoruz. Kişisel iletişim formunda WhatsApp'tan hatırlatma almayı işaretlemiştiniz. Hatırlatmalar, ankette belirttiğiniz çalışma günlerine göre gelecektir — {{2}}. Arada bir kısa bir durum sorusu da gelebilir. Durdurmak için \"Mesaj göndermeyin\" yazmanız yeterlidir.",
+        "example": {
+          "body_text": [
+            [
+              "Ahmet",
+              "haftada 4 gün"
+            ]
+          ]
+        }
+      },
+      {
+        "type": "BUTTONS",
+        "buttons": [
+          {
+            "type": "QUICK_REPLY",
+            "text": "Tamam"
+          },
+          {
+            "type": "QUICK_REPLY",
+            "text": "Mesaj göndermeyin"
+          }
+        ]
+      }
+    ]
   }
 ]

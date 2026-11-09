@@ -62,12 +62,26 @@ def ozet_hesapla(mat, sin, dem, bugun):
     başlangıcına kadarki geçmiş" semantiğiyle hizalı olsun diye (gece 02:30 çalışan job,
     bugünün henüz oluşmamış erişimini zaten sayamaz).
 
-    Döner: {ogrenci_no: {'ilk_erisim', 'son_erisim', 'bu_hafta', 'gecen_hafta', 'kumulatif'}}.
+    ÜÇ haftalık pencere hesaplanır (2026-11-06, kullanıcı kararı):
+      bu_hafta     = [bugun-7,  bugun)
+      gecen_hafta  = [bugun-14, bugun-7)
+      onceki_hafta = [bugun-21, bugun-14)   <-- T3'ün İKİNCİ yarılanma karşılaştırması için
+
+    `onceki_hafta` niye eklendi: T3 eskiden yalnızca bu_hafta < gecen_hafta * 0.5 soruyordu.
+    2024-2025 bahar verisinde bu kural öğrenci-günlerin %55.4'ünde, öğrencilerin %95.1'inde
+    tetikleniyordu -- yani "yarılanma" bu popülasyonda anomali degil olagan haftalik
+    dalgalanma. Tek bir karsilastirma, gecici bir dusus ile kalici bir egilimi ayirt edemiyor.
+    Iki ardisik yarilanma sarti tetiklenmeyi %12.1 gun / %41.7 ogrenciye indiriyor ve ileri
+    yonlu isabeti de artiriyor (tetiklenme sonrasi 7 gun sessizlik kaldiraci 1.37x -> 1.71x).
+
+    Döner: {ogrenci_no: {'ilk_erisim', 'son_erisim', 'bu_hafta', 'gecen_hafta',
+                         'onceki_hafta', 'kumulatif'}}.
     """
     olaylar = pipeline.mat_sin_birlestir(mat, sin)[['ogrenci_no', 'islem_zamani']]
 
     bu_hafta_baslangic = bugun - pd.Timedelta(days=7)
     gecen_hafta_baslangic = bugun - pd.Timedelta(days=14)
+    onceki_hafta_baslangic = bugun - pd.Timedelta(days=21)
 
     kumulatif_olaylar = olaylar[olaylar['islem_zamani'] < bugun]
     bu_hafta_olaylar = kumulatif_olaylar[kumulatif_olaylar['islem_zamani'] >= bu_hafta_baslangic]
@@ -75,11 +89,16 @@ def ozet_hesapla(mat, sin, dem, bugun):
         (kumulatif_olaylar['islem_zamani'] >= gecen_hafta_baslangic)
         & (kumulatif_olaylar['islem_zamani'] < bu_hafta_baslangic)
     ]
+    onceki_hafta_olaylar = kumulatif_olaylar[
+        (kumulatif_olaylar['islem_zamani'] >= onceki_hafta_baslangic)
+        & (kumulatif_olaylar['islem_zamani'] < gecen_hafta_baslangic)
+    ]
 
     ilk_erisim = kumulatif_olaylar.groupby('ogrenci_no')['islem_zamani'].min()
     son_erisim = kumulatif_olaylar.groupby('ogrenci_no')['islem_zamani'].max()
     bu_hafta_sayim = bu_hafta_olaylar.groupby('ogrenci_no').size()
     gecen_hafta_sayim = gecen_hafta_olaylar.groupby('ogrenci_no').size()
+    onceki_hafta_sayim = onceki_hafta_olaylar.groupby('ogrenci_no').size()
     kumulatif_sayim = kumulatif_olaylar.groupby('ogrenci_no').size()
 
     sonuc = {}
@@ -89,6 +108,7 @@ def ozet_hesapla(mat, sin, dem, bugun):
             'son_erisim': son_erisim.get(ogrenci_no),
             'bu_hafta': int(bu_hafta_sayim.get(ogrenci_no, 0)),
             'gecen_hafta': int(gecen_hafta_sayim.get(ogrenci_no, 0)),
+            'onceki_hafta': int(onceki_hafta_sayim.get(ogrenci_no, 0)),
             'kumulatif': int(kumulatif_sayim.get(ogrenci_no, 0)),
         }
 
@@ -116,6 +136,7 @@ def erisim_ozetini_yaz(ozet):
             deger['son_erisim'].to_pydatetime() if pd.notna(deger['son_erisim']) else None,
             deger['bu_hafta'],
             deger['gecen_hafta'],
+            deger['onceki_hafta'],
             deger['kumulatif'],
             simdi,
         )
@@ -125,13 +146,15 @@ def erisim_ozetini_yaz(ozet):
     sorgu = """
         INSERT INTO ogrenci_erisim_ozeti
             (student_id, ilk_erisim_tarihi, son_erisim_tarihi, bu_hafta_erisim_sayisi,
-             gecen_hafta_erisim_sayisi, donem_kumulatif_erisim_sayisi, guncellenme_tarihi)
-        VALUES (%s, %s, %s, %s, %s, %s, %s)
+             gecen_hafta_erisim_sayisi, onceki_hafta_erisim_sayisi,
+             donem_kumulatif_erisim_sayisi, guncellenme_tarihi)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
         ON DUPLICATE KEY UPDATE
             ilk_erisim_tarihi = VALUES(ilk_erisim_tarihi),
             son_erisim_tarihi = VALUES(son_erisim_tarihi),
             bu_hafta_erisim_sayisi = VALUES(bu_hafta_erisim_sayisi),
             gecen_hafta_erisim_sayisi = VALUES(gecen_hafta_erisim_sayisi),
+            onceki_hafta_erisim_sayisi = VALUES(onceki_hafta_erisim_sayisi),
             donem_kumulatif_erisim_sayisi = VALUES(donem_kumulatif_erisim_sayisi),
             guncellenme_tarihi = VALUES(guncellenme_tarihi)
     """

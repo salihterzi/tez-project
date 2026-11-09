@@ -31,6 +31,7 @@ class OgrenciErisimOzetiRepository extends ServiceEntityRepository
      *     sonErisimTarihi: ?\DateTimeImmutable,
      *     buHaftaErisimSayisi: int,
      *     gecenHaftaErisimSayisi: int,
+     *     oncekiHaftaErisimSayisi: int,
      *     donemKumulatifErisimSayisi: int,
      * }>
      */
@@ -47,7 +48,8 @@ class OgrenciErisimOzetiRepository extends ServiceEntityRepository
             $yerTutucular = implode(', ', array_fill(0, count($parca), '?'));
             $rows = $connection->fetchAllAssociative(
                 "SELECT student_id, ilk_erisim_tarihi, son_erisim_tarihi, bu_hafta_erisim_sayisi,
-                        gecen_hafta_erisim_sayisi, donem_kumulatif_erisim_sayisi
+                        gecen_hafta_erisim_sayisi, onceki_hafta_erisim_sayisi,
+                        donem_kumulatif_erisim_sayisi
                  FROM ogrenci_erisim_ozeti WHERE student_id IN ({$yerTutucular})",
                 $parca,
             );
@@ -58,6 +60,7 @@ class OgrenciErisimOzetiRepository extends ServiceEntityRepository
                     'sonErisimTarihi' => null !== $row['son_erisim_tarihi'] ? new \DateTimeImmutable($row['son_erisim_tarihi']) : null,
                     'buHaftaErisimSayisi' => (int) $row['bu_hafta_erisim_sayisi'],
                     'gecenHaftaErisimSayisi' => (int) $row['gecen_hafta_erisim_sayisi'],
+                    'oncekiHaftaErisimSayisi' => (int) $row['onceki_hafta_erisim_sayisi'],
                     'donemKumulatifErisimSayisi' => (int) $row['donem_kumulatif_erisim_sayisi'],
                 ];
             }

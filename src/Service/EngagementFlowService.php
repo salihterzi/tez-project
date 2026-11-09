@@ -24,20 +24,33 @@ use App\Enum\ZorlukResponse;
  * M1 (engel teşhisi) senaryosunun karar ve mutasyon mantığı: hangi tetikleyicide M1
  * gönderilir, bir yanıt geldiğinde `StudentProfile` nasıl güncellenir ve sıradaki mesaj
  * hangisidir. Taşıma katmanından (WhatsApp gönderimi/webhook yanıt yönlendirmesi) bilinçli
- * olarak bağımsızdır — bkz. proje notları: telefon numarası <-> öğrenci eşlemesi şemada
- * henüz yok, bu yüzden gerçek gönderim/webhook yönlendirmesi bu tez turunun kapsamı dışında
- * bırakıldı. Bu servis yalnızca "student X şu yanıtı verdi" bilgisinden hareketle doğru
- * mutasyonu ve bir sonraki mesajı üretir; entity'leri flush ETMEZ (çağıran taraf yapar).
+ * olarak bağımsızdır: bu servis yalnızca "student X şu yanıtı verdi" bilgisinden hareketle
+ * doğru mutasyonu ve bir sonraki mesajı üretir; entity'leri flush ETMEZ (çağıran taraf yapar).
+ * Gerçek yönlendirmeyi {@see WebhookYanitRouter} yapar — hem canlı
+ * {@see \App\Controller\WhatsAppWebhookController} hem {@see \App\Command\SimulateWebhookReplyCommand}
+ * aynı yolu kullanır.
  *
- * Her metot artık bir {@see Persona} parametresi alır (kullanıcı kararı 2026-10-04: "tonlama
+ * (2026-11-03 düzeltme: bu docblock'un "telefon numarası <-> öğrenci eşlemesi şemada henüz
+ * yok, gerçek gönderim bu tez turunun kapsamı dışında" notu BAYATTI. Eşleme yapıldı, gerçek
+ * gönderim ScheduledMessage kuyruğu üzerinden Meta'da canlı doğrulandı.)
+ *
+ * Her metot bir {@see Persona} parametresi alır (kullanıcı kararı 2026-10-04: "tonlama
  * benim için önemli") — mesaj metni {@see EngagementFlowMessages}'ten persona'ya göre seçilir.
+ * 2026-11-03'ten beri üretimde yalnızca Yakınlık tarafındaki üç persona geliyor (ev üslubu;
+ * bkz. {@see Persona} docblock'u), ama metotlar altı personanın tamamını karşılamaya devam
+ * ediyor.
  * Dönen {@see FlowOutcome::$template} hâlâ persona'dan BAĞIMSIZ "mantıksal nokta" kimliğidir
  * ({@see WhatsAppTemplate}); gerçek Meta şablon adını (persona sonekli) almak için çağıran taraf
  * {@see WhatsAppTemplate::metaAdiPersonaIcin()}'i kendi elindeki persona ile çağırmalı.
  *
  * M1 yalnızca Normal dönem fazında kullanılır — Sınav Öncesi/Sınav Günü fazlarında
- * T2/T3/T4'ün kendi sınav-özel (barrier sorusu içermeyen) varyantları kullanılır; bu
- * varyantların metinleri elimizde değil, bu yüzden burada üretilmiyor (bkz. proje notları).
+ * T2/T3/T4'ün kendi sınav-özel (barrier sorusu içermeyen) varyantları kullanılır. O metinler
+ * BU servisin değil {@see TriggerMessageCatalog}'un sorumluluğunda
+ * (`t2SinavOncesi`/`t3SinavOncesi`/`t4SinavOncesi`), seçimi de
+ * {@see TriggerMessageSelector::chooseVariant()} yapar.
+ *
+ * (2026-11-03 düzeltme: "bu varyantların metinleri elimizde değil" notu BAYATTI — katalogda
+ * mevcut ve kullanılıyor.)
  */
 class EngagementFlowService
 {

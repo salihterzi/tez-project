@@ -13,8 +13,13 @@ final readonly class TriggerMessageVariant
     /**
      * @param string[]             $secenekler        boş dizi = seçeneksiz (yalnızca sınav günü mesajlarında)
      * @param array<string,string> $metinVaryantlari   persona bazlı metin override'ları, {@see Persona::value} ile anahtarlanır
-     *                                                  (örn. `[Persona::GencYakinlik->value => '...']`). Henüz hiçbir katalog
-     *                                                  girdisinde doldurulmuyor — {@see self::metinIcin()} boşsa `$metin`'e düşer.
+     *                                                  (örn. `[Persona::GencYakinlik->value => '...']`). `$metin` ise taban/yedek
+     *                                                  metindir ve YB (Yetişkin+Bilgi, en nötr ton) sürümüyle aynı tutulur —
+     *                                                  {@see self::metinIcin()} persona haritada yoksa ona düşer.
+     *                                                  (2026-11-03 düzeltme: bu alanın "henüz hiçbir katalog girdisinde
+     *                                                  doldurulmuyor" notu BAYATTI — {@see TriggerMessageCatalog} altı personanın
+     *                                                  metnini de dolduruyor. Üretimde yalnızca Yakınlık tarafındaki üç persona
+     *                                                  isteniyor, bkz. {@see Persona} docblock'u.)
      */
     public function __construct(
         public int $variantNo,
