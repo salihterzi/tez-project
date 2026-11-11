@@ -17,7 +17,9 @@ from docx import Document
 KURALLAR = [
  ('learning_goal eski alan adı',   r'learning_goal'),
  ('eski motivasyon seçeneği',      r'İyi bir not almak|Kariyerime katkı sağlamak|Zorunlu olduğu için alıyorum'),
- ('6 persona / 6 ton',             r'(6|altı)\s+persona|6 ton|GY/GB|GB/YB'),
+ # 2026-11-11: desen genişletildi — "6 farklı şekilde" ifadesi eski desene takılmıyordu
+ # ve Genel Bakış'ta bayat bir ton anlatımı bu yüzden TEMİZ raporlandı.
+ ('6 persona / 6 ton',             r'(6|altı)\s+(persona|ton|farklı)|GY/GB|GB/YB|iletişim tarzı (tercih|seçim)'),
  ('Bilgi persona kodu',            r'\[(GB|YB|İB|IB)\]|persona.{0,12}\b(GB|YB|İB)\b'),
  ('T2 eski eşik 5/12',             r'(5|12)\s*g[üu]ne? gev|Normal.{0,24}5 gün|Sınav Öncesi.{0,20}12 gün'),
  ('T3 tek yarılanma',              r'bu[_ ]hafta.{0,6}<.{0,6}ge[çc]en[_ ]hafta.{0,14}0[.,]5\s*$|geçen haftanın yarısının altı'),
@@ -28,6 +30,11 @@ KURALLAR = [
  ('haftalık tavan ≠ 1',            r'haftada (en fazla )?([2-9]|\d\d)\s*mesaj'),
  ('eski şablon sayısı',            r'\b(192|238|244|254|384)\b'),
  ('tanitim_t0_v1',                 r'tanitim_t0_v1'),
+ # 2026-11-11: "register" terimi "üslup" ile değiştirildi; yalnızca BİR KEZ
+ # "dilbilimde register" biçiminde tanıtılması serbest. Başka her kullanım sapmadır.
+ ('register terimi (üslup olmalı)', r'register(?!\s*olarak adlandırılır)'),
+ # Üslup sabit bir yazım standardı; "eksen" diye anılması eski çerçeve
+ ('üslup "eksen" diye anılıyor',   r'(üslup|register)[^.]{0,30}eksen|eksen[^.]{0,30}(üslup|register)'),
 ]
 # masum bağlamlar (tarihsel not / düzeltme kaydı)
 MASUM = re.compile(r'2026-11-(0[3-9]|1[0-9])|KALDIRILDI|kaldırıl|düştü|Kaldırılan|'

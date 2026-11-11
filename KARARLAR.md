@@ -12,6 +12,98 @@ verdik" sorusunu tek dosyadan cevaplamak için.
 
 ## 2026-11-11
 
+- **`Mesaj_Gonderim_Sureci_Genel_Bakis.docx` güncellendi — "TEMİZ" raporu yanıltıcıydı.**
+  Denetim bu dosyayı temiz göstermişti; tam okuma beş gerçek sapma buldu. Ders: **denetim
+  betiğinin "TEMİZ"i yalnızca "tanımlı 15 kuralın hiçbirine takılmadı" demektir**, "güncel"
+  demez. Yeni bir karar alındığında eski hâlini arayan desen eklenmezse o karar hiç
+  kontrol edilmez.
+  *Düzeltilenler:*
+  1. **p59 — tonun kaynağı tamamen bayattı.** "yaş grubu ve İLETİŞİM TARZI TERCİHİNE göre
+     6 farklı şekilde" diyordu. İki hata: öğrencinin "iletişim tarzı tercihi" diye bir alanı
+     HİÇ OLMADI (ton cinsiyetten türetiliyordu, o da kaldırıldı) ve 6 → 3. Yeniden yazıldı:
+     ton yalnızca yaş kademesinden, üslup öğrenciye göre değişmez, cinsiyet içeriği
+     belirlemez.
+  2. **p65 — haftalık sınır.** "öğrencinin kendi tercihine göre ayarlanabilir" diyordu;
+     2026-10-19'dan beri SABİT 1. Beyanın gerçek işlevi (hatırlatma kanalının gün sayısı)
+     yazıldı.
+  3. **p55** — engel akışında "sıklık tercihi sorulur" → "haftada kaç gün ayırabileceği
+     sorulur".
+  4. **p35 ↔ p39 iç çelişkisi** — biri "dört ayrı otomatik süreç", diğeri "bu beş süreç"
+     diyordu; tablo 5 satır. p35 düzeltildi.
+  5. **p50** — "sınıf ORTALAMASININ altında" → "sınıfın ORTANCA (medyan) düzeyinin
+     altında". Kod medyan kullanıyor; ortalama demek yöntemsel bir hata.
+  *Eklenen:* **Bölüm 7.1 — tetikleyici dışı iki kanal.** Belge "uçtan uca" olduğu hâlde T0
+  tanıtım mesajı ve Günlük Kontrol kanalı hiç geçmiyordu (Takvim dosyasındaki aynı boşluk
+  9 Kasım'da kapatılmıştı). İkisinin de haftalık sınırın dışında olduğu, T0'ın elle
+  gönderildiği ve Günlük Kontrol'ün gün sayısının beyandan geldiği yazıldı.
+  *Kalıcı önlem:* denetim kuralı genişletildi — `(6|altı)\s+(persona|ton|farklı)` ve
+  "iletişim tarzı tercihi" artık yakalanıyor. Regresyon kontrolü yapıldı: kural eski p59'u
+  yakalıyor, yeni p59'u ve tarihsel "öncesi 6 persona" notunu geçiyor.
+  *Yedek:* `arsiv/Genel_Bakis-yedek-20261111.docx`
+
+- **Terminoloji: "register" → "üslup"; ve üslubun "eksen" nitelemesi kaldırıldı**
+  (kullanıcı kararı, iki değişiklik birlikte).
+  *Tespit:* aynı kavram için İKİ terim dolaşımdaydı — dokümanlarda `register` 28,
+  `üslup` 17 kez. Üstelik terim hiçbir yerde TANIMLI değildi: ilk geçtiği yer
+  (Model p27) okuyucunun bildiğini varsayıyordu. Proje zaten "ev üslubu" ifadesini
+  kullandığı için Türkçe karşılık fiilen dolaşımdaydı ama tutarsız.
+  *Karar 1 — terim:* ana terim **üslup**. Dilbilim literatürüne bağ, Model Bölüm 2.2'de
+  **tek bir kez** kuruluyor: "Metinler iki ayrı ÜSLUPTA yazılmıştır — dilbilimde bu ayrım
+  register olarak adlandırılır: dilin belirli bir toplumsal bağlamda aldığı biçim
+  (resmî/samimi, mesafeli/yakın)… Bundan sonra metinde 'üslup' terimi kullanılır."
+  Gerekçe: tez TDK Yazım Kılavuzu'nu esas alıyor ve "ev üslubu" ifadesi artık tutarlı.
+  *Karar 2 — "eksen" nitelemesi:* üslup öğrenciye göre DEĞİŞMEDİĞİ için eksen değil.
+  Bölüm 2.2 başlığı bunu söylüyordu ama gövdede birkaç yerde hâlâ "register ekseni" diye
+  geçiyordu — Teknik Detay'da dün düzelttiğim sorunun aynısı. Başlıklar yeniden yazıldı:
+  Model 2.2 "Register — kişiselleştirme ekseni değil, yazım standardı" → **"Üslup — tüm
+  öğrencilere uygulanan yazım standardı"**; Model 2.4 "Register'ın dört somut dilsel
+  işareti" → **"Üslup ayrımının dört somut dilsel işareti"**; Teknik Detay 9.2 "Register
+  ekseni (…)" → **"Üslup — sabit ev üslubu, öğrenciye göre değişmez"**.
+  *Kapsam:* 6 dokümanda 24 yer (Model 13, Teknik Detay 4, templates 4, Değerlendirme
+  Tasarımı 1, Takvim 1, Bilgilendirme 1) + 2 tablo hücresi.
+  *KODA DOKUNULMADI:* `src/`'te 9 `register` atfı (değişken/docblock) ve
+  `var/metin_kodlama.csv`'nin `register` SÜTUN ADI korundu — sütun adını değiştirmek
+  ölçüm çıktısını ve TABLO A/C'yi kırardı. Teknik okuyucu için literatür terimi uygun.
+  *Doğrulama:* dokümanlarda `register` 3 kez kaldı, üçü de "dilbilimde register" tanıtımı;
+  tanıtım dışı kullanım **sıfır**. `üslup` 47 kez.
+  *Kalıcı önlem:* `python/dokuman_denetimi.py`'ye iki kural eklendi — tanıtım dışı
+  "register" kullanımı ve üslubun "eksen" diye anılması artık mekanik olarak yakalanıyor.
+  *Yedekler:* `arsiv/*-yedek-uslup-20261111.docx` (3 dosya)
+
+- **Süreç yapısı kuruldu: `CLAUDE.md` + 5 beceri + make kısayolları** (kullanıcı isteği:
+  "tezimi uygulayıp savunmam için yardıma ihtiyacım var… bir yapı kurabilirsin").
+  *Tasarım ilkesi:* her beceri bu projede GERÇEKTEN tekrarlayan bir hata türüne karşılık
+  geliyor. Varsayımsal iyi pratik eklenmedi; beş hata türünün hepsi bu oturumda yaşandı.
+  *`CLAUDE.md` (proje kökü, 71 satır):* her oturumun baştan türetmek zorunda kalmaması için
+  kazanılmış kurallar — "kod esastır" ve geçmiş kayıt istisnası; proaktif mesaj metninin
+  koddan değiştirilemeyeceği; `php -l`'in yetersizliği ve runtime duman testi gerekliliği;
+  `columnDefinition` sapması; "tezdeki her sayı bir betikten"; dışa dokunan komutların
+  listesi; jeton/kuyruk sırası; MySQL charset ve memory_limit tuzakları; yürürlükteki
+  10 tasarım kararının özet tablosu; terminoloji ("dürtme" ASLA).
+  *Beceriler:*
+  | `/tutarlilik` | 5 katman: doküman↔kod, entity↔DB enum, metin↔templates.json↔Meta,
+  runtime duman testi, lint. Yanlış pozitiflerin üç tipik sebebini de anlatıyor ki her
+  denetim aynı şeyleri tekrar işaretlemesin. |
+  | `/olcum` | sayının betikten çıkmasını, numaralı tablo olmasını, gerekçe kategorisine
+  (türetilmiş / işletim noktası ölçülmüş / muhakemeye dayanan) doğru yerleşmesini ve
+  REDDEDİLEN ALTERNATİFLERİN saklanmasını zorunlu kılıyor. "Ölçmek türetilmiş yapmaz"
+  uyarısı dahil. |
+  | `/karar` | ev formatı (karar · gerekçe · reddedilen · bedeli · nerede · doğrulama) +
+  **yayılma tablosu**: bir eşik/enum/metin/persona/alan adı değiştiğinde hangi yerlerin
+  bakılacağı. Bu tablo bu oturumda yaşanan yayılma hatalarından türetildi. |
+  | `/isletim` | dönem içi haftalık kontrol: jeton, kuyruk yaşı, tetikleyici dağılımı
+  (> %60 → dur), yanıt oranı, çıkış talepleri, log boyutu + müdahale eşikleri + dönem
+  ortasında değiştirilmeyecekler. |
+  | `/savunma` | hakem gibi okur: iddianın en zayıf hâlini alır, cevabın VARLIĞINI ve
+  GÜCÜNÜ (hangi gerekçe kategorisi) kaynak göstererek kontrol eder, cevabı olmayanları ayrı
+  listeler. 11 satırlık "bilinen zayıf noktalar" tablosu içeriyor: nedensellik,
+  gönüllü yanlılığı, kişiselleştirme iddiası, register seçimi, eşikler, T4'ün zayıflığı,
+  AIM/IAM (AÇIK), kaygı boyutu, etik/opt-out (AÇIK), veri minimizasyonu (AÇIK),
+  sayıların kaynağı. |
+  *Make kısayolları:* `make denetim` · `lint-all` · `senaryolar` · `olcum-metin`.
+  *Doğrulama:* beş becerinin frontmatter'ı ve ad/dizin eşleşmesi kontrol edildi;
+  `make denetim` çalışıyor.
+
 - **`calistirma-ve-mudahale-yol-haritasi-TASLAK.md` yazıldı** (kullanıcı isteği; taslak
   olduğu dosya adında). Mevcut `roadmap-faz.md` GELİŞTİRME fazlarını (A–F) anlatıyordu;
   bu belge **dönem içi işletimi** anlatıyor. İkisine karşılıklı kapsam notu düşüldü.

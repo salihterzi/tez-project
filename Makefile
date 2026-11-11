@@ -38,3 +38,20 @@ cache-clear: ## Cache temizle
 
 test: ## Testleri çalıştır
 	$(PHP) bin/phpunit
+
+# --- Tez projesi denetim kısayolları (2026-11-11) ---
+denetim: ## Doküman ↔ kod çelişki taraması
+	python3 python/dokuman_denetimi.py
+
+lint-all: ## php -l (tüm src) + lint:container
+	docker compose exec -T php sh -c 'find /app/src -name "*.php" -exec php -l {} \;' | grep -v "No syntax errors" || echo "src temiz"
+	docker compose exec -T php bin/console lint:container
+
+senaryolar: ## Senaryo süitlerini koştur (S3-S6)
+	sh test-senaryolari/s4.sh
+	sh test-senaryolari/s5.sh
+	sh test-senaryolari/s6.sh
+	sh test-senaryolari/s3.sh
+
+olcum-metin: ## Metin kodlama ölçümünü yeniden üret (TABLO A-D)
+	python3 python/metin_kodlama.py
