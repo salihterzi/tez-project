@@ -43,11 +43,8 @@ final class TriggerMessageCatalog
                 sablon: WhatsAppTemplate::T1Secenek1,
                 metinVaryantlari: [
                     Persona::GencYakinlik->value => 'Selam {ad}, bu dönem derslerin seni bekliyor — ilk adımı atmak güzel hissettirir, ne zaman bir göz atmak istersin? 🙂',
-                    Persona::GencBilgi->value => 'Selam {ad}, bu dönem derslerin açık ve henüz başlanmamış. Ne zaman göz atmayı planlıyorsun?',
                     Persona::YetiskinYakinlik->value => 'Merhaba {ad}, bu döneme hoş geldiniz — kendi hızınızda başlamanız yeterli. Ne zaman göz atmak istersiniz?',
-                    Persona::YetiskinBilgi->value => 'Merhaba {ad}, bu dönem dersleriniz erişime açık, henüz başlanmamış. Ne zaman inceleyeceğinizi belirtmeniz yeterli.',
                     Persona::IleriYasYakinlik->value => 'Merhaba {ad}, bu döneme hoş geldiniz — kendi önceliklerinize göre, size uygun bir zamanda başlamanız yeterli. Ne zaman göz atmak istersiniz?',
-                    Persona::IleriYasBilgi->value => 'Merhaba {ad}, bu dönem dersleriniz erişime açık, henüz başlanmamış. Size uygun bir zamanda inceleyeceğinizi belirtmeniz yeterlidir.',
                 ],
             ),
             new TriggerMessageVariant(
@@ -57,11 +54,8 @@ final class TriggerMessageCatalog
                 sablon: WhatsAppTemplate::T1Secenek2,
                 metinVaryantlari: [
                     Persona::GencYakinlik->value => 'Selam {ad}, derslerin seni bekliyor 🙂 İlk adım küçük, sadece bir göz atmak — birlikte başlayalım mı?',
-                    Persona::GencBilgi->value => 'Selam {ad}, derslerin açık. İlk adım kısa: sadece göz atmak. Şimdi mi başlıyorsun?',
                     Persona::YetiskinYakinlik->value => 'Merhaba {ad}, dersleriniz sizi bekliyor. İlk adım küçük bir göz atmaktan ibaret, aceleniz yok — ne zaman uygun olursa.',
-                    Persona::YetiskinBilgi->value => 'Merhaba {ad}, dersleriniz erişime açık. İlk adım yalnızca göz atmaktır; şimdi başlamak isteyip istemediğinizi belirtebilirsiniz.',
                     Persona::IleriYasYakinlik->value => 'Merhaba {ad}, dersleriniz sizi bekliyor. İlk adım küçük bir göz atmaktan ibaret, hiçbir aceleniz yok — kendi zamanınızda olsun.',
-                    Persona::IleriYasBilgi->value => 'Merhaba {ad}, dersleriniz erişime açık. İlk adım yalnızca göz atmaktır; size uygun olduğunda başlamak isteyip istemediğinizi belirtebilirsiniz.',
                 ],
             ),
             new TriggerMessageVariant(
@@ -71,11 +65,8 @@ final class TriggerMessageCatalog
                 sablon: WhatsAppTemplate::T1Secenek3,
                 metinVaryantlari: [
                     Persona::GencYakinlik->value => 'Selam {ad}, derslerine henüz başlamamışsın, bu gayet normal 🙂 Küçük bir adımla başlamak ister misin?',
-                    Persona::GencBilgi->value => 'Selam {ad}, derslerine henüz başlamadın. Küçük bir adımla başlamak ister misin?',
                     Persona::YetiskinYakinlik->value => 'Merhaba {ad}, derslerinize henüz başlamadığınızı görüyoruz — bu tamamen normal, herkesin kendi zamanlaması vardır. Küçük bir adımla başlamak ister misiniz?',
-                    Persona::YetiskinBilgi->value => 'Merhaba {ad}, derslerinize henüz başlanmamış görünüyor. Küçük bir adımla başlamak isteyip istemediğinizi belirtmeniz yeterli.',
                     Persona::IleriYasYakinlik->value => 'Merhaba {ad}, derslerinize henüz başlamadığınızı görüyoruz — bu tamamen normal, herkesin kendi zamanlaması ve önceliği vardır. Küçük bir adımla başlamak ister misiniz?',
-                    Persona::IleriYasBilgi->value => 'Merhaba {ad}, derslerinize henüz başlanmamış görünüyor. Küçük bir adımla başlamak isteyip istemediğinizi belirtmeniz yeterlidir.',
                 ],
             ),
         ];
@@ -106,11 +97,8 @@ final class TriggerMessageCatalog
                 sablon: WhatsAppTemplate::T2NormalV1,
                 metinVaryantlari: [
                     Persona::GencYakinlik->value => 'Selam {ad}, kaldığın yer hazır duruyor, merak etme 🙂 Şu an nasıl gidiyor?',
-                    Persona::GencBilgi->value => 'Selam {ad}, kaldığın yer hazır. Şu anki durumun nedir?',
                     Persona::YetiskinYakinlik->value => 'Merhaba {ad}, kaldığınız yer hazır duruyor. Şu anki durumunuzu paylaşmak ister misiniz?',
-                    Persona::YetiskinBilgi->value => 'Merhaba {ad}, kaldığınız yer hazır duruyor. Şu anki durumunuzu belirtmeniz yeterli.',
                     Persona::IleriYasYakinlik->value => 'Merhaba {ad}, kaldığınız yer hazır duruyor, hiç merak etmeyin. Şu anki durumunuzu paylaşmak ister misiniz?',
-                    Persona::IleriYasBilgi->value => 'Merhaba {ad}, kaldığınız yer hazır duruyor. Şu anki durumunuzu belirtmeniz yeterlidir.',
                 ],
             ),
             new TriggerMessageVariant(
@@ -120,11 +108,8 @@ final class TriggerMessageCatalog
                 sablon: WhatsAppTemplate::T2NormalV2,
                 metinVaryantlari: [
                     Persona::GencYakinlik->value => 'Selam {ad}, bir süredir yoktun, nasılsın diye sormak istedim 🙂 Şu an durumun ne?',
-                    Persona::GencBilgi->value => 'Selam {ad}, bir süredir aktif değilsin. Şu anki durumun nedir?',
                     Persona::YetiskinYakinlik->value => 'Merhaba {ad}, bir süredir sizi göremedik. Şu anki durumunuzu paylaşmak ister misiniz?',
-                    Persona::YetiskinBilgi->value => 'Merhaba {ad}, bir süredir hareketlilik fark edilmedi. Şu anki durumunuzu belirtmeniz yeterli.',
                     Persona::IleriYasYakinlik->value => 'Merhaba {ad}, bir süredir sizi göremedik. Şu anki durumunuzu paylaşmak ister misiniz?',
-                    Persona::IleriYasBilgi->value => 'Merhaba {ad}, bir süredir hareketlilik fark edilmedi. Şu anki durumunuzu belirtmeniz yeterlidir.',
                 ],
             ),
             new TriggerMessageVariant(
@@ -134,11 +119,8 @@ final class TriggerMessageCatalog
                 sablon: WhatsAppTemplate::T2NormalV3,
                 metinVaryantlari: [
                     Persona::GencYakinlik->value => 'Selam {ad}, derslerinde bir süredir sessizlik var, nasılsın diye sormak istedim 🙂 Şu an durumun ne?',
-                    Persona::GencBilgi->value => 'Selam {ad}, derslerinde bir süredir hareket yok. Şu anki durumun nedir?',
                     Persona::YetiskinYakinlik->value => 'Merhaba {ad}, derslerinizde bir süredir hareket fark edilmedi. Şu anki durumunuzu paylaşmak ister misiniz?',
-                    Persona::YetiskinBilgi->value => 'Merhaba {ad}, derslerinizde hareketsizlik fark edildi. Şu anki durumunuzu belirtmeniz yeterli.',
                     Persona::IleriYasYakinlik->value => 'Merhaba {ad}, derslerinizde bir süredir hareket fark edilmedi. Şu anki durumunuzu paylaşmak ister misiniz?',
-                    Persona::IleriYasBilgi->value => 'Merhaba {ad}, derslerinizde hareketsizlik fark edildi. Şu anki durumunuzu belirtmeniz yeterlidir.',
                 ],
             ),
         ];
@@ -163,11 +145,8 @@ final class TriggerMessageCatalog
                 sinavTuruGerekli: true,
                 metinVaryantlari: [
                     Persona::GencYakinlik->value => 'Selam {ad}, {sınav} yaklaşıyor, heyecanlanman gayet normal 🙂 Ekampüsteki özetlere göz atmak ister misin?',
-                    Persona::GencBilgi->value => 'Selam {ad}, {sınav} yaklaşıyor. Ekampüsteki özetlere göz atmak ister misin?',
                     Persona::YetiskinYakinlik->value => 'Merhaba {ad}, {sınav} yaklaşıyor. Ekampüsteki özetlere göz atmak ister misiniz?',
-                    Persona::YetiskinBilgi->value => 'Merhaba {ad}, {sınav} yaklaşıyor. Ekampüsteki özetlere göz atmak isteyip istemediğinizi belirtmeniz yeterli.',
                     Persona::IleriYasYakinlik->value => 'Merhaba {ad}, {sınav} yaklaşıyor. Ekampüsteki özetlere göz atmak ister misiniz?',
-                    Persona::IleriYasBilgi->value => 'Merhaba {ad}, {sınav} yaklaşıyor. Ekampüsteki özetlere göz atmak isteyip istemediğinizi belirtmeniz yeterlidir.',
                 ],
             ),
             new TriggerMessageVariant(
@@ -178,11 +157,8 @@ final class TriggerMessageCatalog
                 sinavTuruGerekli: true,
                 metinVaryantlari: [
                     Persona::GencYakinlik->value => 'Selam {ad}, {sınav} için 2 hafta kaldı, nasılsın diye sormak istedim 🙂',
-                    Persona::GencBilgi->value => 'Selam {ad}, {sınav} için 2 hafta kaldı. Nasıl gidiyor?',
                     Persona::YetiskinYakinlik->value => 'Merhaba {ad}, {sınav} için 2 hafta kaldı. Nasıl gidiyorsunuz, paylaşmak ister misiniz?',
-                    Persona::YetiskinBilgi->value => 'Merhaba {ad}, {sınav} için 2 hafta kaldı. Durumunuzu belirtmeniz yeterli.',
                     Persona::IleriYasYakinlik->value => 'Merhaba {ad}, {sınav} için 2 hafta kaldı. Nasıl gidiyorsunuz, paylaşmak ister misiniz?',
-                    Persona::IleriYasBilgi->value => 'Merhaba {ad}, {sınav} için 2 hafta kaldı. Durumunuzu belirtmeniz yeterlidir.',
                 ],
             ),
             new TriggerMessageVariant(
@@ -192,11 +168,8 @@ final class TriggerMessageCatalog
                 sablon: WhatsAppTemplate::T2SinavOncesiV3,
                 metinVaryantlari: [
                     Persona::GencYakinlik->value => 'Selam {ad}, sınav dönemi başladı 📚 Ekampüsteki özetlere göz atmak ister misin?',
-                    Persona::GencBilgi->value => 'Selam {ad}, sınav dönemine girdik. Ekampüsteki özetlere göz atmak ister misin?',
                     Persona::YetiskinYakinlik->value => 'Merhaba {ad}, sınav dönemine girdik. Ekampüsteki özetlere göz atmak ister misiniz?',
-                    Persona::YetiskinBilgi->value => 'Merhaba {ad}, sınav dönemi başlamıştır. Ekampüsteki özetlere göz atmak isteyip istemediğinizi belirtmeniz yeterli.',
                     Persona::IleriYasYakinlik->value => 'Merhaba {ad}, sınav dönemine girdik. Ekampüsteki özetlere göz atmak ister misiniz?',
-                    Persona::IleriYasBilgi->value => 'Merhaba {ad}, sınav dönemi başlamıştır. Ekampüsteki özetlere göz atmak isteyip istemediğinizi belirtmeniz yeterlidir.',
                 ],
             ),
             new TriggerMessageVariant(
@@ -207,11 +180,8 @@ final class TriggerMessageCatalog
                 sinavTuruGerekli: true,
                 metinVaryantlari: [
                     Persona::GencYakinlik->value => 'Selam {ad}, {sınav} öncesi son günler, kendine iyi bak 💪 Ekampüsteki özetlere göz atmak ister misin?',
-                    Persona::GencBilgi->value => 'Selam {ad}, {sınav} öncesi son günler. Ekampüsteki özetlere göz atmak ister misin?',
                     Persona::YetiskinYakinlik->value => 'Merhaba {ad}, {sınav} öncesi son günlerdeyiz. Ekampüsteki özetlere göz atmak ister misiniz?',
-                    Persona::YetiskinBilgi->value => 'Merhaba {ad}, {sınav} öncesi son günler. Ekampüsteki özetlere göz atmak isteyip istemediğinizi belirtmeniz yeterli.',
                     Persona::IleriYasYakinlik->value => 'Merhaba {ad}, {sınav} öncesi son günlerdeyiz. Ekampüsteki özetlere göz atmak ister misiniz?',
-                    Persona::IleriYasBilgi->value => 'Merhaba {ad}, {sınav} öncesi son günler. Ekampüsteki özetlere göz atmak isteyip istemediğinizi belirtmeniz yeterlidir.',
                 ],
             ),
         ];
@@ -230,11 +200,8 @@ final class TriggerMessageCatalog
                     // 2026-10-12 (kullanıcı kararı): {ad} eklendi — bkz. proje notları, bu
                     // varyant önceden hiç isim kullanmıyordu.
                     Persona::GencYakinlik->value => 'Selam {ad}, bu hafta nasıl geçiyor diye sormak istedim 🙂',
-                    Persona::GencBilgi->value => 'Selam {ad}, bu hafta nasıl gidiyor?',
                     Persona::YetiskinYakinlik->value => 'Merhaba {ad}, bu hafta nasıl gidiyor, paylaşmak ister misiniz?',
-                    Persona::YetiskinBilgi->value => 'Merhaba {ad}, bu haftaki durumunuzu belirtmeniz yeterli.',
                     Persona::IleriYasYakinlik->value => 'Merhaba {ad}, bu hafta nasıl gidiyor, paylaşmak ister misiniz?',
-                    Persona::IleriYasBilgi->value => 'Merhaba {ad}, bu haftaki durumunuzu belirtmeniz yeterlidir.',
                 ],
             ),
             new TriggerMessageVariant(
@@ -244,11 +211,8 @@ final class TriggerMessageCatalog
                 sablon: WhatsAppTemplate::T3NormalV2,
                 metinVaryantlari: [
                     Persona::GencYakinlik->value => 'Selam {ad}, bu hafta biraz sakindi, her şey yolunda mı diye sormak istedim 🙂',
-                    Persona::GencBilgi->value => 'Selam {ad}, bu hafta biraz daha sakin geçti. Her şey yolunda mı?',
                     Persona::YetiskinYakinlik->value => 'Merhaba {ad}, bu hafta biraz daha sakin geçti. Her şey yolunda mı, paylaşmak ister misiniz?',
-                    Persona::YetiskinBilgi->value => 'Merhaba {ad}, bu hafta daha az hareketlilik fark edildi. Durumunuzu belirtmeniz yeterli.',
                     Persona::IleriYasYakinlik->value => 'Merhaba {ad}, bu hafta biraz daha sakin geçti. Her şey yolunda mı, paylaşmak ister misiniz?',
-                    Persona::IleriYasBilgi->value => 'Merhaba {ad}, bu hafta daha az hareketlilik fark edildi. Durumunuzu belirtmeniz yeterlidir.',
                 ],
             ),
             new TriggerMessageVariant(
@@ -258,11 +222,8 @@ final class TriggerMessageCatalog
                 sablon: WhatsAppTemplate::T3NormalV3,
                 metinVaryantlari: [
                     Persona::GencYakinlik->value => 'Selam {ad}, geçen haftaya göre biraz yavaşladın, sorun değil, hepimiz böyle anlar yaşarız 🙂 Nasıl gidiyor?',
-                    Persona::GencBilgi->value => 'Selam {ad}, geçen haftaya göre biraz yavaşladın. Nasıl gidiyor?',
                     Persona::YetiskinYakinlik->value => 'Merhaba {ad}, geçen haftaya göre bir miktar yavaşlama fark edildi. Nasıl gidiyor, paylaşmak ister misiniz?',
-                    Persona::YetiskinBilgi->value => 'Merhaba {ad}, geçen haftaya kıyasla bir yavaşlama fark edildi. Durumunuzu belirtmeniz yeterli.',
                     Persona::IleriYasYakinlik->value => 'Merhaba {ad}, geçen haftaya göre bir miktar yavaşlama fark edildi, bu gayet doğal olabilir. Nasıl gidiyor, paylaşmak ister misiniz?',
-                    Persona::IleriYasBilgi->value => 'Merhaba {ad}, geçen haftaya kıyasla bir yavaşlama fark edildi. Durumunuzu belirtmeniz yeterlidir.',
                 ],
             ),
         ];
@@ -284,11 +245,8 @@ final class TriggerMessageCatalog
                 sablon: WhatsAppTemplate::T3SinavOncesiV1,
                 metinVaryantlari: [
                     Persona::GencYakinlik->value => 'Selam {ad}, bu hafta tempon değişti, muhtemelen sınava çalışıyorsundur, seni tebrik ederim 🙂 Materyallere göz atmak ister misin?',
-                    Persona::GencBilgi->value => 'Selam {ad}, bu hafta tempon değişti. Materyallere göz atmak ister misin?',
                     Persona::YetiskinYakinlik->value => 'Merhaba {ad}, bu hafta temponuzda bir değişiklik fark edildi, muhtemelen sınav hazırlığındasınızdır. Materyallere göz atmak ister misiniz?',
-                    Persona::YetiskinBilgi->value => 'Merhaba {ad}, bu hafta tempo değişikliği fark edildi. Materyallere göz atmak ister misiniz?',
                     Persona::IleriYasYakinlik->value => 'Merhaba {ad}, bu hafta temponuzda bir değişiklik fark edildi, muhtemelen sınav hazırlığındasınızdır. Materyallere göz atmak ister misiniz?',
-                    Persona::IleriYasBilgi->value => 'Merhaba {ad}, bu hafta tempo değişikliği fark edildi. Materyallere göz atmak ister misiniz?',
                 ],
             ),
             new TriggerMessageVariant(
@@ -298,11 +256,8 @@ final class TriggerMessageCatalog
                 sablon: WhatsAppTemplate::T3SinavOncesiV2,
                 metinVaryantlari: [
                     Persona::GencYakinlik->value => 'Selam {ad}, sınav haftasına yaklaşırken herkesin temposu değişir, bu gayet normal 🙂 Konu tekrarı için ekampüse göz atmak ister misin?',
-                    Persona::GencBilgi->value => 'Selam {ad}, sınav haftasına yaklaşırken tempo değişir. Konu tekrarı için ekampüse göz atmak ister misin?',
                     Persona::YetiskinYakinlik->value => 'Merhaba {ad}, sınav haftasına yaklaşırken herkesin temposu değişebilir. Konu tekrarı için ekampüse göz atmak ister misiniz?',
-                    Persona::YetiskinBilgi->value => 'Merhaba {ad}, sınav haftası öncesinde tempo değişimi olağandır. Konu tekrarı için ekampüse göz atmak isteyip istemediğinizi belirtebilirsiniz.',
                     Persona::IleriYasYakinlik->value => 'Merhaba {ad}, sınav haftasına yaklaşırken herkesin temposu değişebilir, bu gayet doğal. Konu tekrarı için ekampüse göz atmak ister misiniz?',
-                    Persona::IleriYasBilgi->value => 'Merhaba {ad}, sınav haftası öncesinde tempo değişimi olağandır. Konu tekrarı için ekampüse göz atmak isteyip istemediğinizi belirtebilirsiniz.',
                 ],
             ),
             new TriggerMessageVariant(
@@ -313,11 +268,8 @@ final class TriggerMessageCatalog
                 sinavTuruGerekli: true,
                 metinVaryantlari: [
                     Persona::GencYakinlik->value => 'Selam {ad}, {sınav} öncesi çalışma düzenin nasıl gidiyor diye sormak istedim 🙂',
-                    Persona::GencBilgi->value => 'Selam {ad}, {sınav} öncesi çalışma düzenin nasıl gidiyor?',
                     Persona::YetiskinYakinlik->value => 'Merhaba {ad}, {sınav} öncesi çalışma düzeniniz nasıl gidiyor, paylaşmak ister misiniz?',
-                    Persona::YetiskinBilgi->value => 'Merhaba {ad}, {sınav} öncesi çalışma düzeninizi belirtmeniz yeterli.',
                     Persona::IleriYasYakinlik->value => 'Merhaba {ad}, {sınav} öncesi çalışma düzeniniz nasıl gidiyor, paylaşmak ister misiniz?',
-                    Persona::IleriYasBilgi->value => 'Merhaba {ad}, {sınav} öncesi çalışma düzeninizi belirtmeniz yeterlidir.',
                 ],
             ),
         ];
@@ -340,11 +292,8 @@ final class TriggerMessageCatalog
                 normIcerikli: true,
                 metinVaryantlari: [
                     Persona::GencYakinlik->value => 'Selam {ad}, son zamanlarda öğrenme materyalleriyle diğer öğrencilere kıyasla daha az etkileşimde olduğunu fark ettik, hiç sorun değil 🙂 E-kampüs\'e girip göz atmak ister misin?',
-                    Persona::GencBilgi->value => 'Selam {ad}, son zamanlarda öğrenme materyalleriyle diğer öğrencilere kıyasla daha az etkileşimde olduğunu fark ettik. E-kampüs\'e girip göz atmak ister misin?',
                     Persona::YetiskinYakinlik->value => 'Merhaba {ad}, son zamanlarda öğrenme materyalleriyle diğer öğrencilere kıyasla daha az etkileşimde olduğunuzu fark ettik. E-kampüs\'e girip göz atmak ister misiniz?',
-                    Persona::YetiskinBilgi->value => 'Merhaba {ad}, öğrenme materyalleriyle diğer öğrencilere kıyasla daha az etkileşimde bulunduğunuz fark edildi. E-kampüs\'e girmek isteyip istemediğinizi belirtmeniz yeterli.',
                     Persona::IleriYasYakinlik->value => 'Merhaba {ad}, son zamanlarda öğrenme materyalleriyle diğer öğrencilere kıyasla daha az etkileşimde olduğunuzu fark ettik, bu hiç sorun değil. E-kampüs\'e girip göz atmak ister misiniz?',
-                    Persona::IleriYasBilgi->value => 'Merhaba {ad}, öğrenme materyalleriyle diğer öğrencilere kıyasla daha az etkileşimde bulunduğunuz fark edildi. E-kampüs\'e girmek isteyip istemediğinizi belirtmeniz yeterlidir.',
                 ],
             ),
             new TriggerMessageVariant(
@@ -354,11 +303,8 @@ final class TriggerMessageCatalog
                 sablon: WhatsAppTemplate::T4NormalV2Notr,
                 metinVaryantlari: [
                     Persona::GencYakinlik->value => 'Selam {ad}, bu dönem derslerine göz atma sıran bu hafta olabilir, ne dersin 🙂',
-                    Persona::GencBilgi->value => 'Selam {ad}, bu dönem derslerine göz atma sıran bu hafta olabilir. Ne dersin?',
                     Persona::YetiskinYakinlik->value => 'Merhaba {ad}, bu dönem derslerinize göz atmanız için uygun bir zaman olabilir. Ne dersiniz?',
-                    Persona::YetiskinBilgi->value => 'Merhaba {ad}, bu dönem derslerinizi bu hafta incelemeyi düşünür müsünüz?',
                     Persona::IleriYasYakinlik->value => 'Merhaba {ad}, bu dönem derslerinize göz atmanız için uygun bir zaman olabilir. Ne dersiniz?',
-                    Persona::IleriYasBilgi->value => 'Merhaba {ad}, bu dönem derslerinizi bu hafta incelemeyi düşünür müsünüz?',
                 ],
             ),
         ];
@@ -382,11 +328,8 @@ final class TriggerMessageCatalog
                 sablon: WhatsAppTemplate::T4SinavOncesiV1,
                 metinVaryantlari: [
                     Persona::GencYakinlik->value => 'Selam {ad}, sınav öncesi özetlere göz atmak ister misin? 🙂',
-                    Persona::GencBilgi->value => 'Selam {ad}, sınav öncesi özetlere göz atmak ister misin?',
                     Persona::YetiskinYakinlik->value => 'Merhaba {ad}, sınav öncesi özetlere göz atmak ister misiniz?',
-                    Persona::YetiskinBilgi->value => 'Merhaba {ad}, sınav öncesi özetlere göz atmak isteyip istemediğinizi belirtmeniz yeterli.',
                     Persona::IleriYasYakinlik->value => 'Merhaba {ad}, sınav öncesi özetlere göz atmak ister misiniz?',
-                    Persona::IleriYasBilgi->value => 'Merhaba {ad}, sınav öncesi özetlere göz atmak isteyip istemediğinizi belirtmeniz yeterlidir.',
                 ],
             ),
             new TriggerMessageVariant(
@@ -396,11 +339,8 @@ final class TriggerMessageCatalog
                 sablon: WhatsAppTemplate::T4SinavOncesiV2,
                 metinVaryantlari: [
                     Persona::GencYakinlik->value => 'Selam {ad}, son 2 haftada nelere odaklanacağını netleştirdin mi diye sormak istedim 💪',
-                    Persona::GencBilgi->value => 'Selam {ad}, son 2 haftada nelere odaklanacağını netleştirdin mi?',
                     Persona::YetiskinYakinlik->value => 'Merhaba {ad}, son 2 haftada nelere odaklanacağınızı netleştirdiniz mi?',
-                    Persona::YetiskinBilgi->value => 'Merhaba {ad}, son 2 haftalık odak alanlarınızı netleştirip netleştirmediğinizi belirtmeniz yeterli.',
                     Persona::IleriYasYakinlik->value => 'Merhaba {ad}, son 2 haftada nelere odaklanacağınızı netleştirdiniz mi?',
-                    Persona::IleriYasBilgi->value => 'Merhaba {ad}, son 2 haftalık odak alanlarınızı netleştirip netleştirmediğinizi belirtmeniz yeterlidir.',
                 ],
             ),
         ];
@@ -426,7 +366,9 @@ final class TriggerMessageCatalog
         $sablonlar = self::SINAV_GUNU_SABLONLARI[$sinavTuru][$etkilesimVar];
 
         return [
-            'metin' => $metinler[$persona?->value] ?? $metinler[Persona::YetiskinBilgi->value],
+            // 2026-11-10: geri dönüş personası YetiskinBilgi → YetiskinYakinlik. Bilgi tarafı
+            // üretimden çıktığı için eski geri dönüş artık var olmayan bir anahtarı arıyordu.
+            'metin' => $metinler[$persona?->value] ?? $metinler[Persona::YetiskinYakinlik->value],
             'sablon' => $sablonlar,
         ];
     }

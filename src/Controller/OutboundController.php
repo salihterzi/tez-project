@@ -37,12 +37,13 @@ use Symfony\Component\Routing\Attribute\Route;
  *   mode=ai  -> açılışı AI ürettiği serbest metinle dener (yalnız 24s pencere açıkken iletilir).
  *
  * VARSAYILAN ŞABLON (2026-10-04 güncellemesi): eski tek `engel_v1` adı artık yok — M1 açılışı
- * tetikleyici (T2/T3/T4) × persona (GY/GB/YY/YB/İY/İB) bazında 18 ayrı şablona bölündü (bkz.
+ * tetikleyici (T2/T3/T4) × persona (GY/YY/İY) bazında ayrı şablonlara bölündü (bkz.
  * {@see WhatsAppTemplate}). Bu endpoint'in hangi tetikleyiciden geldiğine dair bir bilgisi YOK
  * (karar motorundan bağımsız, manuel/ad-hoc tetikleme) — bu yüzden sabit olarak
  * {@see EngagementTrigger::T2} ("uzun süredir sessiz" açılışı, en genel/nötr "nasılsın"
  * çağrısı) kullanılır; persona ise `$to`'dan {@see OgrenciRepository::findByTelefonNumarasi()}
- * ile bulunabilirse hesaplanır, bulunamazsa {@see Persona::YetiskinBilgi} (en nötr/resmî ton)
+ * ile bulunabilirse hesaplanır, bulunamazsa {@see Persona::YetiskinYakinlik} (ev üslubu,
+ * kademesi bilinmeyen öğrenci için en nötr kademe)
  * varsayılanına düşülür.
  *
  * KARAR MOTORUNA BAĞLANTI (2026-10-04, bulunan eksiklik giderildi): `template` parametresi
@@ -58,7 +59,15 @@ use Symfony\Component\Routing\Attribute\Route;
 class OutboundController extends AbstractController
 {
     private const EngagementTrigger DEFAULT_TRIGGER = EngagementTrigger::T2;
-    private const Persona DEFAULT_PERSONA = Persona::YetiskinBilgi;
+    /**
+     * 2026-11-10: `YetiskinBilgi` → `YetiskinYakinlik`. Bilgi register'ı 2026-11-03'te
+     * ev üslubu kararıyla üretim dışına çıkmıştı, ama bu varsayılan onu taşımaya devam
+     * ediyordu — yani öğrenci telefonundan eşlenemediğinde HİÇ GÖNDERİLMEMESİ gereken
+     * register'a düşülüyordu. Enum 3 case'e indirilince derleme hatası olarak ortaya
+     * çıktı. Yeni varsayılan, kademesi bilinmeyen öğrenci için en nötr olan Yetişkin
+     * kademesini ev üslubuyla birleştirir.
+     */
+    private const Persona DEFAULT_PERSONA = Persona::YetiskinYakinlik;
     private const string DEFAULT_TEMPLATE_LANG = 'tr';
     private const string DEFAULT_AI_PROMPT = 'Öğrenciye sıcak ve kısa bir açılış mesajı yaz: kendini öğrenci destek asistanı olarak tanıt ve bugün nasıl yardımcı olabileceğini sor.';
 

@@ -3,7 +3,7 @@
 namespace App\Service;
 
 use App\Enum\EngagementTrigger;
-use App\Enum\LearningGoal;
+use App\Enum\EnrollmentMotivation;
 use App\Enum\Persona;
 use App\Enum\WeeklyHoursAvailable;
 
@@ -25,27 +25,18 @@ final class EngagementFlowMessages
         return match ($trigger) {
             EngagementTrigger::T2 => match ($persona) {
                 Persona::GencYakinlik => "Selam {$ad}, bir süredir seni göremeyince nasıl olduğunu sormak istedim, umarım her şey yolundadır 🙂 Konuşmak istersen buradayım — seni şu an en çok ne zorluyor?",
-                Persona::GencBilgi => "Selam {$ad}, sistemde bir süredir hareketin yok. Seni en çok ne zorluyor, aşağıdan seç:",
                 Persona::YetiskinYakinlik => "Merhaba {$ad}, bir süredir sizi göremedik — bu gayet normal olabilir, herkesin yoğun dönemleri olur. Sizi şu an en çok ne zorluyor, paylaşmak ister misiniz?",
-                Persona::YetiskinBilgi => "Merhaba {$ad}, bir süredir hareketlilik fark edilmedi. Sizi en çok ne zorladığını belirtmeniz yeterli.",
                 Persona::IleriYasYakinlik => "Merhaba {$ad}, bir süredir sizi göremedik — bu gayet normal olabilir, herkesin kendine ayırdığı zaman değişebilir. Sizi şu an en çok ne zorluyor, paylaşmak ister misiniz?",
-                Persona::IleriYasBilgi => "Merhaba {$ad}, bir süredir hareketlilik fark edilmedi. Sizi en çok ne zorladığını belirtmeniz yeterlidir.",
             },
             EngagementTrigger::T3 => match ($persona) {
                 Persona::GencYakinlik => "Selam {$ad}, bu hafta biraz farklıydın, nasılsın diye sormak istedim 🙂 Seni şu an en çok ne zorluyor?",
-                Persona::GencBilgi => "Selam {$ad}, bu hafta tempon geçen haftaya göre düştü. Seni en çok ne zorluyor?",
                 Persona::YetiskinYakinlik => "Merhaba {$ad}, bu hafta temponuzda bir değişiklik oldu — bu gayet normal olabilir. Sizi şu an en çok ne zorluyor, paylaşmak ister misiniz?",
-                Persona::YetiskinBilgi => "Merhaba {$ad}, bu hafta bir tempo düşüşü fark edildi. Sizi en çok ne zorladığını belirtmeniz yeterli.",
                 Persona::IleriYasYakinlik => "Merhaba {$ad}, bu hafta temponuzda bir değişiklik oldu — bu gayet normal olabilir, herkesin kendi ritmi vardır. Sizi şu an en çok ne zorluyor, paylaşmak ister misiniz?",
-                Persona::IleriYasBilgi => "Merhaba {$ad}, bu hafta bir tempo düşüşü fark edildi. Sizi en çok ne zorladığını belirtmeniz yeterlidir.",
             },
             EngagementTrigger::T4 => match ($persona) {
                 Persona::GencYakinlik => "Selam {$ad}, genel gidişatına bakınca nasılsın diye sormak istedim, umarım iyisindir 🙂 Seni şu an en çok ne zorluyor?",
-                Persona::GencBilgi => "Selam {$ad}, genel ilerlemende bir yavaşlama var. Seni en çok ne zorluyor?",
                 Persona::YetiskinYakinlik => "Merhaba {$ad}, genel ilerlemenizde bir yavaşlama gözlemledik — bu gayet normal olabilir. Sizi şu an en çok ne zorluyor, paylaşmak ister misiniz?",
-                Persona::YetiskinBilgi => "Merhaba {$ad}, genel ilerlemenizde bir yavaşlama fark edildi. Sizi en çok ne zorladığını belirtmeniz yeterli.",
                 Persona::IleriYasYakinlik => "Merhaba {$ad}, genel ilerlemenizde bir yavaşlama gözlemledik — bu gayet normal olabilir, kendi önceliklerinizi belirlemek sizin elinizde. Sizi şu an en çok ne zorluyor, paylaşmak ister misiniz?",
-                Persona::IleriYasBilgi => "Merhaba {$ad}, genel ilerlemenizde bir yavaşlama fark edildi. Sizi en çok ne zorladığını belirtmeniz yeterlidir.",
             },
             EngagementTrigger::T1 => throw new \LogicException('M1, T1 tetikleyicisinden asla başlatılmaz.'),
         };
@@ -57,11 +48,8 @@ final class EngagementFlowMessages
     {
         return match ($persona) {
             Persona::GencYakinlik => "Selam {$ad}, görüşmeyeli uzun zaman oldu 🙂 E-kampüste ders çalışmaya ne dersin?",
-            Persona::GencBilgi => "Selam {$ad}, görüşmeyeli uzun zaman oldu. E-kampüste ders çalışmak ister misin?",
             Persona::YetiskinYakinlik => "Merhaba {$ad}, görüşmeyeli uzun zaman oldu. E-kampüste ders çalışmak ister misiniz?",
-            Persona::YetiskinBilgi => "Merhaba {$ad}, görüşmeyeli uzun zaman oldu. E-kampüste ders çalışmak ister misiniz?",
             Persona::IleriYasYakinlik => "Merhaba {$ad}, görüşmeyeli uzun zaman oldu, hiç merak etmeyin. E-kampüste ders çalışmak ister misiniz?",
-            Persona::IleriYasBilgi => "Merhaba {$ad}, görüşmeyeli uzun zaman oldu. E-kampüste ders çalışmak ister misiniz?",
         };
     }
 
@@ -88,11 +76,8 @@ final class EngagementFlowMessages
     {
         return match ($persona) {
             Persona::GencYakinlik => 'Harika, hemen başlıyorsun 🙂 Buradan girebilirsin: https://ekampus.anadolu.edu.tr — küçük bir göz atmak bile fark yaratır, iyi çalışmalar!',
-            Persona::GencBilgi => 'Harika, şimdi başlıyorsun. Materyaller burada: https://ekampus.anadolu.edu.tr İyi çalışmalar.',
             Persona::YetiskinYakinlik => 'Ne güzel, şimdi başlıyorsunuz — materyallere buradan ulaşabilirsiniz: https://ekampus.anadolu.edu.tr. Küçük bir göz atmak bile iyi bir başlangıç. İyi çalışmalar dilerim.',
-            Persona::YetiskinBilgi => 'Anlaşıldı, şimdi başlıyorsunuz. Materyallere e-kampüs platformu üzerinden ulaşabilirsiniz: https://ekampus.anadolu.edu.tr İyi çalışmalar dileriz.',
             Persona::IleriYasYakinlik => 'Ne güzel, şimdi başlıyorsunuz — materyallere buradan, kendi hızınızda ulaşabilirsiniz: https://ekampus.anadolu.edu.tr. İyi çalışmalar dilerim.',
-            Persona::IleriYasBilgi => 'Anlaşıldı, şimdi başlıyorsunuz. Materyallere e-kampüs platformu üzerinden ulaşabilirsiniz: https://ekampus.anadolu.edu.tr İyi çalışmalar dileriz.',
         };
     }
 
@@ -100,11 +85,8 @@ final class EngagementFlowMessages
     {
         return match ($persona) {
             Persona::GencYakinlik => 'Sorun değil, sana uygun olduğunda başlarsın 🙂 İstediğin zaman buradayım.',
-            Persona::GencBilgi => 'Sorun değil, sana uygun olduğunda başlayabilirsin.',
             Persona::YetiskinYakinlik => 'Sorun değil, size uygun olduğunda başlayabilirsiniz — istediğiniz zaman buradayız.',
-            Persona::YetiskinBilgi => 'Anlaşıldı, size uygun olduğunda başlayabilirsiniz.',
             Persona::IleriYasYakinlik => 'Sorun değil, size uygun olduğunda başlayabilirsiniz — kendi önceliklerinize göre ilerleyin.',
-            Persona::IleriYasBilgi => 'Anlaşıldı, size uygun olduğunda başlayabilirsiniz.',
         };
     }
 
@@ -114,11 +96,8 @@ final class EngagementFlowMessages
     {
         return match ($persona) {
             Persona::GencYakinlik => 'Anlıyorum, zaman bulmak gerçekten zor olabiliyor — bunda yalnız değilsin 🙂 Sana en rahat geleni birlikte seçelim mi?',
-            Persona::GencBilgi => 'Anlaşıldı, zaman kısıtlı. Üç seçenek var, sana uygun olanı seçmen yeterli.',
             Persona::YetiskinYakinlik => 'Anlıyorum, zaman bulmak pek çok kişi için gerçekten zor — bunda yalnız değilsiniz. Sizin için en rahat olan neyse onu birlikte seçelim mi?',
-            Persona::YetiskinBilgi => 'Anlaşıldı, zaman kısıtlı. Üç seçenek var, size uygun olanı seçmeniz yeterli.',
             Persona::IleriYasYakinlik => 'Anlıyorum, zaman ve enerjinizi önceliklendirmeniz gerekiyor — bu gayet doğal. Sizin için en rahat olan neyse onu birlikte seçelim mi?',
-            Persona::IleriYasBilgi => 'Anlaşıldı, zaman kısıtlı. Üç seçenek var, size uygun olanı seçmeniz yeterlidir.',
         };
     }
 
@@ -127,11 +106,8 @@ final class EngagementFlowMessages
     {
         return match ($persona) {
             Persona::GencYakinlik => 'Güzel seçim 🙂 Haftada 1 kısa oturuma göre ayarlıyorum — sana en rahat gelen saat hangisi?',
-            Persona::GencBilgi => 'Tamam, haftada 1 kısa oturuma göre ayarlanıyor. Saat aralığını seç:',
             Persona::YetiskinYakinlik => 'Güzel bir tercih. Haftada 1 kısa oturuma göre ayarlıyorum — size en rahat gelen saat aralığı hangisi olur?',
-            Persona::YetiskinBilgi => 'Anlaşıldı, haftalık tek oturuma göre planlanacak. Saat aralığını seçmeniz yeterli.',
             Persona::IleriYasYakinlik => 'Güzel bir tercih. Haftada 1 kısa oturuma göre ayarlıyorum — size en uygun gelen saat aralığı hangisi olur?',
-            Persona::IleriYasBilgi => 'Anlaşıldı, haftalık tek oturuma göre planlanacak. Saat aralığını seçmeniz yeterlidir.',
         };
     }
 
@@ -139,11 +115,8 @@ final class EngagementFlowMessages
     {
         return match ($persona) {
             Persona::GencYakinlik => 'Süper, seni bu saate göre hatırlatacağım — yanındayım 🙂 Başarılar!',
-            Persona::GencBilgi => 'Tamam, hatırlatma bu saate göre ayarlandı. Başarılar.',
             Persona::YetiskinYakinlik => 'Teşekkür ederim, bu tercihinize göre sizi hatırlatacağım — istediğiniz zaman buradayız. Başarılar dilerim.',
-            Persona::YetiskinBilgi => 'Anlaşıldı, hatırlatmalar bu saate göre ayarlandı. Başarılar dileriz.',
             Persona::IleriYasYakinlik => 'Teşekkür ederim, bu tercihinize göre sizi hatırlatacağım — istediğiniz zaman da buradayız. Başarılar dilerim.',
-            Persona::IleriYasBilgi => 'Anlaşıldı, hatırlatmalar bu saate göre ayarlandı. Başarılar dileriz.',
         };
     }
 
@@ -151,11 +124,8 @@ final class EngagementFlowMessages
     {
         return match ($persona) {
             Persona::GencYakinlik => 'Anladım, aynı tempoda devam edelim 💪 İyi gidiyorsun, arkandayım!',
-            Persona::GencBilgi => 'Anlaşıldı, mevcut tempo korunuyor. İyi gidiyorsun.',
             Persona::YetiskinYakinlik => 'Anladım, mevcut temponuzla devam ediyoruz. İyi gidiyorsunuz, bunu takdir ediyorum.',
-            Persona::YetiskinBilgi => 'Anlaşıldı, mevcut tempo değiştirilmeyecek. İyi gidiyorsunuz.',
             Persona::IleriYasYakinlik => 'Anladım, kendi temponuzla devam ediyoruz — bu sizin kararınız ve ona değer veriyoruz. İyi gidiyorsunuz.',
-            Persona::IleriYasBilgi => 'Anlaşıldı, mevcut tempo değiştirilmeyecek. İyi gidiyorsunuz.',
         };
     }
 
@@ -163,11 +133,8 @@ final class EngagementFlowMessages
     {
         return match ($persona) {
             Persona::GencYakinlik => 'Anlıyorum, biraz alana ihtiyacın var, bu çok normal 🙂 Sana ne zaman tekrar yazayım, birlikte karar verelim mi?',
-            Persona::GencBilgi => 'Anlaşıldı, sana alan tanıyorum. Ne zaman tekrar yazmamı istersin?',
             Persona::YetiskinYakinlik => 'Anlıyorum, size alan tanımak isteriz — bu tamamen sizin kararınız. Ne zaman tekrar yazmamızı istersiniz?',
-            Persona::YetiskinBilgi => 'Anlaşıldı. Size ne zaman tekrar ulaşmamızı istediğinizi belirtmeniz yeterli.',
             Persona::IleriYasYakinlik => 'Anlıyorum, size alan tanımak isteriz — bu tamamen sizin kararınız. Ne zaman tekrar yazmamızı istersiniz?',
-            Persona::IleriYasBilgi => 'Anlaşıldı. Size ne zaman tekrar ulaşmamızı istediğinizi belirtmeniz yeterlidir.',
         };
     }
 
@@ -175,11 +142,8 @@ final class EngagementFlowMessages
     {
         return match ($persona) {
             Persona::GencYakinlik => 'Tamam, belirlediğin zamanda tekrar yazarım 🙂 İstersen daha önce de "Merhaba" yazman yeterli, hemen devam ederiz.',
-            Persona::GencBilgi => 'Tamam, belirttiğin zamanda tekrar iletişime geçilecek. İstersen daha önce "Merhaba" yazarak da mesajları yeniden başlatabilirsin.',
             Persona::YetiskinYakinlik => 'Anlaşıldı, belirttiğiniz zamanda tekrar sizinle iletişime geçeceğiz. İstediğiniz an "Merhaba" yazmanız, mesajların yeniden başlaması için yeterli.',
-            Persona::YetiskinBilgi => 'Anlaşıldı, belirttiğiniz zamanda tekrar ulaşılacaktır. İsterseniz daha önce "Merhaba" yazarak mesajları yeniden başlatabilirsiniz.',
             Persona::IleriYasYakinlik => 'Anlaşıldı, belirttiğiniz zamanda tekrar sizinle iletişime geçeceğiz. İstediğiniz an "Merhaba" yazmanız, mesajların yeniden başlaması için yeterli.',
-            Persona::IleriYasBilgi => 'Anlaşıldı, belirttiğiniz zamanda tekrar ulaşılacaktır. İsterseniz daha önce "Merhaba" yazarak mesajları yeniden başlatabilirsiniz.',
         };
     }
 
@@ -191,29 +155,40 @@ final class EngagementFlowMessages
     {
         return match ($persona) {
             Persona::GencYakinlik => 'Merhaba! Seni tekrar mesaj listesine ekledim, hoş geldin 🙂',
-            Persona::GencBilgi => 'Merhaba, mesajlar yeniden başlatıldı.',
             Persona::YetiskinYakinlik => 'Merhaba, sizi yeniden mesaj listesine ekledik, tekrar aramızda olmanıza memnun olduk.',
-            Persona::YetiskinBilgi => 'Merhaba, mesajlar yeniden başlatılmıştır.',
             Persona::IleriYasYakinlik => 'Merhaba, sizi yeniden mesaj listesine ekledik, tekrar aramızda olmanıza memnun olduk.',
-            Persona::IleriYasBilgi => 'Merhaba, mesajlar yeniden başlatılmıştır.',
         };
     }
 
     /**
-     * Öğrenci "1"/"2"/"3" yazarak haftalık gün sayısını kendi isteğiyle güncellediğinde
-     * gönderilen onay metni (2026-10-19, kullanıcı kararı).
+     * Öğrenci "1"/"2"/"3" yazarak haftalık ÇALIŞMA GÜNÜ SAYISINI kendi isteğiyle
+     * güncellediğinde gönderilen onay metni (2026-10-19, kullanıcı kararı).
+     *
+     * METİN DÜZELTMESİ (2026-11-10, kullanıcı kararı): metin önceden "haftalık MESAJ
+     * SIKLIĞINI {$gunMetni} olarak güncelledim" diyordu. Bu, öğrenciye TUTULMAYAN BİR SÖZ
+     * veriyordu: 2026-10-19'dan beri haftalık tetikleyici tavanı herkes için SABİT 1'dir
+     * ({@see \App\Service\MessageFrequencyPolicy::HAFTALIK_UST_SINIR}) ve öğrencinin
+     * yazdığı sayı tetikleyici sıklığını DEĞİŞTİRMEZ — yalnızca Günlük Kontrol kanalının
+     * kaç gün gönderileceğini ve T0 tanıtım metnindeki sıklık ifadesini belirler.
+     *
+     * Kusur, T0 v1'de yakalanıp şablon sürümü yükseltilerek düzeltilen kusurun aynısıydı
+     * (bkz. {@see \App\Enum\WhatsAppTemplate::TanitimT0} yorumu): karar verilmiş, ama
+     * kodun bir yolu kararın dışında kalmıştı. Yeni metin fiilen değişen şeyi adıyla
+     * söylüyor — "çalışma günü sayısı" — ve bu, aynı akıştaki diğer iki metinle
+     * ({@see self::gunlukKontrolSerbestMetin()}, {@see self::sayiHakkiKullanildi()})
+     * terim olarak hizalı hâle geliyor.
+     *
+     * Şablon onayı GEREKMEZ: reaktif mesaj (24 saatlik yanıt penceresi), Meta şablon
+     * tavanından slot tüketmiyor.
      */
     public static function gunSayisiGuncellendi(WeeklyHoursAvailable $yeniDeger, Persona $persona): string
     {
         $gunMetni = $yeniDeger->value;
 
         return match ($persona) {
-            Persona::GencYakinlik => "Tamam, haftalık mesaj sıklığını {$gunMetni} olarak güncelledim 🙂",
-            Persona::GencBilgi => "Tamam, haftalık mesaj sıklığın {$gunMetni} olarak güncellendi.",
-            Persona::YetiskinYakinlik => "Anlaşıldı, haftalık mesaj sıklığınızı {$gunMetni} olarak güncelledik.",
-            Persona::YetiskinBilgi => "Anlaşıldı, haftalık mesaj sıklığınız {$gunMetni} olarak güncellenmiştir.",
-            Persona::IleriYasYakinlik => "Anlaşıldı, haftalık mesaj sıklığınızı {$gunMetni} olarak güncelledik.",
-            Persona::IleriYasBilgi => "Anlaşıldı, haftalık mesaj sıklığınız {$gunMetni} olarak güncellenmiştir.",
+            Persona::GencYakinlik => "Tamam, çalışma günü sayını {$gunMetni} olarak güncelledim 🙂 Hatırlatmalar bundan sonra bu sıklıkta gelecek.",
+            Persona::YetiskinYakinlik => "Anlaşıldı, çalışma günü sayınızı {$gunMetni} olarak güncelledik. Hatırlatmalar bundan sonra bu sıklıkta gelecek.",
+            Persona::IleriYasYakinlik => "Anlaşıldı, çalışma günü sayınızı {$gunMetni} olarak güncelledik. Hatırlatmalar bundan sonra bu sıklıkta gelecek.",
         };
     }
 
@@ -238,11 +213,8 @@ final class EngagementFlowMessages
     {
         return match ($persona) {
             Persona::GencYakinlik => 'Mesajın geldi 🙂 Derslerine geçmek için yukarıdaki butonu kullanabilirsin. Çalışma günü sayını değiştirmek istersen 1-7 arası bir sayı yazman yeterli.',
-            Persona::GencBilgi => 'Mesajın alındı. Derslerine geçmek için yukarıdaki butonu kullanabilirsin. Gün sayısını değiştirmek için 1-7 arası bir sayı yazabilirsin.',
             Persona::YetiskinYakinlik => 'Mesajınız geldi. Derslerinize geçmek için yukarıdaki butonu kullanabilirsiniz. Çalışma günü sayınızı değiştirmek isterseniz 1-7 arası bir sayı yazmanız yeterli.',
-            Persona::YetiskinBilgi => 'Mesajınız alındı. Derslerinize geçmek için yukarıdaki butonu kullanabilirsiniz. Gün sayısını değiştirmek için 1-7 arası bir sayı yazabilirsiniz.',
             Persona::IleriYasYakinlik => 'Mesajınız geldi. Derslerinize kendi hızınızda geçmek için yukarıdaki butonu kullanabilirsiniz. Çalışma günü sayınızı değiştirmek isterseniz 1-7 arası bir sayı yazmanız yeterli.',
-            Persona::IleriYasBilgi => 'Mesajınız alındı. Derslerinize geçmek için yukarıdaki butonu kullanabilirsiniz. Gün sayısını değiştirmek için 1-7 arası bir sayı yazabilirsiniz.',
         };
     }
 
@@ -265,11 +237,8 @@ final class EngagementFlowMessages
     {
         return match ($persona) {
             Persona::GencYakinlik => 'Mesajın alındı 🙂 Gün sayısını her mesajda bir kez güncelleyebiliyoruz — bir sonraki mesajımızda yeniden değiştirebilirsin.',
-            Persona::GencBilgi => 'Mesajın alındı. Gün sayısını her mesajda bir kez güncelleyebiliyoruz; bir sonraki mesajımızda yeniden değiştirebilirsin.',
             Persona::YetiskinYakinlik => 'Mesajınız alındı. Gün sayısını her mesajda bir kez güncelleyebiliyoruz — bir sonraki mesajımızda yeniden değiştirebilirsiniz.',
-            Persona::YetiskinBilgi => 'Mesajınız alındı. Gün sayısını her mesajda bir kez güncelleyebiliyoruz; bir sonraki mesajımızda yeniden değiştirebilirsiniz.',
             Persona::IleriYasYakinlik => 'Mesajınız alındı. Gün sayısını her mesajda bir kez güncelleyebiliyoruz — bir sonraki mesajımızda yeniden değiştirebilirsiniz.',
-            Persona::IleriYasBilgi => 'Mesajınız alındı. Gün sayısını her mesajda bir kez güncelleyebiliyoruz; bir sonraki mesajımızda yeniden değiştirebilirsiniz.',
         };
     }
 
@@ -293,11 +262,8 @@ final class EngagementFlowMessages
     {
         return match ($persona) {
             Persona::GencYakinlik => 'Mesajlaşma sınırımıza ulaştık 🙂 Burada kısa bir ara verelim, sonra devam ederiz.',
-            Persona::GencBilgi => 'Mesajlaşma sınırına ulaşıldı. Burada kısa bir ara veriyoruz.',
             Persona::YetiskinYakinlik => 'Mesajlaşma sınırımıza ulaştık. Burada kısa bir ara verelim, sonra devam ederiz.',
-            Persona::YetiskinBilgi => 'Mesajlaşma sınırına ulaşılmıştır. Burada kısa bir ara veriyoruz.',
             Persona::IleriYasYakinlik => 'Mesajlaşma sınırımıza ulaştık. Burada kısa bir ara verelim, sonra devam ederiz.',
-            Persona::IleriYasBilgi => 'Mesajlaşma sınırına ulaşılmıştır. Burada kısa bir ara veriyoruz.',
         };
     }
 
@@ -307,11 +273,8 @@ final class EngagementFlowMessages
     {
         return match ($persona) {
             Persona::GencYakinlik => 'Zorlanman çok normal, karmaşık görünen konular küçük parçalara bölündüğünde çözülüyor 🙂 Şimdi hangisi sana daha uygun?',
-            Persona::GencBilgi => 'Anlaşıldı, zorlanman normal. Küçük parçalara bölerek ilerlemek için iki seçenek var — birini seç:',
             Persona::YetiskinYakinlik => 'Zorlanmanız çok normal, karmaşık görünen konular küçük parçalara bölündüğünde çözülüyor. Şimdi hangisi size daha uygun?',
-            Persona::YetiskinBilgi => 'Anlaşıldı, zorlanmak normaldir. Küçük parçalara bölerek ilerlemek için iki seçenek var; uygun olanı belirtmeniz yeterli.',
             Persona::IleriYasYakinlik => 'Zorlanmanız çok normal, karmaşık görünen konular küçük parçalara bölündüğünde çözülüyor. Şimdi hangisi size daha uygun?',
-            Persona::IleriYasBilgi => 'Anlaşıldı, zorlanmak normaldir. Küçük parçalara bölerek ilerlemek için iki seçenek var; uygun olanı belirtmeniz yeterlidir.',
         };
     }
 
@@ -319,11 +282,8 @@ final class EngagementFlowMessages
     {
         return match ($persona) {
             Persona::GencYakinlik => 'Tamam, materyallere e-kampüs üzerinden ulaşabilirsin: https://ekampus.anadolu.edu.tr 🙂 Kolay gelsin, başarabilirsin!',
-            Persona::GencBilgi => 'Materyallere e-kampüs üzerinden ulaşabilirsin: https://ekampus.anadolu.edu.tr',
             Persona::YetiskinYakinlik => 'Elbette, materyallere e-kampüs platformu üzerinden ulaşabilirsiniz: https://ekampus.anadolu.edu.tr. Kolay gelsin.',
-            Persona::YetiskinBilgi => 'Materyallere e-kampüs platformu üzerinden ulaşabilirsiniz: https://ekampus.anadolu.edu.tr',
             Persona::IleriYasYakinlik => 'Elbette, materyallere e-kampüs platformu üzerinden, kendi hızınızda ulaşabilirsiniz: https://ekampus.anadolu.edu.tr. Kolay gelsin.',
-            Persona::IleriYasBilgi => 'Materyallere e-kampüs platformu üzerinden ulaşabilirsiniz: https://ekampus.anadolu.edu.tr',
         };
     }
 
@@ -337,11 +297,8 @@ final class EngagementFlowMessages
     {
         return match ($persona) {
             Persona::GencYakinlik => 'Anlıyorum, hangisi sana daha yakın? 🙂',
-            Persona::GencBilgi => 'Tamam, hangisi sana daha yakın?',
             Persona::YetiskinYakinlik => 'Anlıyorum, hangisi size daha yakın?',
-            Persona::YetiskinBilgi => 'Uygun seçeneği belirtmeniz yeterli.',
             Persona::IleriYasYakinlik => 'Anlıyorum, hangisi size daha yakın?',
-            Persona::IleriYasBilgi => 'Uygun seçeneği belirtmeniz yeterlidir.',
         };
     }
 
@@ -355,11 +312,8 @@ final class EngagementFlowMessages
     {
         return match ($persona) {
             Persona::GencYakinlik => 'Teşekkürler, bunu not aldım 🙂 Hemen bir çözüm değil ama unutmayacağız — bu arada sen de pes etme, başarılar!',
-            Persona::GencBilgi => 'Not alındı. Anlık çözüm değil, ileride kaynak geliştirmede değerlendirilecek. Çalışmaya devam etmen önemli, başarılar.',
             Persona::YetiskinYakinlik => 'Teşekkür ederim, bunu aldım. Bu an itibarıyla bir çözüm sunmasa da, dikkate alınacaktır. Bu süreçte de çalışmalarınıza devam etmeniz önemli, başarılar dilerim.',
-            Persona::YetiskinBilgi => 'Bildiriminiz kaydedildi. İçerik geliştirme sürecinde değerlendirilecektir. Bu süreçte çalışmalarınıza devam etmeniz önemlidir, başarılar dileriz.',
             Persona::IleriYasYakinlik => 'Teşekkür ederim, bunu aldım. Bu an itibarıyla bir çözüm sunmasa da, dikkate alınacaktır. Bu süreçte de kendi hızınızda çalışmaya devam etmeniz önemli, başarılar dilerim.',
-            Persona::IleriYasBilgi => 'Bildiriminiz kaydedildi. İçerik geliştirme sürecinde değerlendirilecektir. Bu süreçte çalışmalarınıza devam etmeniz önemlidir, başarılar dileriz.',
         };
     }
 
@@ -369,12 +323,11 @@ final class EngagementFlowMessages
      * `motivasyonTakip()`'in Meta'ya GERÇEKTEN gidecek `{{1}}` parametresi — mesaj metninin
      * kendisiyle aynı değeri üretir, böylece ikisi hiçbir zaman birbirinden sapmaz.
      */
-    public static function motivasyonHedefMetni(?LearningGoal $hedef, Persona $persona): string
+    public static function motivasyonHedefMetni(?EnrollmentMotivation $hedef, Persona $persona): string
     {
         return $hedef?->value ?? match ($persona) {
-            Persona::GencYakinlik, Persona::GencBilgi => 'belirttiğin hedef',
-            Persona::YetiskinYakinlik, Persona::YetiskinBilgi,
-            Persona::IleriYasYakinlik, Persona::IleriYasBilgi => 'belirttiğiniz hedef',
+            Persona::GencYakinlik => 'belirttiğin hedef',
+            Persona::YetiskinYakinlik, Persona::IleriYasYakinlik => 'belirttiğiniz hedef',
         };
     }
 
@@ -383,17 +336,14 @@ final class EngagementFlowMessages
      * kaldırıldı, bu soru artık yalnızca 2 seçenekli (Evet geçerli / Emin değilim) —
      * {@see \App\Enum\MotivasyonResponse}'da da karşılığı yok.
      */
-    public static function motivasyonTakip(?LearningGoal $hedef, Persona $persona): string
+    public static function motivasyonTakip(?EnrollmentMotivation $hedef, Persona $persona): string
     {
         $hedefMetni = self::motivasyonHedefMetni($hedef, $persona);
 
         return match ($persona) {
             Persona::GencYakinlik => "Kayıt olurken hedefin \"{$hedefMetni}\" idi 🙂 Hâlâ geçerli mi?",
-            Persona::GencBilgi => "Kayıt sırasında hedefin \"{$hedefMetni}\" olarak belirtilmişti. Hâlâ geçerli mi?",
             Persona::YetiskinYakinlik => "Kayıt olduğunuzda hedefiniz \"{$hedefMetni}\" olarak belirtilmişti. Bu hâlâ sizin için geçerli mi diye sormak istedim.",
-            Persona::YetiskinBilgi => "Kayıt sırasında belirttiğiniz hedef \"{$hedefMetni}\" idi. Güncel durumunuzu belirtmeniz yeterli.",
             Persona::IleriYasYakinlik => "Kayıt olduğunuzda hedefiniz \"{$hedefMetni}\" olarak belirtilmişti. Bu hâlâ sizin için geçerli mi diye sormak istedim.",
-            Persona::IleriYasBilgi => "Kayıt sırasında belirttiğiniz hedef \"{$hedefMetni}\" idi. Güncel durumunuzu belirtmeniz yeterlidir.",
         };
     }
 
@@ -405,11 +355,8 @@ final class EngagementFlowMessages
     {
         return match ($persona) {
             Persona::GencYakinlik => 'Güzel, hedefin hâlâ geçerli 🙂 Küçük adımlarla ilerlemek ister misin, birlikte bakalım mı?',
-            Persona::GencBilgi => 'Anlaşıldı, hedef geçerli. Küçük adımlarla ilerlemek ister misin?',
             Persona::YetiskinYakinlik => 'Memnuniyetle, hedefiniz hâlâ geçerli. Size uygun şekilde küçük adımlarla ilerlemek ister misiniz?',
-            Persona::YetiskinBilgi => 'Hedefin geçerliliği teyit edildi. Küçük adımlarla ilerlemek isteyip istemediğinizi belirtmeniz yeterli.',
             Persona::IleriYasYakinlik => 'Memnuniyetle, hedefiniz hâlâ geçerli. Size uygun tempoda, küçük adımlarla ilerlemek ister misiniz?',
-            Persona::IleriYasBilgi => 'Hedefin geçerliliği teyit edildi. Küçük adımlarla ilerlemek isteyip istemediğinizi belirtmeniz yeterlidir.',
         };
     }
 
@@ -417,11 +364,8 @@ final class EngagementFlowMessages
     {
         return match ($persona) {
             Persona::GencYakinlik => 'Sorun değil — net olmasa da attığın her adım, ileride hangi yöne gideceğine karar verirken sana fayda sağlar 🙂',
-            Persona::GencBilgi => 'Sorun değil. Net olmasa da attığın her adım, ileride yön kararı verirken sana fayda sağlayacaktır.',
             Persona::YetiskinYakinlik => 'Sorun değil — net olmasa da attığınız her adım, ileride hangi yöne gideceğinize karar verirken size fayda sağlayacaktır.',
-            Persona::YetiskinBilgi => 'Belirsizlik bir engel teşkil etmez; attığınız her adım ileride yön kararı verirken size fayda sağlayacaktır.',
             Persona::IleriYasYakinlik => 'Sorun değil — net olmasa da kendi hızınızda attığınız her adım, ileride yönünüzü belirlerken size fayda sağlayacaktır.',
-            Persona::IleriYasBilgi => 'Belirsizlik bir engel teşkil etmez; attığınız her adım ileride yön kararı verirken size fayda sağlayacaktır.',
         };
     }
 
@@ -435,11 +379,8 @@ final class EngagementFlowMessages
     {
         return match ($persona) {
             Persona::GencYakinlik => 'Materyallere e-kampüs üzerinden ulaşabilirsin: https://ekampus.anadolu.edu.tr 🙂',
-            Persona::GencBilgi => 'Materyallere e-kampüs üzerinden ulaşabilirsin: https://ekampus.anadolu.edu.tr',
             Persona::YetiskinYakinlik => 'Materyallere e-kampüs platformu üzerinden ulaşabilirsiniz: https://ekampus.anadolu.edu.tr',
-            Persona::YetiskinBilgi => 'Materyallere e-kampüs platformu üzerinden ulaşabilirsiniz: https://ekampus.anadolu.edu.tr',
             Persona::IleriYasYakinlik => 'Materyallere e-kampüs platformu üzerinden, kendi hızınızda ulaşabilirsiniz: https://ekampus.anadolu.edu.tr',
-            Persona::IleriYasBilgi => 'Materyallere e-kampüs platformu üzerinden ulaşabilirsiniz: https://ekampus.anadolu.edu.tr',
         };
     }
 
@@ -447,11 +388,8 @@ final class EngagementFlowMessages
     {
         return match ($persona) {
             Persona::GencYakinlik => 'Harika, böyle devam! 💪 Seninle gurur duyuyorum.',
-            Persona::GencBilgi => 'Anlaşıldı, iyi gidiyorsun — bu ilerlemeyi kendi kararınla sürdürüyorsun, devam et.',
             Persona::YetiskinYakinlik => 'Ne güzel, böyle devam etmeniz çok değerli.',
-            Persona::YetiskinBilgi => 'Anlaşıldı — bu ilerlemeyi kendi kararınızla sürdürüyorsunuz, devam etmeniz yeterli.',
             Persona::IleriYasYakinlik => 'Ne güzel, böyle devam etmeniz çok değerli.',
-            Persona::IleriYasBilgi => 'Anlaşıldı — bu ilerlemeyi kendi kararınızla sürdürüyorsunuz, devam etmeniz yeterli.',
         };
     }
 
@@ -459,11 +397,8 @@ final class EngagementFlowMessages
     {
         return match ($persona) {
             Persona::GencYakinlik => 'Tamam, sorun değil 🙂 İstediğin zaman buradayım.',
-            Persona::GencBilgi => 'Tamam, anlaşıldı — bu senin kararın, istediğin zaman devam edebilirsin.',
             Persona::YetiskinYakinlik => 'Anlaşıldı, sorun değil. İstediğiniz zaman buradayız.',
-            Persona::YetiskinBilgi => 'Anlaşıldı — bu karar size ait, istediğiniz zaman devam edebilirsiniz.',
             Persona::IleriYasYakinlik => 'Anlaşıldı, sorun değil. İstediğiniz zaman buradayız.',
-            Persona::IleriYasBilgi => 'Anlaşıldı — bu karar size ait, istediğiniz zaman devam edebilirsiniz.',
         };
     }
 
@@ -476,11 +411,8 @@ final class EngagementFlowMessages
     {
         return match ($persona) {
             Persona::GencYakinlik => 'İçerikle ilgili yardım için materyallere e-kampüs üzerinden ulaşabilirsin: https://ekampus.anadolu.edu.tr 🙂 Genel bir desteğe ihtiyacın olursa AÖS Destek de yanında: https://aosdestek.anadolu.edu.tr',
-            Persona::GencBilgi => 'İçerikle ilgili yardım için materyallere e-kampüs üzerinden ulaşabilirsin: https://ekampus.anadolu.edu.tr. Genel destek için AÖS Destek: https://aosdestek.anadolu.edu.tr',
             Persona::YetiskinYakinlik => 'İçerikle ilgili yardım için materyallere e-kampüs platformu üzerinden ulaşabilirsiniz: https://ekampus.anadolu.edu.tr. Genel bir desteğe ihtiyacınız olursa AÖS Destek\'e ulaşabilirsiniz: https://aosdestek.anadolu.edu.tr',
-            Persona::YetiskinBilgi => 'İçerikle ilgili yardım için materyallere e-kampüs platformu üzerinden ulaşabilirsiniz: https://ekampus.anadolu.edu.tr. Genel destek için AÖS Destek: https://aosdestek.anadolu.edu.tr',
             Persona::IleriYasYakinlik => 'İçerikle ilgili yardım için materyallere e-kampüs platformu üzerinden, kendi hızınızda ulaşabilirsiniz: https://ekampus.anadolu.edu.tr. Genel bir desteğe ihtiyacınız olursa AÖS Destek\'e ulaşabilirsiniz: https://aosdestek.anadolu.edu.tr',
-            Persona::IleriYasBilgi => 'İçerikle ilgili yardım için materyallere e-kampüs platformu üzerinden ulaşabilirsiniz: https://ekampus.anadolu.edu.tr. Genel destek için AÖS Destek: https://aosdestek.anadolu.edu.tr',
         };
     }
 
@@ -500,11 +432,8 @@ final class EngagementFlowMessages
     {
         return match ($persona) {
             Persona::GencYakinlik => 'Yazdığın için teşekkürler 🙂 Bu soruya, yukarıdaki mesajın altındaki butonlardan birine dokunarak cevap verebilirsin.',
-            Persona::GencBilgi => 'Mesajın alındı. Bu soruya yukarıdaki butonlardan biriyle cevap verebilirsin.',
             Persona::YetiskinYakinlik => 'Yazdığınız için teşekkürler. Bu soruya, yukarıdaki mesajın altındaki butonlardan birine dokunarak cevap verebilirsiniz.',
-            Persona::YetiskinBilgi => 'Mesajınız alındı. Bu soruya yukarıdaki butonlardan biriyle cevap verebilirsiniz.',
             Persona::IleriYasYakinlik => 'Yazdığınız için teşekkürler. Bu soruya, yukarıdaki mesajın altındaki butonlardan birine dokunarak cevap verebilirsiniz.',
-            Persona::IleriYasBilgi => 'Mesajınız alındı. Bu soruya yukarıdaki butonlardan biriyle cevap verebilirsiniz.',
         };
     }
 
@@ -533,18 +462,23 @@ final class EngagementFlowMessages
     {
         return match ($persona) {
             Persona::GencYakinlik => 'Mesajın geldi 🙂 Bu konuşmayı tamamlamıştık, o yüzden burada bekleyen bir soru yok. Derslerine e-kampüs\'ten göz atabilirsin: https://ekampus.anadolu.edu.tr — bir desteğe ihtiyacın olursa AÖS Destek de yanında: https://aosdestek.anadolu.edu.tr',
-            Persona::GencBilgi => 'Mesajın alındı. Bu konuşma tamamlanmıştı, bekleyen bir soru yok. Derslerin için e-kampüs: https://ekampus.anadolu.edu.tr. Genel destek için AÖS Destek: https://aosdestek.anadolu.edu.tr',
             Persona::YetiskinYakinlik => 'Mesajınız geldi. Bu konuşmayı tamamlamıştık, o yüzden burada bekleyen bir soru yok. Derslerinize e-kampüs platformundan göz atabilirsiniz: https://ekampus.anadolu.edu.tr — bir desteğe ihtiyacınız olursa AÖS Destek\'e ulaşabilirsiniz: https://aosdestek.anadolu.edu.tr',
-            Persona::YetiskinBilgi => 'Mesajınız alındı. Bu konuşma tamamlanmıştı, bekleyen bir soru bulunmuyor. Dersleriniz için e-kampüs: https://ekampus.anadolu.edu.tr. Genel destek için AÖS Destek: https://aosdestek.anadolu.edu.tr',
             Persona::IleriYasYakinlik => 'Mesajınız geldi. Bu konuşmayı tamamlamıştık, bekleyen bir soru yok. Derslerinize kendi hızınızda e-kampüs platformundan göz atabilirsiniz: https://ekampus.anadolu.edu.tr — bir desteğe ihtiyacınız olursa AÖS Destek\'e ulaşabilirsiniz: https://aosdestek.anadolu.edu.tr',
-            Persona::IleriYasBilgi => 'Mesajınız alındı. Bu konuşma tamamlanmıştı, bekleyen bir soru bulunmuyor. Dersleriniz için e-kampüs: https://ekampus.anadolu.edu.tr. Genel destek için AÖS Destek: https://aosdestek.anadolu.edu.tr',
         };
     }
 
     /**
      * Günlük kontrol kanalı (2026-10-19, kullanıcı kararı — bkz. {@see \App\Enum\ScheduledMessageKind::GunlukKontrol})
      * — "düz" hali: öğrencinin gözlem gününde, son gönderilen mesajdan bu yana gerçek erişim
-     * TESPİT EDİLEMEDİĞİNDE gider. Haftalık sıklığın (`weekly_hours_available`) öğrenci
+     * TESPİT EDİLEMEDİĞİNDE gider. Haftalık çalışma günü sayısının (`weekly_hours_available`) öğrenci
+     *
+     * TERİM NOTU (2026-11-10): metindeki "sıklığı değiştirmek istersen" ifadesi, aynı akıştaki
+     * {@see self::gunSayisiGuncellendi()} onayıyla terim olarak HİZALI DEĞİL (o metin artık
+     * "çalışma günü sayısı" diyor). Bu metin PROAKTİF bir Meta şablonu olduğu için
+     * (`gunluk_kontrol_duz_v3_*`) burada yapılacak değişiklik öğrenciye gidene YANSIMAZ —
+     * gönderilen gövde Meta'da saklanır. Düzeltmek için `_v4` sürümü açıp 6 yeni şablon
+     * oluşturmak gerekir. Bu kanalda "sıklık" ifadesi YANLIŞ değil (sayı gerçekten bu
+     * kanalın sıklığını belirliyor), yalnızca belirsiz; bu yüzden düzeltme ertelendi.
      * tarafından istediği an "1"/"2"/"3" yazarak güncellenebileceği bilgisi metne dahil
      * edildi (kullanıcı kararı: ayrı bir anahtar kelime/komut değil, bu bilgilendirme yeterli).
      */
@@ -552,11 +486,8 @@ final class EngagementFlowMessages
     {
         return match ($persona) {
             Persona::GencYakinlik => "Selam {$ad}, bugün çalışma günlerinden biri 🙂 Hazır olduğunda aşağıdaki butondan e-kampüs'e geçebilirsin. Not: sıklığı değiştirmek istersen haftada kaç gün istediğini (1-7 arası) yazman yeterli.",
-            Persona::GencBilgi => "Selam {$ad}, bugün planlanan çalışma günlerinden biri. Aşağıdaki butondan e-kampüs'e geçebilirsin. Not: sıklığı değiştirmek istersen haftada kaç gün istediğini (1-7 arası) yazman yeterli.",
             Persona::YetiskinYakinlik => "Merhaba {$ad}, bugün çalışma günlerinizden biri. Hazır olduğunuzda aşağıdaki butondan e-kampüs'e geçebilirsiniz. Not: sıklığı değiştirmek isterseniz haftada kaç gün istediğinizi (1-7 arası) yazmanız yeterli.",
-            Persona::YetiskinBilgi => "Merhaba {$ad}, bugün planlanan çalışma günlerinizden biri. Aşağıdaki butondan e-kampüs'e geçebilirsiniz. Not: sıklığı değiştirmek isterseniz haftada kaç gün istediğinizi (1-7 arası) yazmanız yeterli.",
             Persona::IleriYasYakinlik => "Merhaba {$ad}, bugün çalışma günlerinizden biri. Kendi hızınızda, hazır olduğunuzda aşağıdaki butondan e-kampüs'e geçebilirsiniz. Not: sıklığı değiştirmek isterseniz haftada kaç gün istediğinizi (1-7 arası) yazmanız yeterli.",
-            Persona::IleriYasBilgi => "Merhaba {$ad}, bugün planlanan çalışma günlerinizden biri. Aşağıdaki butondan e-kampüs'e geçebilirsiniz. Not: sıklığı değiştirmek isterseniz haftada kaç gün istediğinizi (1-7 arası) yazmanız yeterlidir.",
         };
     }
 
@@ -569,11 +500,8 @@ final class EngagementFlowMessages
     {
         return match ($persona) {
             Persona::GencYakinlik => "Selam {$ad}, son zamanlarda güzel bir tempo yakaladın, helal olsun 💪 Devam etmek için aşağıdaki butondan e-kampüs'e geçebilirsin. Not: sıklığı değiştirmek istersen haftada kaç gün istediğini (1-7 arası) yazman yeterli.",
-            Persona::GencBilgi => "Selam {$ad}, son zamanlarda iyi bir tempo yakaladın. Devam etmek için aşağıdaki butondan e-kampüs'e geçebilirsin. Not: sıklığı değiştirmek istersen haftada kaç gün istediğini (1-7 arası) yazman yeterli.",
             Persona::YetiskinYakinlik => "Merhaba {$ad}, son zamanlarda güzel bir tempo yakaladınız, bunu takdir ediyoruz. Devam etmek için aşağıdaki butondan e-kampüs'e geçebilirsiniz. Not: sıklığı değiştirmek isterseniz haftada kaç gün istediğinizi (1-7 arası) yazmanız yeterli.",
-            Persona::YetiskinBilgi => "Merhaba {$ad}, son zamanlarda iyi bir tempo yakaladınız. Devam etmek için aşağıdaki butondan e-kampüs'e geçebilirsiniz. Not: sıklığı değiştirmek isterseniz haftada kaç gün istediğinizi (1-7 arası) yazmanız yeterli.",
             Persona::IleriYasYakinlik => "Merhaba {$ad}, son zamanlarda güzel bir tempo yakaladınız, bunu takdir ediyoruz. Kendi hızınızda devam etmek için aşağıdaki butondan e-kampüs'e geçebilirsiniz. Not: sıklığı değiştirmek isterseniz haftada kaç gün istediğinizi (1-7 arası) yazmanız yeterli.",
-            Persona::IleriYasBilgi => "Merhaba {$ad}, son zamanlarda iyi bir tempo yakaladınız. Devam etmek için aşağıdaki butondan e-kampüs'e geçebilirsiniz. Not: sıklığı değiştirmek isterseniz haftada kaç gün istediğinizi (1-7 arası) yazmanız yeterlidir.",
         };
     }
 }

@@ -134,10 +134,10 @@ class EngagementFlowService
             BarrierType::Zaman => new FlowOutcome(EngagementFlowMessages::zamanTakip($persona), FlowStep::ZamanTakibiBekleniyor, WhatsAppTemplate::ZamanTakip),
             BarrierType::Zorluk => new FlowOutcome(EngagementFlowMessages::zorlukTakip($persona), FlowStep::ZorlukTakibiBekleniyor, WhatsAppTemplate::ZorlukTakip),
             BarrierType::Motivasyon => new FlowOutcome(
-                EngagementFlowMessages::motivasyonTakip($profile->getLearningGoal(), $persona),
+                EngagementFlowMessages::motivasyonTakip($profile->getEnrollmentMotivation(), $persona),
                 FlowStep::MotivasyonTakibiBekleniyor,
                 WhatsAppTemplate::MotivasyonTakip,
-                [EngagementFlowMessages::motivasyonHedefMetni($profile->getLearningGoal(), $persona)],
+                [EngagementFlowMessages::motivasyonHedefMetni($profile->getEnrollmentMotivation(), $persona)],
             ),
         };
 

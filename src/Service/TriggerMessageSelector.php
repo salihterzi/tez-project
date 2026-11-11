@@ -4,7 +4,7 @@ namespace App\Service;
 
 use App\Entity\SentMessageLog;
 use App\Enum\EngagementTrigger;
-use App\Enum\LearningGoal;
+use App\Enum\EnrollmentMotivation;
 use App\Enum\Phase;
 use App\Enum\RotationStrategy;
 use App\Enum\SocialComparisonOptin;
@@ -46,11 +46,11 @@ class TriggerMessageSelector
         int $ogrenciNo,
         EngagementTrigger $trigger,
         ?Phase $aktifFaz,
-        ?LearningGoal $learningGoal,
+        ?EnrollmentMotivation $enrollmentMotivation,
         ?SocialComparisonOptin $socialComparisonOptin,
         ?RotationStrategy $strateji = null,
     ): TriggerMessageVariant {
-        $adaylar = $this->adaylariBelirle($trigger, $aktifFaz, $learningGoal, $socialComparisonOptin);
+        $adaylar = $this->adaylariBelirle($trigger, $aktifFaz, $enrollmentMotivation, $socialComparisonOptin);
         $sonVaryantNo = $this->sentMessageLogRepository->findLastVariantNo($ogrenciNo, $trigger);
 
         return $this->rotasyonSec($adaylar, $sonVaryantNo, $strateji ?? self::VARSAYILAN_STRATEJI);
@@ -68,7 +68,7 @@ class TriggerMessageSelector
     private function adaylariBelirle(
         EngagementTrigger $trigger,
         ?Phase $aktifFaz,
-        ?LearningGoal $learningGoal,
+        ?EnrollmentMotivation $enrollmentMotivation,
         ?SocialComparisonOptin $socialComparisonOptin,
     ): array {
         if (EngagementTrigger::T1 === $trigger) {
@@ -89,9 +89,20 @@ class TriggerMessageSelector
             return $tumVaryantlar;
         }
 
-        // T4 Normal faz: norm uygunluk kontrolü — learning_goal ≠ "zorunlu" VE
-        // social_comparison_optin = Evet → norm içerikli varyant; aksi halde nötr varyant.
-        $normUygun = LearningGoal::ZorunluOldugu !== $learningGoal && SocialComparisonOptin::Evet === $socialComparisonOptin;
+        // T4 Normal faz: norm uygunluk kontrolü — social_comparison_optin = Evet → norm
+        // içerikli varyant; aksi halde nötr varyant.
+        //
+        // 2026-11-10 (kullanıcı kararı): `enrollment_motivation ≠ "zorunlu"` kapısı KALDIRILDI.
+        // Soru 8 artık ders beklentisi değil KAYIT MOTİVASYONU soruyor ve yeni dört seçeneğin
+        // hiçbiri "zorunlu olduğu için" değil (bkz. {@see EnrollmentMotivation} docblock'u) — yani
+        // kapının bakacağı değer kalmadı. Norm uygunluğu artık yalnızca öğrencinin AÇIK
+        // beyanına dayanıyor; bu bir ÇIKARIMI açık izinle değiştirdiği için daha savunulabilir
+        // (zorunlu-ders beyanından "norm istemez" sonucunu çıkarmak bir varsayımdı).
+        //
+        // `$enrollmentMotivation` parametresi BİLEREK korundu: motivasyon dalı mesajlarını besliyor
+        // ({@see \App\Service\EngagementFlowMessages::motivasyonTakip()}) ve ileride norm
+        // uygunluğuna yeniden girmesi gerekirse imza değişmesin.
+        $normUygun = SocialComparisonOptin::Evet === $socialComparisonOptin;
 
         return array_values(array_filter(
             $tumVaryantlar,

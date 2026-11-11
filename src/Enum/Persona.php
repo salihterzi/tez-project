@@ -3,18 +3,20 @@
 namespace App\Enum;
 
 /**
- * Mesaj kişiselleştirmesinin TON boyutu. Enum 6 case taşır ama 2026-11-03'ten (kullanıcı
- * kararı) beri {@see \App\Service\PersonaResolver} yalnızca **3'ünü üretir**: Yakınlık
- * tarafındaki üçü.
+ * Mesaj kişiselleştirmesinin TON boyutu — **3 case** (2026-11-10). Kişiselleştirme ekseni
+ * yalnızca HİTAP KADEMESİ olduğu için enum da kademe sayısı kadardır:
+ * Genç / Yetişkin / İleri Yaş.
  *
  * ## Kodların okunuşu — ikinci harf artık bilgi taşımıyor
  *
  * Kod: ilk harf kademe (G=Genç, Y=Yetişkin, I=İleri Yaş), ikinci harf register
- * (Y=Yakınlık, B=Bilgi). Register bir kişiselleştirme EKSENİ olmaktan çıkıp YAZIM
- * STANDARDINA indirildiği için (ev üslubu: Yakınlık) üretilen üç personanın ikinci harfi
- * sabittir — dolayısıyla bilgi taşımaz. Kademe tamamen ilk harfle belirlenir; "Y" yalnızca
- * Meta şablon adında asılı kalan bir harftir ({@see WhatsAppTemplate::metaAdiPersonaIcin()}
- * şablon adını `{nokta}_{persona}` olarak ürettiği için enum DEĞERLERİNE dokunulamaz).
+ * (Y=Yakınlık). Register bir kişiselleştirme EKSENİ olmaktan çıkıp YAZIM STANDARDINA
+ * indirildiği için (ev üslubu: Yakınlık) ikinci harf tüm case'lerde sabittir —
+ * dolayısıyla bilgi taşımaz. Kademe tamamen ilk harfle belirlenir; "Y" yalnızca Meta
+ * şablon adında asılı kalan bir harftir ({@see WhatsAppTemplate::metaAdiPersonaIcin()}
+ * şablon adını `{nokta}_{persona}` olarak ürettiği için enum DEĞERLERİNE dokunulamaz —
+ * bu yüzden 6'dan 3'e inerken case'ler silindi ama GY/YY/IY değerleri korundu; DB'deki
+ * `scheduled_message.persona` sütunu ve mevcut şablon adları etkilenmedi).
  *
  * Tez ve belgelerde kodlar değil kademe adları kullanılır: "Genç kademe" / "Yetişkin
  * kademe" / "İleri Yaş kademesi".
@@ -41,22 +43,29 @@ namespace App\Enum;
  * - Anlam odaklı çerçeveleme: Carstensen, Isaacowitz ve Charles (1999), sosyoemosyonel
  *   seçicilik.
  *
- * ## Bilgi tarafı: ATIL, silinmedi
+ * ## Bilgi tarafı: koddan kaldırıldı, korpusta donduruldu (2026-11-10)
  *
- * `GencBilgi`/`YetiskinBilgi`/`IleriYasBilgi` ve onlara ait Meta şablonları artık
- * üretilmiyor ama SİLİNMEDİ — Meta'nın "sil + yeniden oluştur = 4 hafta kilit" politikası
- * geri dönüşü pahalı kılıyor. {@see \App\Service\EngagementFlowMessages} ve
- * {@see \App\Service\TriggerMessageCatalog} altı personanın metnini taşımaya devam ediyor
- * (match ifadeleri tam kapsayıcı kalsın diye); Bilgi kolları yalnızca çağrılmıyor.
+ * `GencBilgi`/`YetiskinBilgi`/`IleriYasBilgi` case'leri ve metinleri koddan KALDIRILDI;
+ * {@see \App\Service\EngagementFlowMessages} ve {@see \App\Service\TriggerMessageCatalog}
+ * artık yalnızca üretilen üç personanın metnini taşır (160 ölü match kolu / dizi anahtarı
+ * silindi).
+ *
+ * Metinler YOK OLMADI: `arsiv/metin_korpusu_6persona/` altında donmuş bir korpus olarak
+ * duruyor ve `python/metin_kodlama.py` ölçümlerini oradan üretiyor. Gerekçe ZORUNLU:
+ * `Kisisellestirilmis_Mesaj_Modeli.docx` Bölüm 2.5'teki beş bulgunun üçü Yakınlık/Bilgi
+ * KARŞILAŞTIRMASIna dayanır ve o bulgular Bölüm 2.2'nin temel iddiasını destekler — ev
+ * üslubu, nezaket kuramının iki EŞDEĞER GEÇERLİ register'ı arasından bilinçli olarak
+ * seçilmiştir. Karşılaştırma korpusu olmasa "seçim" iddiası dayanaksız kalırdı.
+ *
+ * Meta'daki `_gb`/`_yb`/`_ib` sonekli 96 şablon ise SİLİNMEDİ — "sil + yeniden oluştur =
+ * 4 hafta kilit" politikası yüzünden silme ayrı bir karardır. `templates.json` artık
+ * onları üretmez.
  *
  * Ölçümler ve karar süreci: `persona-sadelestirme-plani.md`, `KARARLAR.md` (2026-11-03).
  */
 enum Persona: string
 {
     case GencYakinlik = 'GY';
-    case GencBilgi = 'GB';
     case YetiskinYakinlik = 'YY';
-    case YetiskinBilgi = 'YB';
     case IleriYasYakinlik = 'IY';
-    case IleriYasBilgi = 'IB';
 }

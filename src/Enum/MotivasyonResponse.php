@@ -14,7 +14,7 @@ namespace App\Enum;
  */
 enum MotivasyonResponse: string
 {
-    /** Öğrencinin student_profile.learning_goal'daki hedefi hâlâ geçerli. */
+    /** Öğrencinin student_profile.enrollment_motivation'daki hedefi hâlâ geçerli. */
     case HedefHalaGecerli = 'hedef_hala_gecerli';
 
     /** Emin değil. */

@@ -7,7 +7,7 @@ use App\Entity\StudentProfile;
 use App\Enum\EngagementTrigger;
 use App\Enum\FlowStep;
 use App\Enum\GozlemYontemi;
-use App\Enum\LearningGoal;
+use App\Enum\EnrollmentMotivation;
 use App\Enum\Persona;
 use App\Enum\Phase;
 use App\Enum\ScheduledMessageKind;
@@ -513,16 +513,16 @@ class EvaluateDailyTriggersCommand extends Command
             static fn (array $v): int => $v['ogrenciNo'],
             array_filter($varyantGerekenler, static fn (array $v): bool => EngagementTrigger::T4 === $v['trigger']),
         ));
-        $t4ProfilAlanlari = $this->studentProfileRepository->findLearningGoalAndSocialOptInFor($t4OgrenciNolari);
+        $t4ProfilAlanlari = $this->studentProfileRepository->findEnrollmentMotivationAndSocialOptInFor($t4OgrenciNolari);
 
         foreach ($varyantGerekenler as $v) {
-            $alanlar = $t4ProfilAlanlari[$v['ogrenciNo']] ?? ['learningGoal' => null, 'socialComparisonOptin' => null];
+            $alanlar = $t4ProfilAlanlari[$v['ogrenciNo']] ?? ['enrollmentMotivation' => null, 'socialComparisonOptin' => null];
 
             $varyant = $this->messageSelector->chooseVariant(
                 $v['ogrenciNo'],
                 $v['trigger'],
                 $aktifFaz,
-                null !== $alanlar['learningGoal'] ? LearningGoal::from($alanlar['learningGoal']) : null,
+                null !== $alanlar['enrollmentMotivation'] ? EnrollmentMotivation::from($alanlar['enrollmentMotivation']) : null,
                 null !== $alanlar['socialComparisonOptin'] ? SocialComparisonOptin::from($alanlar['socialComparisonOptin']) : null,
             );
 

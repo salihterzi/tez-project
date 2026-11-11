@@ -3,7 +3,7 @@
 namespace App\Command;
 
 use App\Entity\StudentProfile;
-use App\Enum\LearningGoal;
+use App\Enum\EnrollmentMotivation;
 use App\Enum\PreferredStudyTime;
 use App\Enum\SocialComparisonOptin;
 use App\Enum\WeeklyHoursAvailable;
@@ -27,7 +27,15 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  * Beklenen sütun adları (başlık satırı, {@see SpreadsheetRowReaderTrait::readRows()} ile
  * esnek eşlenir — harf büyüklüğü/alt çizgi/boşluk önemsiz): `ogrenciNo` (zorunlu, Soru 3 —
  * eşleştirme anahtarı), `studentTerm` (Soru 4), `weeklyHoursAvailable` (Soru 5),
- * `preferredStudyTime` (Soru 6), `socialComparisonOptin` (Soru 7), `learningGoal` (Soru 8).
+ * `preferredStudyTime` (Soru 6), `socialComparisonOptin` (Soru 7), `enrollmentMotivation` (Soru 8).
+ *
+ * DİKKAT (2026-11-10): Soru 8 artık ders beklentisi değil KAYIT MOTİVASYONU soruyor ve
+ * seçenekleri tamamen değişti (bkz. {@see \App\Enum\EnrollmentMotivation}). Excel'deki
+ * `enrollmentMotivation` hücreleri yeni dört seçenekle BİREBİR aynı olmalı: "Maaşımı yükseltmek",
+ * "Unvanımı değiştirmek", "Kendimi gerçekleştirmek", "Alanımla ilgili bilgi edinmek".
+ * Eski seçeneklerle doldurulmuş bir Excel sessizce atlanır ({@see EnrollmentMotivation::tryFrom()}
+ * null döner, alan uyarısı sayılır) — anket formunun güncel sürümüyle veri toplandığı
+ * doğrulanmalı.
  * Google Forms ham export'u soru METNİNİ başlık yapar — bu komutu çalıştırmadan önce
  * başlık satırının bu kısa alan adlarıyla değiştirilmesi gerekir (tek seferlik, elle).
  *
@@ -37,7 +45,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  * "Evet" demiş sayılır.
  *
  * Değer eşleme: `weeklyHoursAvailable`/`preferredStudyTime`/`socialComparisonOptin`/
- * `learningGoal` hücreleri docx'teki checkbox metniyle BİREBİR aynı olmalı (örn. "1 gün",
+ * `enrollmentMotivation` hücreleri docx'teki checkbox metniyle BİREBİR aynı olmalı (örn. "1 gün",
  * "Öğle", "Evet", "İyi bir not almak") — DB enum'ları zaten bu metinleri taşıyor, ayrı bir
  * çeviri tablosu gerekmiyor. `studentTerm` tek istisna: "2. dönem"/"3. dönem" gibi metinden
  * baştaki sayı ayıklanır (bkz. {@see self::parseStudentTerm()}).
@@ -58,7 +66,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  */
 #[AsCommand(
     name: 'app:import-ybs-anketi',
-    description: 'YBS kayıt anketinin (Excel export) cevaplarını student_profile\'a yazar (ogrenciNo, studentTerm, weeklyHoursAvailable, preferredStudyTime, socialComparisonOptin, learningGoal).',
+    description: 'YBS kayıt anketinin (Excel export) cevaplarını student_profile\'a yazar (ogrenciNo, studentTerm, weeklyHoursAvailable, preferredStudyTime, socialComparisonOptin, enrollmentMotivation).',
 )]
 class ImportYbsAnketiCommand extends Command
 {
@@ -69,7 +77,7 @@ class ImportYbsAnketiCommand extends Command
     /** @var string[] */
     private const array FIELDS = [
         'ogrenciNo', 'studentTerm', 'weeklyHoursAvailable',
-        'preferredStudyTime', 'socialComparisonOptin', 'learningGoal',
+        'preferredStudyTime', 'socialComparisonOptin', 'enrollmentMotivation',
     ];
 
     public function __construct(
@@ -135,7 +143,7 @@ class ImportYbsAnketiCommand extends Command
             'weeklyHoursAvailable' => 0,
             'preferredStudyTime' => 0,
             'socialComparisonOptin' => 0,
-            'learningGoal' => 0,
+            'enrollmentMotivation' => 0,
         ];
 
         foreach ($this->readRows($sheet, self::FIELDS) as $row) {
@@ -178,11 +186,11 @@ class ImportYbsAnketiCommand extends Command
                 ++$alanUyarilari['socialComparisonOptin'];
             }
 
-            $hedef = LearningGoal::tryFrom($this->toStr($row['learningGoal']));
+            $hedef = EnrollmentMotivation::tryFrom($this->toStr($row['enrollmentMotivation']));
             if (null !== $hedef) {
-                $profil->setLearningGoal($hedef);
-            } elseif ('' !== $this->toStr($row['learningGoal'])) {
-                ++$alanUyarilari['learningGoal'];
+                $profil->setEnrollmentMotivation($hedef);
+            } elseif ('' !== $this->toStr($row['enrollmentMotivation'])) {
+                ++$alanUyarilari['enrollmentMotivation'];
             }
 
             $this->entityManager->persist($profil);

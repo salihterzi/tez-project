@@ -73,15 +73,15 @@ class StudentProfileRepository extends ServiceEntityRepository
     }
 
     /**
-     * Verilen öğrenci id'leri için `learning_goal` ve `social_comparison_optin` değerleri —
+     * Verilen öğrenci id'leri için `enrollment_motivation` ve `social_comparison_optin` değerleri —
      * T4'ün norm uygunluk kontrolü için (bkz. {@see \App\Service\TriggerMessageSelector}).
      * Profili olmayan/alan boş olan öğrenciler dizide yer almaz (çağıran taraf `null` varsaymalı).
      *
      * @param int[] $ogrenciNolar
      *
-     * @return array<int, array{learningGoal: ?string, socialComparisonOptin: ?string}>
+     * @return array<int, array{enrollmentMotivation: ?string, socialComparisonOptin: ?string}>
      */
-    public function findLearningGoalAndSocialOptInFor(array $ogrenciNolar): array
+    public function findEnrollmentMotivationAndSocialOptInFor(array $ogrenciNolar): array
     {
         if ([] === $ogrenciNolar) {
             return [];
@@ -93,13 +93,13 @@ class StudentProfileRepository extends ServiceEntityRepository
         foreach (array_chunk($ogrenciNolar, self::TOPLU_ISLEM_PARCA_BOYUTU) as $parca) {
             $yerTutucular = implode(', ', array_fill(0, count($parca), '?'));
             $rows = $connection->fetchAllAssociative(
-                "SELECT student_id, learning_goal, social_comparison_optin FROM student_profile WHERE student_id IN ({$yerTutucular})",
+                "SELECT student_id, enrollment_motivation, social_comparison_optin FROM student_profile WHERE student_id IN ({$yerTutucular})",
                 $parca,
             );
 
             foreach ($rows as $row) {
                 $sonuc[(int) $row['student_id']] = [
-                    'learningGoal' => $row['learning_goal'],
+                    'enrollmentMotivation' => $row['enrollment_motivation'],
                     'socialComparisonOptin' => $row['social_comparison_optin'],
                 ];
             }

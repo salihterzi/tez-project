@@ -5,7 +5,7 @@ namespace App\Entity;
 use App\Enum\BarrierType;
 use App\Enum\FlowStep;
 use App\Enum\GozlemYontemi;
-use App\Enum\LearningGoal;
+use App\Enum\EnrollmentMotivation;
 use App\Enum\MotivasyonResponse;
 use App\Enum\Phase;
 use App\Enum\PreferredStudyTime;
@@ -43,7 +43,14 @@ class StudentProfile
         name: 'preferred_study_time',
         enumType: PreferredStudyTime::class,
         nullable: true,
-        columnDefinition: "ENUM('Sabah','Akşam','Gece','Değişken') DEFAULT NULL",
+        // 2026-11-10 düzeltmesi: burada 'Gece' yazılıydı — HİÇBİR YERDE olmayan bir değer
+        // ({@see PreferredStudyTime} `Ogle = 'Öğle'` diyor, YBS formu Soru 6 "Öğle" sunuyor,
+        // DB kolonu da 'Öğle' içeriyor ve 3 kayıt bu değeri kullanıyor). `columnDefinition`
+        // yalnızca şema üretimini etkilediği için okuma/yazma bozulmuyordu, ama
+        // `doctrine:schema:update --force` çalıştıran biri kolonu 'Gece'ye çevirip 'Öğle'
+        // kayıtlarını SİLECEKTİ. enrollment_motivation ile aynı sınıf hata: elle yazılmış enum
+        // dizgisi kaynağından sapmış.
+        columnDefinition: "ENUM('Sabah','Öğle','Akşam','Değişken') DEFAULT NULL",
     )]
     private ?PreferredStudyTime $preferredStudyTime = null;
 
@@ -73,12 +80,16 @@ class StudentProfile
     private ?SocialComparisonOptin $socialComparisonOptin = null;
 
     #[ORM\Column(
-        name: 'learning_goal',
-        enumType: LearningGoal::class,
+        name: 'enrollment_motivation',
+        enumType: EnrollmentMotivation::class,
         nullable: true,
-        columnDefinition: "ENUM('İyi bir not almak','Alanımla ilgili bilgi edinmek','Kariyerime katkı sağlamak','Zorunlu olduğu için alıyorum') DEFAULT NULL",
+        // 2026-11-10: Soru 8 "ders beklentisi" → "kayıt motivasyonu" (bkz. EnrollmentMotivation
+        // docblock'u ve migration Version20261110140000). Değerler burada SABİT yazılı
+        // olduğu için enum değişikliği bu satıra da yansıtılmak ZORUNDA — aksi halde
+        // doctrine:schema:validate kolonu eski değerlere geri almak ister.
+        columnDefinition: "ENUM('Maaşımı yükseltmek','Unvanımı değiştirmek','Kendimi gerçekleştirmek','Alanımla ilgili bilgi edinmek') DEFAULT NULL",
     )]
-    private ?LearningGoal $learningGoal = null;
+    private ?EnrollmentMotivation $enrollmentMotivation = null;
 
     /**
      * Öğrencinin kesin saat olarak beyan ettiği tercih edilen mesaj saati —
@@ -130,7 +141,12 @@ class StudentProfile
         name: 'pending_flow_step',
         enumType: FlowStep::class,
         nullable: true,
-        columnDefinition: "ENUM('ENGEL_BEKLENIYOR','ZAMAN_TAKIBI_BEKLENIYOR','ZAMAN_GUN_SAATI_BEKLENIYOR','ZAMAN_DONUS_SURESI_BEKLENIYOR','ZORLUK_TAKIBI_BEKLENIYOR','ZORLUK_NOT_BEKLENIYOR','MOTIVASYON_TAKIBI_BEKLENIYOR','T1_YANITI_BEKLENIYOR','TETIKLEYICI_SECENEK_YANITI_BEKLENIYOR') DEFAULT NULL",
+        // 2026-11-10 düzeltmesi: `HATIRLATMA_72_SAAT_YANITI_BEKLENIYOR` burada EKSİKTİ.
+        // {@see FlowStep} onu 10. case olarak taşıyor ve DB kolonunda da var; yalnızca bu
+        // elle yazılmış dizgi geride kalmıştı. `doctrine:schema:update --force` çalıştıran
+        // biri o adımı kolondan DÜŞÜRÜRDÜ — 72 saat hatırlatma yanıtı bekleyen öğrencilerin
+        // akış durumu kaybolurdu (şu an 0 satır kullanıyor, ama dönem içinde kullanılacak).
+        columnDefinition: "ENUM('ENGEL_BEKLENIYOR','ZAMAN_TAKIBI_BEKLENIYOR','ZAMAN_GUN_SAATI_BEKLENIYOR','ZAMAN_DONUS_SURESI_BEKLENIYOR','ZORLUK_TAKIBI_BEKLENIYOR','ZORLUK_NOT_BEKLENIYOR','MOTIVASYON_TAKIBI_BEKLENIYOR','T1_YANITI_BEKLENIYOR','TETIKLEYICI_SECENEK_YANITI_BEKLENIYOR','HATIRLATMA_72_SAAT_YANITI_BEKLENIYOR') DEFAULT NULL",
     )]
     private ?FlowStep $pendingFlowStep = null;
 
@@ -252,7 +268,10 @@ class StudentProfile
         name: 'motivation_barrier_choice',
         enumType: MotivasyonResponse::class,
         nullable: true,
-        columnDefinition: "ENUM('hedef_hala_gecerli','hedef_degisti','emin_degil') DEFAULT NULL",
+        // 2026-11-10 düzeltmesi: `hedef_degisti` burada FAZLAYDI. "Değişti" seçeneği
+        // 2026-10-03'te tamamen kaldırılmıştı ({@see MotivasyonResponse} iki case taşıyor,
+        // DB kolonu da iki değerli); yalnızca bu dizgi güncellenmemişti.
+        columnDefinition: "ENUM('hedef_hala_gecerli','emin_degil') DEFAULT NULL",
     )]
     private ?MotivasyonResponse $motivationBarrierChoice = null;
 
@@ -427,14 +446,14 @@ class StudentProfile
         return $this;
     }
 
-    public function getLearningGoal(): ?LearningGoal
+    public function getEnrollmentMotivation(): ?EnrollmentMotivation
     {
-        return $this->learningGoal;
+        return $this->enrollmentMotivation;
     }
 
-    public function setLearningGoal(?LearningGoal $learningGoal): static
+    public function setEnrollmentMotivation(?EnrollmentMotivation $enrollmentMotivation): static
     {
-        $this->learningGoal = $learningGoal;
+        $this->enrollmentMotivation = $enrollmentMotivation;
 
         return $this;
     }
