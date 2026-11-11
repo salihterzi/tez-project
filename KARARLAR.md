@@ -12,6 +12,56 @@ verdik" sorusunu tek dosyadan cevaplamak için.
 
 ## 2026-11-11
 
+- **Saat dilimi kararı TAMAMLANDI (2026-10-27'de yarım uygulanmıştı) ve python veri hattı
+  cron'a bağlandı.** İkisi birlikte yapıldı çünkü ikincisi birincisine bağımlıydı.
+  *Bulgu:* `KARARLAR.md`'nin 2026-10-27 girişi saat diliminin dört yere uygulandığını
+  söylüyordu (`app.ini`, `compose.yaml` TZ + MySQL `--default-time-zone`, `Dockerfile`
+  `tzdata`). Gerçekte **yalnızca `app.ini`** vardı; diğer üçü yoktu. Sonuç: PHP uygulaması
+  Europe/Istanbul, OS/MySQL/Python UTC → **3 saatlik kayma.**
+  *Uygulamada hata YOKTU:* `src/` içinde hiç `NOW()` kullanımı yok; tüm zaman
+  karşılaştırmaları PHP `DateTimeImmutable` ile yapılıyor (dispatcher `$simdi` üretip
+  repository'ye veriyor), `target_at`'i de PHP yazıyor. İki taraf da aynı saatti.
+  *Ama üç sonucu vardı:* (1) cron OS saatini kullandığı için "02:30" diye belgelenen job
+  fiilen **05:30'da** çalışıyordu; (2) izleme sorgularım `NOW()` kullandığı için 3 saat
+  kaymıştı; (3) **planlanan python cron'u sessizce yanlış çalışacaktı** —
+  `ogrenci_erisim_ozeti.py` "bugün"ü `pd.Timestamp.now()` ile alıyor, 01:30 Istanbul =
+  önceki günün 22:30'u UTC olduğu için özet bir gün geriden hesaplanırdı.
+  *Yapılan:* `compose.yaml`'a dört servise `TZ: ${TZ:-Europe/Istanbul}`, database'e
+  `command: --default-time-zone=+03:00`; `Dockerfile`'da `php_base`'e `tzdata` (Alpine),
+  `python_base`'e `tzdata` (Debian slim'de yok); `.env`'e `TZ` varsayılanı.
+  *Niçin sabit ofset:* Türkiye 2016'dan beri kalıcı UTC+3, yaz saati yok — MySQL'e tz
+  tablosu yüklemeye gerek kalmıyor.
+  *Veri güvenliği doğrulandı:* 36 zaman kolonunun tamamı `DATETIME` (duvar saati,
+  dönüşümsüz), `TIMESTAMP` kolonu YOK → mevcut veri etkilenmedi.
+  *Doğrulama (dört katman aynı anı gösteriyor):* OS 23:32:36 +03 · PHP 23:32:36 +03 ·
+  MySQL 23:32:36 (tz=+03:00) · Python 23:32:36 +03.
+  *Kalıcılık (kullanıcı şartı: "her başlattığımda elle düzenlemem gerekmesin"):* ayar imaja
+  ve compose'a gömülü, konteyner yeniden başlatmada elle iş yok. `TZ` değişikliği
+  `docker compose build` gerektirir (app.ini ve tzdata imaja giriyor).
+
+- **Python veri hattı crond'a bağlandı — üç betik, 02:30'dan önce, sıra zorunlu.**
+  *Bulgu:* `ogrenci_erisim_ozeti.py` (→ `ogrenci_erisim_ozeti`),
+  `mesaj_zamanlamasi_hibrit.py` (→ `observed_time_window_*`) ve
+  `mesaj_zamanlamasi_gun_hibrit.py` (→ `observed_days`) DB'ye yazan üç üretim betiği;
+  crontab'da **hiçbiri yoktu**, elle çalıştırılıyorlardı. Yol haritası da yalnızca erişim
+  özetinden bahsediyordu, zamanlama tahminlerinin ikisini atlamıştı.
+  *Niçin kritik:* çalışmazlarsa sistem SESSİZCE bayat tahminle devam eder. 2026-11-11'de tam
+  bu yaşandı — bayat `son_erisim_tarihi` yüzünden T2 tüm öğrenciler için tetikleniyordu.
+  `Genel_Bakis` Bölüm 2.2 gerekliliği zaten yazmış ama otomasyonu yoktu.
+  *Kurulum:* `docker/python/crontab` (01:30 / 01:40 / 01:50) +
+  `docker/python/docker-entrypoint.sh`; `python_base`'e `cron` paketi, `crontab` ile yükleme,
+  `ENTRYPOINT`/`CMD ["cron"]`.
+  *Çözülen tuzak:* **cron ortam değişkenlerini MİRAS ALMAZ.** Entrypoint konteynerin env'ini
+  `/app/cron.env`'e döküyor (tek tırnak kaçışıyla), her crontab satırı onu `source` ediyor.
+  Aksi halde betikler DB'ye bağlanamazdı.
+  *Elle çalıştırma korundu:* `docker compose exec python python <betik>.py` hâlâ çalışıyor
+  (`exec` entrypoint'i atlar, env compose'dan gelir).
+  *Doğrulama:* PID 1 = `cron -f -L 2`; crontab yüklü (3 satır); `/app/cron.env` 7 değişken
+  içeriyor; cron satırı aynen çalıştırıldı → TZ=Europe/Istanbul, DB NOW() hizalı.
+  *Belgelendi:* yol haritası §4.1 (üç betik + zincir şeması + dönem içinde
+  çalıştırılmayacaklar listesi) ve §4.2.1 (saat dilimi katmanları + doğrulama komutları);
+  `/isletim` becerisine saat dilimi kontrolü; `CLAUDE.md`'ye kural.
+
 - **`Mesaj_Gonderim_Sureci_Genel_Bakis.docx` güncellendi — "TEMİZ" raporu yanıltıcıydı.**
   Denetim bu dosyayı temiz göstermişti; tam okuma beş gerçek sapma buldu. Ders: **denetim
   betiğinin "TEMİZ"i yalnızca "tanımlı 15 kuralın hiçbirine takılmadı" demektir**, "güncel"

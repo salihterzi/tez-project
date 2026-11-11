@@ -13,6 +13,7 @@ RUN apk add --no-cache \
 	file \
 	gettext \
 	git \
+	tzdata \
 	unzip
 
 # PHP eklentileri
@@ -83,14 +84,26 @@ FROM python:3.12-slim AS python_base
 
 WORKDIR /app
 
+# TZ ortam değişkeninin işe yaraması için zoneinfo gerekli (slim imajda yok).
+# cron: python veri hattını (erişim özeti + saat/gün tahmini) 01:30'da çalıştırır.
+RUN apt-get update \
+	&& apt-get install -y --no-install-recommends tzdata cron \
+	&& rm -rf /var/lib/apt/lists/*
+
 COPY python/requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY python/ ./
+COPY --chmod=600 docker/python/crontab              /etc/cron.d/tez-proje
+COPY --chmod=755 docker/python/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
 
-# Kalıcı bir servis değil; `docker compose exec python python <script>.py` ile
-# kullanılması için container'ı ayakta tutar.
-CMD ["tail", "-f", "/dev/null"]
+# /etc/cron.d dosyaları kullanıcı alanı ister; crontab'a root olarak yükle.
+RUN crontab /etc/cron.d/tez-proje
+
+# cron ön planda çalışır (2026-11-11). `docker compose exec python python <betik>.py`
+# ile elle çalıştırma bundan etkilenmez.
+ENTRYPOINT ["docker-entrypoint"]
+CMD ["cron"]
 
 # ---------------------------------------------------------------------------
 # nginx

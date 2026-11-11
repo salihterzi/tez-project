@@ -11,6 +11,9 @@ services:
       SYMFONY_VERSION: ${SYMFONY_VERSION:-}
       STABILITY: ${STABILITY:-stable}
       DATABASE_URL: mysql://${MYSQL_USER:-app}:${MYSQL_PASSWORD:-ChangeMe}@database:3306/${MYSQL_DATABASE:-whatsapp_messenger}?serverVersion=${MYSQL_VERSION:-8.4}&charset=utf8mb4
+      # 2026-11-11: OS saati de uygulama saatiyle hizalı olmalı — cron OS saatini
+      # kullanıyor. Yalnızca app.ini yetmiyor (bkz. KARARLAR.md 2026-11-11).
+      TZ: ${TZ:-Europe/Istanbul}
     depends_on:
       database:
 
@@ -29,6 +32,7 @@ services:
       MYSQL_USER: ${MYSQL_USER:-app}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:-ChangeMe}
       DATABASE_URL: mysql+pymysql://${MYSQL_USER:-app}:${MYSQL_PASSWORD:-ChangeMe}@database:3306/${MYSQL_DATABASE:-whatsapp_messenger}
+      TZ: ${TZ:-Europe/Istanbul}
     depends_on:
       database:
         condition: service_healthy
@@ -39,6 +43,8 @@ services:
       context: .
       target: nginx_base
     restart: unless-stopped
+    environment:
+      TZ: ${TZ:-Europe/Istanbul}
     ports:
       - "${HTTP_PORT:-80}:80"
     depends_on:
@@ -53,6 +59,12 @@ services:
       MYSQL_USER: ${MYSQL_USER:-app}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:-ChangeMe}
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-ChangeMeRoot}
+      TZ: ${TZ:-Europe/Istanbul}
+    # NOW()/CURDATE() uygulama saatiyle aynı olsun. Sabit ofset kullanılıyor çünkü
+    # Türkiye 2016'dan beri kalıcı UTC+3 (yaz saati yok) ve bu, MySQL'e tz tablosu
+    # yüklemeyi gerektirmiyor. Mevcut veri etkilenmez: 36 zaman kolonunun tamamı
+    # DATETIME (duvar saati, dönüşümsüz); TIMESTAMP kolonu YOK.
+    command: --default-time-zone=+03:00
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p${MYSQL_ROOT_PASSWORD:-ChangeMeRoot}"]
       interval: 10s

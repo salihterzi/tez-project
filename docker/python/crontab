@@ -1,0 +1,22 @@
+# Tez projesi — python veri hattı (2026-11-11)
+#
+# Üç betik 02:30'daki karar motorundan ÖNCE çalışır ve sıra ZORUNLUDUR:
+#   1) ogrenci_erisim_ozeti.py → ogrenci_erisim_ozeti (T1-T4'ün okuduğu tablo)
+#   2) mesaj_zamanlamasi_hibrit.py → observed_time_window_* (saat)
+#   3) mesaj_zamanlamasi_gun_hibrit.py → observed_days (gün)
+#
+# Bu betikler çalışmazsa sistem SESSİZCE bayat tahminle devam eder; 2026-11-11'de
+# bayat son_erisim_tarihi yüzünden T2 tüm öğrenciler için tetiklenmişti.
+#
+# SAAT DİLİMİ: konteyner TZ=Europe/Istanbul (compose.yaml + Dockerfile tzdata).
+# Cron OS saatini kullandığı için bu şart; aksi halde 01:30 UTC = 04:30 yerel olur
+# ve ogrenci_erisim_ozeti.py "bugün"ü bir gün geriden hesaplar.
+#
+# Cron ortam değişkenlerini MİRAS ALMAZ — entrypoint /app/cron.env dosyasını yazar,
+# her satır onu source eder.
+SHELL=/bin/sh
+PATH=/usr/local/bin:/usr/local/sbin:/usr/sbin:/usr/bin:/sbin:/bin
+
+30 1 * * * . /app/cron.env; cd /app && python ogrenci_erisim_ozeti.py        >> /app/var/log/python-ozet.log 2>&1
+40 1 * * * . /app/cron.env; cd /app && python mesaj_zamanlamasi_hibrit.py     >> /app/var/log/python-saat.log 2>&1
+50 1 * * * . /app/cron.env; cd /app && python mesaj_zamanlamasi_gun_hibrit.py >> /app/var/log/python-gun.log  2>&1

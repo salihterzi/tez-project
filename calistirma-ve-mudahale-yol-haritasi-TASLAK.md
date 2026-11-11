@@ -120,13 +120,39 @@ docker compose exec php bin/console app:import-ybs-anketi --file=<yol>
 
 ### 4.1 Günlük otomatik ritim
 
-| Saat | İş | Not |
-|---|---|---|
-| 02:30 | `app:degerlendir-gunluk-tetikleyiciler` | `-d memory_limit=1024M` zorunlu (53k öğrenci) |
-| her 15 dk | `app:zamanlanmis-mesajlari-gonder` | yalnızca `target_at <= NOW()` satırları |
-| sürekli | WhatsApp webhook | gelen yanıtları işler, M1 akışını ilerletir |
+| Saat | İş | Konteyner | Not |
+|---|---|---|---|
+| 01:30 | `python ogrenci_erisim_ozeti.py` | python | `ogrenci_erisim_ozeti` tablosunu yazar → **T1–T4'ün okuduğu tablo** |
+| 01:40 | `python mesaj_zamanlamasi_hibrit.py` | python | `student_profile.observed_time_window_*` → **saat** seçimi (3 faz ayrı) |
+| 01:50 | `python mesaj_zamanlamasi_gun_hibrit.py` | python | `student_profile.observed_days` → **gün** seçimi (7 gün sıralı) |
+| 02:30 | `app:degerlendir-gunluk-tetikleyiciler` | php | `-d memory_limit=1024M` zorunlu (53k öğrenci) |
+| her 15 dk | `app:zamanlanmis-mesajlari-gonder` | php | yalnızca zamanı gelmiş (`target_at <= şimdi`) satırlar |
+| sürekli | WhatsApp webhook | php | gelen yanıtları işler, M1 akışını ilerletir |
 
-**Sıralama önemli:** erişim özeti → tetikleyici değerlendirmesi → dispatcher.
+**Sıralama ZORUNLU.** Üç python betiği 02:30'dan önce bitmeli; `ogrenci_erisim_ozeti.py` ilk
+sırada olmak zorunda (diğer ikisi birbirinden bağımsız). Zincir:
+
+```
+erişim kayıtları → ogrenci_erisim_ozeti.py ──┐
+                 → mesaj_zamanlamasi_hibrit.py (saat) ──┼──► karar motoru (02:30) ──► dispatcher
+                 → mesaj_zamanlamasi_gun_hibrit.py (gün) ─┘
+```
+
+`mesaj_zamanlamasi_pipeline-v2.py` tek başına çalıştırılmaz — diğerlerinin kullandığı
+kütüphanedir (`veriyi_yukle`, `mat_sin_birlestir`).
+
+**Niçin kritik:** bu üç betik çalışmazsa sistem SESSİZCE bayat tahminle devam eder. 2026-11-11'de
+tam bu yaşandı: `ogrenci_erisim_ozeti` 2025 verisinden üretildiği için `son_erisim_tarihi`
+yüzlerce gün eskiydi ve **T2 her öğrenci için tetikleniyordu**. `Mesaj_Gonderim_Sureci_Genel_Bakis`
+Bölüm 2.2 bunu zaten söylüyor: *"Bu özetleme işlemi SÜREKLİ tekrarlanmalı — sadece dönem
+başında bir kez yapılması yeterli DEĞİLDİR."*
+
+**Dönem içinde çalıştırılmayacak python betikleri.** Eşik türetmeleri bir kez koşuldu ve
+sonuçları koda gömüldü; dönem içinde çalıştırmak eşiği değiştirebilir ve analizde "müdahale"
+tanımını bozar: `t2_esik_kalibrasyonu.py`, `_sim_gun_esik.py` (gün eşiği = 10),
+`_sim_n_esik.py` (saat eşiği n = 4), `_sim_q_esik.py`, `_sim_faz_esik.py`, `_sim_2572_*.py`.
+Tez ölçümleri (`metin_kodlama.py`, `faz_gozlem_raporu.py`, `aylik_gozlem_raporu.py`) dönemden
+bağımsız, gerektiğinde çalıştırılır.
 
 ### 4.2 Hafta takvimi
 
@@ -146,6 +172,31 @@ docker compose exec php bin/console app:import-ybs-anketi --file=<yol>
 | **12** | 11 – 17 May | Normal → Final_Öncesi | **T4 kontrol noktası #3** |
 | 13 | 18 – 24 May | Final_Öncesi | |
 | 14 | 25 – 31 May | Final_Öncesi | **29–30 May final: T1–T4 KAPALI** · AIM/IAM uygulanır |
+
+### 4.2.1 Saat dilimi — dört katman hizalı (2026-11-11)
+
+Cron OS saatini kullanır, uygulama ise `date.timezone`'u. 2026-11-11'e kadar yalnızca PHP
+uygulama katmanı Europe/Istanbul'du; OS, MySQL ve Python UTC idi — yani "02:30" diye
+belgelenen job fiilen **05:30'da** çalışıyordu. Karar tamamlandı:
+
+| Katman | Nerede ayarlanır |
+|---|---|
+| PHP uygulaması | `docker/php/conf.d/app.ini` → `date.timezone` |
+| OS (php, python, nginx) | `compose.yaml` → `TZ` + `Dockerfile` → `tzdata` |
+| MySQL | `compose.yaml` → `command: --default-time-zone=+03:00` |
+
+Sabit ofset kullanılıyor: Türkiye 2016'dan beri kalıcı UTC+3, yaz saati yok. Mevcut veri
+etkilenmedi — 36 zaman kolonunun tamamı `DATETIME` (duvar saati, dönüşümsüz), `TIMESTAMP`
+kolonu yok. **Konteyner yeniden başlatıldığında elle bir şey yapmak gerekmez;** ayar imaja
+ve compose'a gömülü (`TZ` varsayılanı `.env`'de).
+
+Doğrulama (hepsi aynı anı göstermeli):
+
+```sh
+docker compose exec php date; docker compose exec php php -r 'echo date("H:i T");'
+docker compose exec database mysql -uapp -pChangeMe -N -s -e "SELECT NOW(), @@global.time_zone"
+docker compose exec python date
+```
 
 ### 4.3 Haftalık operatör kontrolü (her Pazartesi, ~15 dk)
 
