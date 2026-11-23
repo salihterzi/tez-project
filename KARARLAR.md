@@ -10,6 +10,29 @@ verdik" sorusunu tek dosyadan cevaplamak için.
 
 ---
 
+## 2026-11-23
+
+- **Prod alan adı `kym.anadolu.edu.tr` olarak belirlendi.** `prod-tasima-plani.md`'de açık
+  bırakılan üç maddeden biri kapandı.
+  *Gerekçe:* Meta webhook'u kalıcı bir HTTPS adresi şart koşuyor; adres değişince Meta'da
+  yeniden doğrulama gerekiyor ve bu, dönem ortasında mesaj kaybı demek. Kişisel veri
+  işlendiği için KVKK kapsamında kurumsal alan adı tercih edildi.
+  *Reddedilen alternatifler:* **ngrok** — ücretsiz planda URL her yeniden başlatmada
+  değişiyor, yukarıdaki yeniden doğrulama sorununu doğuruyor. **Cloudflare Tunnel + kendi
+  makine** — sabit hostname veriyor ama makine uyur/kapanırsa webhook'lar ve 02:30 cron'u
+  kaçar; bir dönemlik, tekrarlanamaz araştırma verisi için alınmayacak risk.
+  *Bedeli:* **üniversite altyapısına bağımlılık.** Let's Encrypt HTTP-01 doğrulaması, 80
+  portunun dışarıdan erişilebilir olmasını ve DNS'in sunucuya yönlenmesini gerektiriyor;
+  ikisi de BT biriminin iznine bağlı. Kurumsal güvenlik duvarı 80'i kapatıyorsa bu yöntem
+  çalışmaz ve DNS-01 doğrulamasına geçmek gerekir.
+  *Nerede:* `docker/nginx/prod-tls.conf` — iki `server_name` ve iki `ssl_certificate*`
+  yolu (dördü birlikte güncellenmeli) · `prod-tasima-plani.md` Bölüm 3 ve açık maddeler.
+  *Doğrulama:* `ALAN_ADI` yer tutucusu dosyada kalmadı (grep boş) ve üç compose
+  kombinasyonu geçerli. **Gerçek doğrulama yapılmadı:** nginx yapılandırması ve sertifika
+  ancak sunucuda, DNS yayıldıktan sonra sınanabilir.
+
+---
+
 ## 2026-11-12
 
 - **Örneklem havuzu AÇIK BIRAKILDI: iki seçenek yazıldı, karar kullanıcıda** (No 20).

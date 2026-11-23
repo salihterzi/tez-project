@@ -126,14 +126,14 @@ alınabilmek için 80'de çalışan bir sunucu ister. Çözüm: ACME konumu
 `docker/nginx/default.conf`ta, yani **TLS katmanı yüklenmeden de** sunuluyor; adım 2'de
 ayağa kalkan HTTP nginx'i doğrulamayı karşılıyor.
 
-```bash
-# 3a) Alan adını TLS yapılandırmasına yaz (iki server_name + iki sertifika yolu)
-sed -i 's/ALAN_ADI/tez.ornek-alan.edu.tr/g' docker/nginx/prod-tls.conf
+Alan adı **`kym.anadolu.edu.tr`** (2026-11-23 kararı). `docker/nginx/prod-tls.conf`'a
+dört yerde yazıldı — iki `server_name` ve iki sertifika yolu — yani adım 3a artık gerekmiyor.
 
+```bash
 # 3b) Sertifikayı al — adım 2'deki HTTP nginx'i AYAKTA kalmalı, durdurulmaz
 docker compose --env-file deploy/prod.env -f compose.yaml -f compose.prod.yaml \
   -f compose.tls.yaml run --rm certbot \
-  certonly --webroot -w /var/www/certbot -d tez.ornek-alan.edu.tr \
+  certonly --webroot -w /var/www/certbot -d kym.anadolu.edu.tr \
   --email ADRES --agree-tos --no-eff-email
 
 # 3c) TLS katmanıyla yeniden kaldır — artık 443 açılabilir
@@ -142,7 +142,7 @@ make prod-up-tls
 
 > 3b'den önce **alan adı DNS'te sunucunun IP'sine yönlenmiş olmalı**; aksi halde ACME
 > doğrulaması başarısız olur. Denemeden önce doğrulama yolunun gerçekten ulaştığını
-> görmek faydalı: `curl http://ALAN_ADI/.well-known/acme-challenge/test` → nginx'ten
+> görmek faydalı: `curl http://kym.anadolu.edu.tr/.well-known/acme-challenge/test` → nginx'ten
 > **404** dönmeli (Symfony'nin HTML hata sayfası değil); Symfony sayfası görünüyorsa
 > `location` bloğu devrede değil demektir.
 
@@ -152,7 +152,7 @@ yaklaşmayan sertifikada hiçbir şey yapmıyor.
 ### 4. Meta webhook'unu yeni adrese çevir
 
 ```bash
-curl -I https://tez.ornek-alan.edu.tr/webhook/whatsapp
+curl -I https://kym.anadolu.edu.tr/webhook/whatsapp
 ```
 
 Ardından Meta Business ayarlarında webhook URL'si yeni alan adına güncellenir ve
@@ -206,14 +206,11 @@ docker compose --env-file deploy/prod.env -f compose.yaml -f compose.prod.yaml \
 
 ## Hâlâ netleşmesi gerekenler
 
-1. **Alan adı.** Webhook için kalıcı HTTPS adresi. Üniversite alt alan adı mı, bağımsız bir
-   alan mı? KVKK açısından kurumsal alan adı tercih edilir. `docker/nginx/prod-tls.conf`
-   içindeki `ALAN_ADI` yer tutucusu bununla değiştirilecek.
-2. **Meta access token'ının türü.** Geçici kullanıcı token'ı 60 günde sona erer ve pilot
+1. **Meta access token'ının türü.** Geçici kullanıcı token'ı 60 günde sona erer ve pilot
    ortasında gönderim durur. Kalıcı **System User token**'ı gerekiyorsa taşımadan önce
    alınmalı. (Meta Business → System Users → token oluştur, `whatsapp_business_messaging`
    ve `whatsapp_business_management` izinleriyle.)
-3. **`(yil, donem)` eşlemesi** — Python pipeline'ları için.
+2. **`(yil, donem)` eşlemesi** — Python pipeline'ları için.
 
 ---
 
