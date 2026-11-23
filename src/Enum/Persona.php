@@ -51,11 +51,19 @@ namespace App\Enum;
  * silindi).
  *
  * Metinler YOK OLMADI: `arsiv/metin_korpusu_6persona/` altında donmuş bir korpus olarak
- * duruyor ve `python/metin_kodlama.py` ölçümlerini oradan üretiyor. Gerekçe ZORUNLU:
- * `Kisisellestirilmis_Mesaj_Modeli.docx` Bölüm 2.5'teki beş bulgunun üçü Yakınlık/Bilgi
- * KARŞILAŞTIRMASIna dayanır ve o bulgular Bölüm 2.2'nin temel iddiasını destekler — ev
- * üslubu, nezaket kuramının iki EŞDEĞER GEÇERLİ register'ı arasından bilinçli olarak
- * seçilmiştir. Karşılaştırma korpusu olmasa "seçim" iddiası dayanaksız kalırdı.
+ * duruyor. 2026-11-12'ye kadar bu korpus bir ÖLÇÜM TABANIYDI — `metin_kodlama.py` Yakınlık/
+ * Bilgi karşılaştırmasını oradan üretiyordu. O karşılaştırma (eski TABLO A ve C) tezden
+ * ÇIKARILDI: elle yazılmış regex sözlüğüne dayanıyordu, kodlayıcı güvenirliği kanıtı yoktu
+ * ve sabit bir ev üslubunu ölçmenin kişiselleştirme iddiasına katkısı yoktu. Betik artık
+ * CANLI `src/Service/`'i okuyor. Korpus bugün TARİHSEL BİR KAYIT: `--korpus` bayrağıyla
+ * 2026-11-10 öncesi rakamlar yeniden üretilebilir, başka bağımlılığı yoktur.
+ *
+ * Betiğin kalan yarısı da (kademe tabloları) 2026-11-12'de TEZ ÖLÇÜMÜ olmaktan çıkarıldı;
+ * artık bir regresyon kontrolüdür. Yetişkin ile İleri Yaş metinlerinin bir bölümünde
+ * özdeş olması KUSUR DEĞİLDİR: hitap normu iki değerlidir (Genç "sen", diğer ikisi
+ * "siz"), üçüncü kademe yalnızca güvence dilinin gerektiği noktalarda ayrışır. Betik
+ * YALNIZCA ihlal edilebilir kuralı kontrol eder: Genç metni diğer ikisinden her noktada
+ * farklı olmalıdır (ihlalde çıkış kodu 2).
  *
  * Meta'daki `_gb`/`_yb`/`_ib` sonekli 96 şablon ise SİLİNMEDİ — "sil + yeniden oluştur =
  * 4 hafta kilit" politikası yüzünden silme ayrı bir karardır. `templates.json` artık

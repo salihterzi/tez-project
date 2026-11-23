@@ -18,3 +18,4 @@ compose.override.yaml
 Dockerfile
 .dockerignore
 README.md
+deploy/

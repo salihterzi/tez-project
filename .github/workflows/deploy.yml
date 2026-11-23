@@ -1,0 +1,12 @@
+name: Deploy
+on:
+    push:
+        branches: [main]
+jobs:
+    deploy:
+        runs-on: self-hosted
+        steps:
+            - run: |
+                  cd /opt/proje
+                  git pull
+                  docker compose up -d --build

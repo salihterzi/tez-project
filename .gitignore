@@ -20,3 +20,16 @@
 ###< symfony/asset-mapper ###
 /*.txt
 /.idea
+
+# Python cron ortam dosyası — konteyner açılışında üretilir, parola içerir
+/python/cron.env
+/python/var/
+/python/__pycache__/
+*.docx.yedek
+
+# Prod ortam dosyaları — sunucuda durur, parola/token içerir (şablonlar commit'li)
+/deploy/prod.env
+/deploy/app-secrets.env
+
+# Veritabanı yedekleri (make prod-yedek)
+/yedek/

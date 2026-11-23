@@ -69,13 +69,21 @@ COPY composer.* symfony.* ./
 RUN composer install --no-cache --prefer-dist --no-dev --no-autoloader --no-scripts --no-progress
 
 COPY . ./
+
+# Son adımdaki `chown var` şart (2026-11-23): php-fpm işçileri www-data olarak
+# çalışıyor (zz-app.conf'ta `user` ayarı yok, imajın varsayılanı geçerli) ve
+# Symfony oturumları `var/cache/prod/sessions`a yazılıyor. Bu RUN bloğu root
+# altında koştuğu için var/ root'a ait kalıyor; entrypoint'teki setfacl adımı
+# ise APP_ENV=prod'da atlanıyor. Düzeltilmezse oturuma dokunan her istek
+# (ör. /outbound/start formu, CSRF) 500 veriyor.
 RUN set -eux; \
 	rm -rf docker/ python/ .dockerignore; \
 	mkdir -p var/cache var/log; \
 	composer dump-autoload --classmap-authoritative --no-dev; \
 	composer dump-env prod; \
 	composer run-script --no-dev post-install-cmd; \
-	chmod +x bin/console
+	chmod +x bin/console; \
+	chown -R www-data:www-data var
 
 # ---------------------------------------------------------------------------
 # Python (MySQL veritabanına bağlanan veri/analiz betikleri için)

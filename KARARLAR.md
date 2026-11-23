@@ -10,6 +10,350 @@ verdik" sorusunu tek dosyadan cevaplamak için.
 
 ---
 
+## 2026-11-12
+
+- **Örneklem havuzu AÇIK BIRAKILDI: iki seçenek yazıldı, karar kullanıcıda** (No 20).
+  Önce "önce YBS, yetersiz kalırsa kurum geneli" diye kaydedilmişti; kullanıcı gerekçesini
+  *"kurumsal bir neden değil, gönüllü sayısı az olursa diye seçtim"* diye açıklayınca
+  **gerekçenin kararın tersini gerektirdiği** ortaya çıktı: az gönüllü endişesi varsa dar
+  havuzla başlamak yanlış yöndür. Karar yeniden açıldı ve iki seçenek 3.1'e yazıldı.
+  *Havuzlar:* YBS 3. sınıf ~5.000 · kurum geneli 3. sınıf 7.288 → genişleme **%46**.
+  *Seçenek A — iki aşamalı davet.* Üstünlük: örneklem türdeş KALABİLİR. Bedel: eşik ve dal
+  karar tarihi veri görülmeden sabitlenmeli; **ikinci bir onam penceresi** gerekir ve dönem
+  başlamadan kapanmalı → takvimde ~4 hafta ek pay; genişleme gerçekleşirse örneklem zaten
+  karışır ve türdeşlik üstünlüğü kaybolur.
+  *Seçenek B — tek davet, kurum geneli.* Üstünlük: %46 havuza ilk günden, tek pencere, eşik
+  ve dal karar tarihi gerekmez, ikinci tur riski yok. Bedel: evren "kurumun uzaktan eğitim
+  3. sınıf öğrencileri" olur, YBS ile sınırlı ifade kurulamaz.
+  *Her iki seçenekte sabit iki kural:* karşılaştırma kohortu DAİMA müdahale grubuyla aynı
+  havuzdan çekilir; örneklem karışıksa program eşleştirme ölçütlerine girer (No 14) ve
+  program dağılımı raporlanır.
+  *Kontrol edildi — şablon engeli YOK:* bölüm adı yalnızca 6 T0 şablonunda geçiyor
+  (`tanitim_t0_v1/v2` × 3 persona) ve cümle alıcının değil GÖNDERENİN kimliğini söylüyor
+  ("Biz Yönetim Bilişim Sistemleri Bölümü'nden yazıyoruz"); üstelik T0 onam formundan
+  SONRA gidiyor. Seçenek B'de bile şablon değişikliği gerekmiyor — gerekseydi `_v3`'e
+  çıkıp Meta onayını yeniden beklemek gerekirdi (v2 hâlâ PENDING).
+  *No 11 bu karara bağlandı:* seçenek B'de tek tarih yeter, seçenek A'da ikinci pencere
+  için ~4 haftalık pay gerekir.
+  *Ölçüm — yeni TABLO 5 (`python/saptanabilir_etki.py`):* gönüllü sayısına göre MDE.
+  20 → 0,61 (tabanın %80'i) · 40 → 0,43 (%57) · 60 → 0,35 (%46) · 100 → 0,27 (%36) ·
+  **200 → 0,19 (%25)** · 300 → 0,16 (%21).
+  *Ters tablo (ayıltıcı, sınırlılığa yazılmalı):* literatürde hafif dokunuşlu mesaj
+  müdahalelerinin tipik etkisi d = 0,10–0,15; bunu görmek **326–733 gönüllü** ister, yani
+  havuzun %7–15'i. Ulaşılamaz. Bu çalışma yalnızca görece büyük etkileri görebilir —
+  müdahale 14 haftalık iki yönlü bir sistem olduğu için beklenti tipik nudge'dan büyük
+  olabilir, ama iddia buna göre kurulmalı.
+  *Eşleşme oranı doygunluğu (No 14'ün cevabı):* n=60'ta 1:1 → 0,43 · **1:3 → 0,35** ·
+  **1:5 → 0,33** · 1:10 → 0,32 · 1:20 → 0,31. Doygunluk 1:5'te; kohort 7.288 kişilik
+  olduğu için 1:5 bedavadır, 1:10 ve ötesi hiçbir şey kazandırmaz.
+
+- **Örneklem yalnızca 3. SINIF; 1. ve 2. sınıf davet edilmiyor** (kullanıcı kararı).
+  *Gerekçe:* A5'in "artırmıştır" kipi paralel eğilim testine bağlı, test ise iki geçmiş
+  aynı mevsim dönemi istiyor. 2. sınıfın tek geçmiş baharı var (test kurulamaz), 1.
+  sınıfın hiç yok. Eski tasarım bu iki sınıfı müdahaleye alıp A5 dışında bırakıyordu;
+  tek örneklem hem analiz planını hem onam ve eşleştirme sürecini sadeleştiriyor.
+  *Zincirleme kapanma:* No 6 (1. sınıf katılımcıların ANCOVA'da ele alınma biçimi)
+  **konusuz kaldı** — 1. sınıf katılımcı olmayacak. Tek kararla iki madde kapandı.
+  *Güncellenen yerler:* 3.1'deki "İkincil: 2. sınıf" ve "1. sınıf: müdahaleye dahil, A5
+  analizine değil" paragrafları (ikincisi silindi) · dışlama kuralı (ilk dönemini okuyan
+  artık davet edilmiyor; yine de ders tekrarı/dondurma nedeniyle eksik çıkanlar için
+  kural korundu) · 5.2'deki ön-eğilim alt örneklemi (artık ayrı alt örneklem gerekmiyor,
+  test tüm katılımcılarda kurulabiliyor) · 11.2 · 9.1.
+  *11.2'de çerçeve değişti — ve bedeli büyüdü:* kısıt artık "verinin dayattığı bir sonuç"
+  değil **bilinçli tasarım tercihi**. Bedeli de açıkça yazıldı: bulgular 1. ve 2. sınıfa
+  genellenemez, üstelik *"bu öğrenciler müdahaleye en çok ihtiyaç duyan grup olabilir —
+  kurumsal veride ilk sınıflarda hareketsizlik oranı daha yüksektir — dolayısıyla çalışma,
+  etkinin muhtemelen en düşük olduğu grupta kestirim yapmaktadır."* Bu cümle savunmada
+  sorulacak; önceden yazılmış olması gerekiyordu.
+  *9.1'e davet kapsamı eklendi:* niçin yalnızca 3. sınıf davet edildiği ve davet
+  edilmeyenler bakımından hak kaybı doğmadığı (çalışma mevcut hizmetlere EK bir kanal,
+  kimsenin erişimini kısıtlamıyor) — etik kurulun soracağı bir nokta.
+
+- **Değerlendirme tasarımının açık kararlarından yedisi kapatıldı (19 maddenin 7'si).**
+  *Kullanıcı onayı (B grubu):* No 4 teslim edilmemiş mesajlar analizden çıkarılır ·
+  No 9 birincil pencere 24 saat (48 ikincil) · No 10 birincil sonuç materyal erişimi
+  (giriş ikincil).
+  *Bugünkü işle fiilen kapananlar:* No 15 karşılaştırma dönemi = **aynı mevsim**
+  (bahar↔bahar; tüm tasarım buna dayanıyordu — 3. sınıf seçimi, iki geçmiş bahar, veri
+  talebi — ama tabloda hâlâ "açık" duruyordu) · No 18 sınıf düzeyi **öğrenci bilgi
+  sisteminden** (veri talebinin 3. kalemi) · No 17 etik beyanı (9.1'de hazır).
+  No 16'nın birinci yarısı kapandı (iki geçmiş dönem), eşiği açık kaldı.
+  *No 5 İKİYE BÖLÜNDÜ — zamanlama hatası yakalandı.* Kullanıcı "dönem sonunda çeviri
+  yapılacak" dedi; ölçek dönem sonunda UYGULANIYOR ama **çeviri–geri çeviri + uzman paneli
+  etik başvurudan önce bitmeli**, çünkü uygulanacak anket metni başvuru dosyasına girer —
+  arada ~6 ay var. Yalnızca iç tutarlılık (Cronbach α) gerçekten uygulama sonrasıdır.
+  İş yükü küçük: 8 madde (AIM 4 + IAM 4); TAM'ın Türkçe uyarlamaları zaten mevcut.
+  Bölüm 4.3'teki KARAR 5 metni bu ayrımı yapacak şekilde yeniden yazıldı.
+  *Yan bulgu:* Bölüm 9'daki hazır etik metni **ölçek uygulamasından hiç söz etmiyordu**.
+  Anket beyanı paragrafı eklendi (hangi ölçekler, kaç madde, uyarlamanın yapıldığı,
+  kimlik bilgisi sorulmadığı, doldurmanın gönüllü olduğu).
+  *Listede olmayan ama olması gereken karar:* çalışma **YBS ile mi sınırlı, kurum geneli
+  mi**. Kayıtlı bir karar değil ama No 14'ü ve MDE'yi belirliyor — veri kurum geneli
+  (280 ders), T0 metni ise "Yönetim Bilişim Sistemleri Bölümü" diyor.
+  *Araç:* `hucre_degistir()` eklendi — durum metinleri benzersiz olmadığı için
+  (on paragraf "Açık" ile başlıyordu) satırı etiketinden bulup hücreyi değiştiriyor.
+
+- **Kurumsal veri talebi ayrı bir belgeye çıkarıldı:**
+  `Kisisellestirilmis_Mesaj_Veri_Talebi.docx`, üreteci `python/veri_talebi_olustur.py`.
+  *Kapsam ölçütü — yalnızca ŞART olanlar.* Altı aday kalemden dördü girdi:
+  (1) Şubat–Haziran 2026 etkileşim kayıtları, (2) program/bölüm kodu, (3) resmî sınıf
+  düzeyi, (4) üç döneme ait akademik takvim. Her kalemin yanında "çalışmanın hangi adımı
+  buna bağlı" yazılı — gerekçesiz veri talebi kurumda karşılık bulmaz.
+  *DIŞARIDA BIRAKILAN — ders kayıt listesi.* Önce "şart" diye önerdim, kullanıcı
+  *"gerçekten gerekli mi, materyal erişim logu yetmez mi"* diye sordu ve **haklı çıktı**.
+  İki iddiam da veriyle çürüdü: (a) "eşleştirme ölçütü sonuç değişkeniyle kirlenmiş"
+  YANLIŞ — eşleştirme GEÇMİŞ dönem verisiyle yapılıyor, sonuç ise müdahale döneminin
+  değişimi; belge zaten bilerek geçmiş aktif gün oranıyla eşleştiriyor. (b) "aynı şeyi iki
+  kez ölçüyorsun" YANLIŞ — eriştiği ders sayısı ile aktif gün oranı arasındaki korelasyon
+  Pearson **0,403**, Spearman 0,561 (n=49.384); ders sayısı bağımsız bilgi taşıyor.
+  Geriye yalnızca "8 derse kayıtlı olup 2'sine erişen" ile "2 derse kayıtlı olup 2'sine
+  erişen" ayrımı kalıyor; gruplar arası bileşim farkı gösterilemediği için gerekçe zayıf.
+  Kayıt dondurma kayıtları da aynı nedenle dışarıda (etkisi iki grupta benzer).
+  *Üç zorunlu koşul belgede ayrı bölüm:* (1) öğrenci kimliği ÜÇ dönemde de aynı takma
+  kimlik olmalı — her dönem bağımsız anonimleştirilirse veri bu çalışma için tümüyle
+  kullanılamaz; (2) `yil` akademik yıl BAŞLANGICI olarak kodlanmalı; (3) biçim hacmi
+  karşılamalı — **xlsx sayfa sınırı 1.048.576 satır, beklenen hacim ~3,8 milyon**, bu
+  yüzden CSV öneriliyor. Üçüncüsü bu oturumda keşfedildi ve kodda henüz çözülmedi
+  (`app:import-ornek-veri` yalnızca .xlsx okuyor).
+  *Bulgu — hedef bölüm belirsizliği:* veri kurum geneli (280 ders; SOS, TAR, HUK, BIL,
+  YBS, IKT...), oysa T0 metni "Yönetim Bilişim Sistemleri Bölümü'nden yazıyoruz" diyor.
+  Bölüm 3.1'deki **7.288 kişilik 3. sınıf havuzu kurum geneli** — YBS değil. Çalışma YBS
+  ile sınırlıysa havuz küçülür ve **MDE hesabı değişir**. Karar kullanıcıya bırakıldı,
+  talep belgesine program kodu kalemi olarak girdi.
+  *CLAUDE.md tuzağına düştüm:* `upper()` "TALEBIN", "BIÇIMI", "KIŞISEL VERI" üretti.
+  `tr_buyut()` eklendi (aynı yardımcı `tez_iskeleti_olustur.py`'de zaten vardı).
+
+- **İki geçmiş bahar dönemi verisi alınacak (kullanıcı kararı); eksik olan TEK dönem
+  belirlendi: Şubat–Haziran 2026.** A5'in "artırmıştır" kipi paralel eğilim testine, o da
+  iki ön-döneme bağlıydı ve veri yokluğu açık bir risk olarak duruyordu.
+  *Bulgu — birinci dönem ZATEN elde:* `materyal_erisim_log`'daki `yil=2024, donem=2`
+  satırları 2025-02-03 – 2025-06-28 aralığını taşıyor, yani **Şubat–Haziran 2025**.
+  `yil` akademik yılın BAŞLANGIÇ yılı. Dolayısıyla 2027 baharında yapılacak çalışma için:
+  ön-dönem 1 = 2025 baharı ✅ elde · ön-dönem 2 = 2026 baharı ❌ istenecek ·
+  müdahale dönemi = 2027 baharı (çalışma sırasında toplanacak).
+  *Şartname Bölüm 8'e yazıldı:* mevcut çıkarımla aynı yapıda — anonimleştirilmiş ama
+  **iki dönem arasında EŞLEŞTİRİLEBİLİR** öğrenci kimliği (aynı öğrenciye iki dönemde aynı
+  takma kimlik; bu olmadan r ve DiD kurulamaz), ders kodu, materyal tipi, ünite no, işlem
+  zamanı; ayrıca dönem başlangıç/bitiş tarihleri (aktif gün oranının paydası).
+  *Sıralama kısıtı (kritik yol değişti):* örneklem gerekçesi (MDE, Ek A) etik kurul
+  dosyasına girer → r'ye dayanır → bu veriye dayanır. Veri talebi **etik başvurudan önce**
+  sonuçlanmalı. Takvime iki yeni adım eklendi (1: veri talebi, 2: tablo yazımı) ve
+  numaralandırma düzeltildi — eski tabloda 8 atlanmıştı. Gecikirse başvuru r = 0,65 ile
+  yapılabilir ama tablonun yeniden üretileceği beyan edilmeli.
+  *Etiketleme tuzağı belgelendi:* yeni dönem `(2025, 2)` olarak kodlanmalı; başka türlü
+  "aynı mevsim" eşleştirmesi sessizce yanlış çalışır.
+  *Araç hatası düzeltildi:* docx yardımcısındaki `<w:t[^>]*>` deseni `<w:tc>`/`<w:tr>`
+  etiketlerini de yakalıyordu — paragraf düzeyinde zararsızdı, tablo hücresi düzeyinde
+  metni bozuyordu. `<w:t(\s[^>]*)?>` ile daraltıldı. Ayrıca takvim satırını yanlışlıkla
+  sildim (yeni adımı eski adımın ÜZERİNE yazdım) ve bir tablo hücresine paragraf sızdırdım;
+  ikisi de geri alındı, satır klonlama yardımcısı eklendi.
+
+- **Kol düzeyinin gerekçesi Bölüm 3.1'e yazıldı; birincil büyüklük GÜÇ DEĞİL, SAPTANABİLİR
+  EN KÜÇÜK ETKİ (MDE) olarak kuruldu** (`python/saptanabilir_etki.py`, TABLO 1–4).
+  Belge randomize bir kol kurulmadığını söylüyor ama NİÇİN kurulmadığını söylemiyordu.
+  *Niçin MDE birincil (kullanıcı kararı: "mde olsun tezimde bu daha önemli"):* güç hesabı
+  beklenen etkiyi (d) BİLMEYİ gerektirir, oysa Ek A'nın kendisi d'yi "literatürden değil,
+  varsayım" diye tanımlıyor — yani tablo bir tahminin üstünde duruyordu ve "d = 0,50
+  nereden geldi?" sorusuna cevabı yoktu. MDE aynı denklemi ters çözer (gücü %80'de sabitler,
+  d'yi çözer) ve varsayımı ortadan kaldırır: tasarımın NE GÖREBİLDİĞİNİ söyler.
+  *Ölçüm (n=60, r=0,65, alfa=0,05, DiD değişim skoru):*
+
+  | tasarım | MDE (d) | oran puanı | ≈ gün/98 | taban üstü |
+  |---|---|---|---|---|
+  | Randomize iki kol (30/30) | 0,61 | 0,055 | 5,4 | %80 |
+  | Eşlenmiş kohort 1:1 | 0,43 | 0,039 | 3,8 | %57 |
+  | **Eşlenmiş kohort 1:3** | **0,35** | **0,032** | **3,1** | **%46** |
+  | Eşlenmiş kohort 1:5 | 0,33 | 0,030 | 2,9 | %44 |
+
+  *Okunuşu:* randomize kol gücü küçük gönüllü havuzunu İKİYE BÖLEREK arar; eşlenmiş kohort
+  kesinliği kurumsal veride zaten var olan büyük havuzdan çeker ve 60 gönüllünün tamamı
+  müdahale grubunda kalır. Randomize kol bir tercih değil, yalnızca ÇOK büyük etkileri
+  görebilen bir seçenek.
+  *Asıl kazanç — sonucun okunuşu önceden sabitlendi:* seçilen tasarım ancak ~3 günlük
+  (tabanın %46'sı) bir farkı görebiliyor. Eğitimde kısa mesaj müdahaleleri tipik olarak
+  bunun altında etki üretir. Dolayısıyla anlamsız bir sonuç çıkarsa kurulacak cümle "etki
+  yoktur" DEĞİL, "bu eşiğin altındaki etkiler bu tasarımla görünmez"dir — ve bu cümle
+  çalışma BAŞLAMADAN yazıldığı için savunma değil, sınırlılık olur. Bölüm 11.2'ye eklendi.
+  *Dağılım verisi (2024 bahar, n=49.384):* aktif gün oranı ort. 0,0687, std 0,0908 — std
+  ortalamadan BÜYÜK, dağılım ağır çarpık. Normal varsayımına dayanan d bu veride kaba;
+  betik ve belge bunu açıkça uyarıyor, rakam büyüklük mertebesi olarak okunmalı.
+  *Duyarlılık:* r 0,50–0,80 aralığında ayrıca basılıyor; tasarımların SIRALAMASI r'nin her
+  değerinde aynı — sonuç r varsayımına bağlı değil.
+  *Dürüstlük kaydı:* hesap saptama gücü sorusunu yanıtlar, İÇ GEÇERLİK sorusunu değil.
+  Randomize kol daha büyük eşikle ama daha az YANLI çalışırdı; gönüllülerin sonuçla ilişkili
+  bir özellikte (katılma isteği) ayrılması eşleştirmeyle kapatılamaz. Feda edilen kesinlik
+  değil iç geçerlik. 3.1'e yazıldı, 11.2'ye bağlandı.
+  *VERİ BULGUSU — Ek A'nın bir iddiası yanlıştı:* Ek A "r'yi tahmin etmeyin, elinizdeki
+  geçmiş dönem verisiyle BUGÜN hesaplayabilirsiniz" diyordu. Veritabanında **tek geçmiş
+  dönem var** (2024 bahar; `materyal_erisim_log`, `login_log`, `sinav_sonucu` üçünde de).
+  İki ardışık aynı mevsim dönemi olmadan r hesaplanamaz. Ek A düzeltildi ve başlığı
+  "Saptanabilir Etki ve Güç Hesabı Varsayımları" oldu; kararlar tablosunda No 1 `Açık` →
+  `Kısmen`.
+  *Gerekçe kategorisi:* MDE **türetilmiş** (formülden + gerçek dağılımdan), ama r hâlâ
+  **muhakemeye dayanan** — kategori yükseltilmemeli.
+
+- **Randomizasyonun kapsamı ayrıldı: örneklem/kohort oluşturmada OLABİLİR, müdahale
+  eksenlerinde YOK.** Kullanıcı kararı: *"randomizasyon örneklem oluştururken olabilir. ama
+  eksenlerde randomizasyon yapılmayacak bu kararlarda olması gerek"*.
+  *Niçin gerekti:* belge mutlak konuşuyordu — *"Randomizasyon hiçbir düzeyde
+  uygulanmamaktadır"* — ve bu kendi içinde ÇELİŞİYORDU. Bölüm 3.4 karşılaştırma kohortu için
+  *"hangi tohumla"* seçildiğinin saklanmasını zorunlu tutuyor, yani rastgele seçim
+  varsayıyor; buna karşılık kararlar tablosunun 12. satırı *"Rastgele sayı tohumu — ✅
+  Gerekmiyor, randomizasyon uygulanmıyor"* diyordu. İkisi aynı anda doğru olamaz.
+  *Ayrım:* rastgele seçim ile randomize atama farklı şeylerdir. Kohort seçimindeki
+  rastgelelik seçimi yansız ve yeniden üretilebilir kılar; **karşı-olgusal üretmez**.
+  Nedensel iddia yalnızca atamanın randomize olmasından doğar, o da yok.
+  *Yapılan:* Bölüm 1'in üçüncü ilkesi ve 3.1 daraltıldı; 3.3'ün başlığı *"Müdahale
+  eksenlerinde neden randomizasyon yok"* oldu; kararlar tablosunun 3. satırı *"Müdahale
+  atamasında ve kişiselleştirme eksenlerinde randomizasyon → uygulanmayacak; örneklem/kohort
+  oluşturmadaki rastgele seçim bu kararın dışındadır"*; 12. satır `✅ Gerekmiyor` →
+  **`⚠ GEREKLİ`** (tohum sabitlenip kohort bileşimiyle saklanmalı); 2. satırın gerekçesi
+  düzeltildi (denge tabakalamayla değil eşleştirmeyle sağlanıyor).
+  *Üç bayat kalıntı daha bulundu ve temizlendi* — terk edilmiş mikro-randomizasyon ve
+  stepped wedge tasarımlarından kalmışlar: takvimde *"Kol atama kaydının şemaya eklenmesi"*
+  ve *"Randomizasyonun uygulanması ve kaydı"* adımları, *"Müdahalenin başlaması (erken kol)"*
+  ifadesindeki **erken kol** (kol diye bir şey yok), ve veri hazırlığındaki *"Randomizasyon
+  kolonları eklenmeden önce dönem başlamamalıdır; atama kaydı olmayan mesajlar analize
+  giremez"* maddesi. Yerlerine kohort tohumu/bileşimi kaydı geçti.
+
+- **Bölüm 3.3'ün eksik gerekçesi yazıldı: bileşen düzeyinde randomizasyon niçin yok.**
+  Başlık "Neden randomizasyon yok" diyordu ama metin yalnızca neyin feda edildiğini
+  anlatıyordu; gerekçe ne belgede ne burada kayıtlıydı.
+  *Önce kapsam ayrıldı:* kol düzeyi ile bileşen düzeyi farklı gerekçelere dayanır.
+  Kol düzeyini **aritmetik** kapatıyor — 60 gönüllü 30/30 bölündüğünde d=0,30'da güç %21;
+  %80 için 350 gönüllü, yani havuzun %4,8'i gerekirdi (beklenen katılım %0,8). Eşlenmiş
+  kohort 1:3 ile güç %52. Bileşen düzeyinde ise bu gerekçe İŞLEMEZ: mikro-randomize
+  denemelerde güç katılımcı değil MESAJ sayısından gelir, 60 katılımcıda da çalışırdı.
+  Kullanıcı gerekçenin bileşen düzeyine ilişkin olmasını istedi; yazılan da budur.
+  *Gerekçe — kazanç dar:* dört eksenden (zamanlama, ton, içerik dalı, sıklık) yalnızca
+  gönderim zamanı tasarımı bozmadan rastgeleleştirilebilir. İçerik dalı YAPISAL olarak
+  atanamaz (dalı öğrencinin kendi yanıtı seçer). Ton ve sıklık teknik olarak atanabilirdi
+  ama yalnızca hizmeti kasten bozarak: ton rastgeleleştirilirse ileri yaştaki öğrenciye
+  tekil hitap edilir — tasarımın hipotez değil toplumsal sözleşme saydığı tek öğe; sıklık
+  rastgeleleştirilirse hak edilmiş bir mesaj bilerek gönderilmez.
+  *Gerekçe — maliyet yüksek:* MRT kendi güç hesabını, kestirim çerçevesini ve raporlama
+  standardını getirir; tasarım bilimi çerçevesinde katkının ağırlığını artefakttan yönteme
+  kaydırır.
+  *Reddedilen gerekçe:* "mesajların yarısı sabit 10:00'a gider, bu hizmeti bozar" —
+  10:00 zararlı değil, yalnızca kişiselleştirilmemiş bir saat; etik argüman kurmaz.
+  *Düzeltme:* ilk taslakta "ton ve sıklık araştırmacı tarafından atanabilir DEĞİLDİR"
+  yazmıştım; yanlıştı, teknik olarak atanabilirler. Doğrusu yazıldı.
+  *AÇIK KALAN:* kol düzeyinin gerekçesi (güç aritmetiği) Bölüm 3.1'de hâlâ açıkça yazılı
+  değil — orada yalnızca eşleştirmenin kesinliği artırdığı söyleniyor. Güç tablosu teze
+  girecekse `/olcum` gereği `python/` altında bir betiğe dönüşmeli.
+
+- **`Degerlendirme_Tasarimi.docx` karar günlüğü olmaktan çıkarıldı; yürürlükteki tasarımı
+  anlatıyor.** Kullanıcı kuralı: *"verilen kararlar uygulandıysa karar tarihi vb silinmeli.
+  ne yapılacağı net olmalı"*. Karar tarihleri ve değişiklik geçmişi bu dosyanın (KARARLAR.md)
+  işi; değerlendirme tasarımı ne yapılacağını anlatır.
+  *Silinen:* sekiz yerdeki `(2026-11-03 kararı)` / `Karar (2026-11-03):` damgaları;
+  *"Ton 2026-11-03'te … indirildi"* → *"Ton bir kişiselleştirme ekseni değil, yazım
+  standardıdır"*; 3.3'teki *"Bir ara tasarımda … rastgeleleştiriliyordu … kaldırıldı"*
+  anlatısı → *"rastgeleleştirilmemektedir"* + neyin feda edildiği; 5.3'teki *"Bileşen
+  randomizasyonu kaldırıldığı için"* → *"bulunmadığı için"*; başlıktaki *"2. sürüm —
+  gözden geçirilecek taslak"* damgası.
+  *Korunan iki tarih:* 2026-10-27 (zaman damgalarının UTC→Europe/Istanbul geçişi) ve
+  2026-10-30 (teslim/okundu kaydının başlangıcı). Bunlar karar değil **veri özelliği** —
+  analiz yapan kişinin bilmesi gerekir.
+  *Kararlar tablosu netleştirildi:* `✅ Uygulanmayacak (2026-11-03)` → `✅ Karar verildi:
+  uygulanmayacak`; 19. satır kapalı ve açık kısmı karıştırıyordu (`✅ 3. birincil
+  (2026-11-03); davet kapsamı açık`) → `✅ Karar verildi: birincil örneklem 3. sınıf ·
+  ⚠ Açık: hangi sınıflar davet edilecek`.
+  *Yan bulgu — belgenin kendi ilkesiyle çelişmesi:* Bölüm 1'in üçüncü ilkesi *"Bu belgede
+  nedensel cümle kuran her analizin arkasında bir randomizasyon vardır"* diyordu. Belgede
+  hiçbir düzeyde randomizasyon yok ve A5 nedensel kiple yazılı. İlke korundu ama sonucu
+  eklendi: hiçbir analiz randomizasyona dayanan nedensel cümle kuramaz; A5 yarı-deneyseldir
+  ve paralel eğilim varsayımı desteklenmezse kipi "ilişkilidir"e iner.
+  *AÇIK KALAN:* Bölüm 3.3'ün başlığı "Neden randomizasyon yok" ama metin **niçin**
+  olmadığını hiçbir yerde söylemiyor — yalnızca neyin feda edildiğini ve bedelini anlatıyor.
+  Gerekçe ne bu dosyada ne `KARARLAR.md`'de kayıtlı; uydurulmadı, kullanıcıya bırakıldı.
+
+- **Kademe tablosu da tezden çıkarıldı: ölçüm yerine gerekçeli tasarım beyanı (B seçeneği).**
+  Aynı günün ikinci kararı; birincisi regex yarısını kaldırmıştı, bu ikincisi kalan yarıyı
+  da tez tablosu olmaktan çıkarıyor. Kullanıcının sorusu: *"bu bilgiyi kanıta dayalı vermek
+  yerine gerekçeli şekilde bazı personalar için aynı mesaj oluşturulabileceğini söylesek
+  yeterli olmaz mı?"*
+  *Asıl kusur ölçümde değil çerçevelemedeydi:* Bölüm 2.5 YY=İY özdeşliğini (%48) *"ikinci
+  adım yarım"*, *"bilinen bir sınırlılık"* diye raporluyordu. Oysa tasarımın kendi kuralına
+  göre bu bir eksiklik DEĞİL, kuralın sonucu: hitap normu İKİ değerlidir (Genç "sen",
+  Yetişkin ve İleri Yaş "siz"), dolayısıyla güvence dilinin gerekmediği noktada iki
+  kademenin ayrışması için bir neden yok. Yani ölçüm, kusur olmayan bir şeyi kusura
+  çeviriyordu — ölçmemek burada yalnızca gereksiz değil, DAHA DOĞRU.
+  *Beyan yazarken bir çelişki ortaya çıktı ve kapatıldı:* Bölüm 2.3 yaşın YALNIZCA hitap
+  normu için kullanıldığını söylüyordu (*"'bu yaştaki öğrenci şöyle davranır' denmiyor"*),
+  oysa 2.1 yaştan içerik türetiyordu (Knowles 1980; Baltes ve Baltes 1990 SOC; Carstensen
+  ve ark. 1999 SST) ve İleri Yaş metinlerinde bunun karşılığı vardı: 27 noktada "kendi
+  hızınızda", "kendi önceliklerinizi belirlemek sizin elinizde", "hiç merak etmeyin".
+  Bu ikinci yansıma gerçekten de yaştan bir iletişimsel ihtiyaç türetir — cinsiyet için
+  reddedilen çıkarım türünün aynısı.
+  *Karar:* kademenin İKİ ayrı iş gördüğü açıkça yazıldı. (1) Hitap normu — kaynak
+  kuralından türer, iki değerli, her noktada zorunlu. (2) İleri Yaş'taki güvence/
+  öncelikleme dili — kuramsal dayanağı var ama kaynak kuralından türemiyor, Bölüm 9'un
+  **"muhakemeye dayanan"** kategorisine yazıldı. Cinsiyet örneğinden ayrıldığı nokta
+  dayanağın niteliği (gelişim kuramları yönlü öngörü verir; iletişim tarzının cinsiyete
+  bağlı farkı meta-analitik olarak sıfıra yakındır) ve etkisinin sınırlılığı (eklenen dil
+  hiçbir noktada seçenekleri ya da bilgiyi değiştirmiyor, yalnızca çerçeveyi yumuşatıyor).
+  *Niçin üç kademe korundu (A seçeneği reddedildi):* İleri Yaş'ı Yetişkin'e katmak Meta'da
+  `_iy` sonekli şablonların silinmesini gerektirirdi — "sil + yeniden oluştur = 4 hafta
+  kilit". Operasyonel bedel, kazanılacak sadelikten büyük.
+  *Betiğin yeni statüsü:* tez tablosu üretmiyor, **regresyon kontrolü**. Yalnızca
+  ihlal EDİLEBİLİR kuralı denetliyor — Genç metni diğer ikisinden her noktada farklı
+  olmalı; ihlalde çıkış kodu **2**. YY=İY özdeşliği artık "beklenen" diye etiketli.
+  Duman testi: bir GY metni kasten YY ile özdeş yapıldı → `GY=YY (1 nokta)` yakalandı,
+  çıkış kodu 2 döndü.
+  *Nerede:* `Kisisellestirilmis_Mesaj_Modeli.docx` (2.3 uzlaştırıldı, 2.5 yeniden yazıldı —
+  başlık "Kademenin metne yansıması", TABLO D tablosu ve iki bulgu silindi; Bölüm 9
+  "muhakemeye dayanan" kategorisi genişletildi), `python/metin_kodlama.py` (başlık + kural
+  kontrolü), `src/Enum/Persona.php`, `Tez.docx`, `python/tez_iskeleti_olustur.py`,
+  `.claude/skills/olcum/SKILL.md`.
+
+
+- **Metin kodlamasının yorumlayıcı yarısı (eski TABLO A ve C) tezden ve betikten
+  ÇIKARILDI; betik canlı koda yöneltildi.** Karar kullanıcıya ait; gerekçesini de o kurdu:
+  *"mesajın hangi parametrelere göre kişiselleştirildiğini belirtmek yeterli değil mi?
+  çünkü buradaki betiğin güvenirliği de tartışmaya açılmaz mı sonra"*.
+  *Çıkarılanın niteliği:* `metin_kodlama.py` iki ayrı yöntem barındırıyordu. TABLO A
+  (register işaretleri) ve TABLO C (uzunluk/tereddüt) **elle yazılmış regex sözlüğüne**
+  dayanıyordu; TABLO B ve D ise **birebir dize karşılaştırmasına** (`==`,
+  `difflib.SequenceMatcher`).
+  *Niçin regex yarısı savunulamaz:* tek kodlayıcı, ikinci kodlayıcı yok, Krippendorff α
+  yok, doğrulama kümesi yok — içerik analizi literatüründe standart beklenti budur. Üstüne
+  operasyonelleştirmeler kırılgandı: `davetkar_kapanis = metin.endswith("?")` ("davetkâr
+  kapanış" yorumlayıcı etiketi, önemsiz bir sözdizim özelliğine yapıştırılmış); `TEREDDUT`
+  listesinde `\bgibi\b` ve `\bbiraz\b` vardı — Türkçede "gibi" ezici çoğunlukla düz
+  benzetme edatı, çitleme değil; `NORMALLESTIRME` bütün bir yapı için iki desendi.
+  Ek'te yayımlandığında bunlar doğrudan hedef olurdu ve savunulabilir cevabı yoktu.
+  *Niçin ölçmeye zaten gerek yoktu:* register 2026-11-03'ten beri **sabit bir ev üslubu**,
+  kişiselleştirme ekseni değil. Sabit bir şeyi ölçmenin kişiselleştirme iddiasına katkısı
+  yok. Mekanizmayı kod kanıtlıyor (`Persona::fromBirthDate` → varyant seçimi, determinist).
+  Tonun ALGILANIŞI için doğru araç anket (AIM/IAM), kendi regex'i değil.
+  *Niçin diğer yarı KALIYOR:* bildirim niyeti söyler, niyetin nerede uygulanmadığını
+  söyleyemez. TABLO 1 tam bunu buluyor: **YY = İY, 25/52 (%48)** — mesaj noktalarının
+  yarısında İleri Yaş öğrencisi Yetişkin metninin birebir aynısını alıyor, yani üçüncü
+  kademe o noktalarda fiilen YOK. Bu bulgu dize eşitliği olduğu için güvenirlik sorusu
+  doğurmaz; hakem iki metni yan yana koyup gözüyle doğrular.
+  *Kaynak değişikliği (gizli bir hata düzeltildi):* betik donmuş korpusu okuyordu ve canlı
+  kod ondan **çoktan sapmıştı** (`EngagementFlowMessages` canlı 98 / korpus 99 arm;
+  `TriggerMessageCatalog` canlı 61 / korpus 60). Yani tezdeki rakam 2026-11-10 anlık
+  görüntüsünü anlatıyordu, güncel kodu değil. Artık `src/Service/` okunuyor; `--korpus`
+  bayrağı tarihsel yeniden üretim için duruyor.
+  *Ölçüm (canlı kod, 52 blok):* TABLO 1 — GY=YY %0, **YY=İY %48**, GY=İY %0.
+  TABLO 2 — GY-YY benzerlik 0,740 (50 blokta içerik farkı); **YY-İY benzerlik 0,941**
+  (25 özdeş, 27 içerik farkı, 0 "yalnız hitap"); GY-İY 0,699.
+  *Okunuşu:* Genç kademesi sağlam, **İleri Yaş kademesi zayıf** — kişiselleştirme ekseni
+  fiilen iki kademeli (Genç / Yetişkin+), üç değil. Tezde ya kusur olarak raporlanmalı ya
+  metinler düzeltilmeli.
+  *Bedeli:* Bölüm 2.2'nin "ev üslubu iki EŞDEĞER GEÇERLİ register arasından ölçülerek
+  seçildi" iddiası dayanağını kaybetti; yerine Brown & Levinson'a dayanan **tasarım
+  bildirimi** geçiyor. Bölüm 2.5'ten üç bulgu çıkıyor (üslup işaretlerinin ayrışması,
+  Genç/Bilgi davetkâr-kapanış anomalisi, uzunluk/tereddüt farkı).
+  *Yan sonuç:* `arsiv/metin_korpusu_6persona/` artık bir tez bulgusu taşımıyor — ölçüm
+  tabanı değil, tarihsel kayıt. Bkz. o dizinin README'si.
+  *Nerede:* `python/metin_kodlama.py` (549 → 370 satır; regex sözlüğü ve `metni_kodla()`
+  silindi, CSV artık blok başına bir satır), `src/Enum/Persona.php` docblock'u,
+  `arsiv/metin_korpusu_6persona/README.md`, `.claude/skills/olcum/SKILL.md`,
+  `python/tez_iskeleti_olustur.py`.
+
 ## 2026-11-11
 
 - **Saat dilimi kararı TAMAMLANDI (2026-10-27'de yarım uygulanmıştı) ve python veri hattı
