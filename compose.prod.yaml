@@ -1,0 +1,47 @@
+# Prod katmanı. HER ZAMAN açıkça yüklenmeli:
+#
+#   docker compose --env-file deploy/prod.env -f compose.yaml -f compose.prod.yaml up -d
+#
+# `-f compose.yaml` YAZILMAZSA Docker compose.override.yaml'ı otomatik yükler ve
+# phpMyAdmin'i (:8081) ile MySQL'i (:3307) internete açar. Makefile'daki
+# `prod-*` hedefleri bu bayrakları zaten doğru geçiriyor.
+services:
+  php:
+    build:
+      target: php_prod
+    environment:
+      # compose.yaml'da `APP_ENV: ${APP_ENV:-dev}` yazıyor ve interpolasyon
+      # kaynağı deploy/prod.env. Yine de burada SABİT yazılıyor: APP_ENV dev
+      # kalırsa imaja gömülü .env.local.php devre dışı kalır (Symfony dumped
+      # env'i yalnızca APP_ENV eşleşirse kullanır) ve uygulama commit'li
+      # .env'deki postgresql DATABASE_URL'sine düşer.
+      APP_ENV: prod
+      APP_DEBUG: "0"
+    # Gizli anahtarlar imaja GİRMEZ (.dockerignore) ve prod'da bind mount yok —
+    # çalışma zamanında env_file ile enjekte edilir. php-fpm'de clear_env=no
+    # olduğu için PHP'ye ulaşırlar (docker/php/php-fpm.d/zz-app.conf).
+    env_file:
+      - deploy/app-secrets.env
+    volumes:
+      # Prod'da monolog stderr'a yazıyor, ama cron logları (tetikleyici-cron.log,
+      # zamanlanmis-mesaj-dispatch.log) dosyaya gidiyor ve konteyner yenilenince
+      # kaybolur.
+      - php_logs:/app/var/log
+
+  python:
+    volumes:
+      - python_logs:/app/var/log
+
+  nginx:
+    build:
+      target: nginx_prod
+    volumes:
+      # ACME webroot'u TLS katmanı YÜKLENMEDEN de bağlı olmalı: sertifika ilk kez
+      # alınırken nginx hâlâ 80'de düz HTTP modunda çalışıyor ve doğrulama dosyasını
+      # bu dizinden sunuyor (bkz. docker/nginx/default.conf).
+      - certbot_www:/var/www/certbot:ro
+
+volumes:
+  php_logs:
+  python_logs:
+  certbot_www:
