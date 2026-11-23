@@ -8,8 +8,11 @@
 # ilk sertifika alınırken bu dosya YÜKLENMEZ (bkz. prod-tasima-plani.md § 1).
 services:
   nginx:
-    ports: !override
-      - "80:80"
+    # `!override` KULLANILMIYOR: o etiket Compose v2.24.0'da geldi ve daha eski
+    # sürümlerde SESSİZCE yok sayılıp listeler birleştiriliyor (yerelde v2.20.2
+    # ile doğrulandı). Base compose.yaml zaten `${HTTP_PORT:-80}:80` yayınlıyor,
+    # burada yalnızca 443 ekleniyor — hem eski hem yeni sürümde aynı sonuç.
+    ports:
       - "443:443"
     volumes:
       # Baked /etc/nginx/conf.d/default.conf'u TLS'li sürümle değiştirir.

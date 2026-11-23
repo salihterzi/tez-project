@@ -45,8 +45,11 @@ services:
     restart: unless-stopped
     environment:
       TZ: ${TZ:-Europe/Istanbul}
-    ports:
-      - "${HTTP_PORT:-80}:80"
+    # `ports` BİLİNÇLİ olarak burada YOK. Compose listeleri birleştirir ve `!override`
+    # etiketi yalnızca v2.24.0+ sürümlerde çalışır — eski sürümlerde sessizce yok
+    # sayılıp base'in portu katmanın portuna EKLENİR (v2.20.2'de nginx hem :80 hem
+    # :8080 yayınlıyordu). Portu her katman kendisi açıyor: dev 8080
+    # (compose.override.yaml), prod 80 (compose.prod.yaml), TLS +443 (compose.tls.yaml).
     depends_on:
       php:
         condition: service_healthy

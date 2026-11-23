@@ -35,6 +35,8 @@ services:
   nginx:
     build:
       target: nginx_prod
+    ports:
+      - "${HTTP_PORT:-80}:80"
     volumes:
       # ACME webroot'u TLS katmanı YÜKLENMEDEN de bağlı olmalı: sertifika ilk kez
       # alınırken nginx hâlâ 80'de düz HTTP modunda çalışıyor ve doğrulama dosyasını
