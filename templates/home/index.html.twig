@@ -1,15 +1,346 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}tez-proje{% endblock %}
+{% block title %}Kişiselleştirilmiş Yönlendirme Mesajları — Anadolu Üniversitesi{% endblock %}
+
+{% block stylesheets %}
+<style>
+    :root {
+        --zemin:       #fcfcfb;
+        --zemin-alt:   #f4f3f0;
+        --kart:        #ffffff;
+        --metin:       #191817;
+        --soluk:       #5d5b56;
+        --cok-soluk:   #8c8a84;
+        --cizgi:       #e4e2dd;
+        --vurgu:       #1d5c4c;
+        --vurgu-acik:  #e9f2ee;
+        --balon-gelen: #ffffff;
+        --balon-giden: #dcf3e8;
+    }
+    @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) {
+            --zemin:       #15171a;
+            --zemin-alt:   #1b1e21;
+            --kart:        #1e2226;
+            --metin:       #edebe7;
+            --soluk:       #a5a39e;
+            --cok-soluk:   #7d7b77;
+            --cizgi:       #2d3237;
+            --vurgu:       #7fc9b2;
+            --vurgu-acik:  #1d2a28;
+            --balon-gelen: #24282c;
+            --balon-giden: #1f3b34;
+        }
+    }
+    :root[data-theme="dark"] {
+        --zemin:       #15171a;
+        --zemin-alt:   #1b1e21;
+        --kart:        #1e2226;
+        --metin:       #edebe7;
+        --soluk:       #a5a39e;
+        --cok-soluk:   #7d7b77;
+        --cizgi:       #2d3237;
+        --vurgu:       #7fc9b2;
+        --vurgu-acik:  #1d2a28;
+        --balon-gelen: #24282c;
+        --balon-giden: #1f3b34;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+        margin: 0;
+        background: var(--zemin);
+        color: var(--metin);
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        font-size: 17px;
+        line-height: 1.68;
+        -webkit-font-smoothing: antialiased;
+    }
+
+    .kabuk { max-width: 52rem; margin: 0 auto; padding: 0 1.5rem; }
+    .dar   { max-width: 38rem; }
+
+    /* ---------- Başlık ---------- */
+    .tepe {
+        background: var(--zemin-alt);
+        border-bottom: 1px solid var(--cizgi);
+    }
+    .tepe-ic { padding: 4.5rem 0 4rem; }
+    .kurum {
+        font-size: .76rem; letter-spacing: .1em; text-transform: uppercase;
+        color: var(--vurgu); font-weight: 600; margin: 0 0 1.1rem;
+    }
+    h1 {
+        font-family: ui-serif, Georgia, "Times New Roman", serif;
+        font-size: clamp(2rem, 6vw, 3.1rem); line-height: 1.12;
+        margin: 0 0 1.2rem; font-weight: 600; letter-spacing: -.015em;
+    }
+    .ozet {
+        font-size: 1.18rem; color: var(--soluk); margin: 0; max-width: 36rem;
+    }
+
+    /* ---------- Bölümler ---------- */
+    section { padding: 3.5rem 0; }
+    section + section { border-top: 1px solid var(--cizgi); }
+    h2 {
+        font-family: ui-serif, Georgia, "Times New Roman", serif;
+        font-size: 1.5rem; margin: 0 0 1.3rem; font-weight: 600;
+        letter-spacing: -.01em;
+    }
+    .etiket {
+        font-size: .74rem; letter-spacing: .1em; text-transform: uppercase;
+        color: var(--cok-soluk); font-weight: 600; margin: 0 0 .7rem;
+    }
+    p { margin: 0 0 1.1rem; }
+    p:last-child { margin-bottom: 0; }
+
+    /* ---------- Örnek konuşma ---------- */
+    .konusma {
+        background: var(--zemin-alt); border: 1px solid var(--cizgi);
+        border-radius: 14px; padding: 1.5rem 1.25rem; margin: 1.8rem 0 .9rem;
+        display: flex; flex-direction: column; gap: .7rem;
+    }
+    .balon {
+        max-width: 85%; padding: .72rem .95rem; font-size: .97rem;
+        line-height: 1.55; border: 1px solid var(--cizgi);
+    }
+    .balon.gelen {
+        align-self: flex-start; background: var(--balon-gelen);
+        border-radius: 14px 14px 14px 4px;
+    }
+    .balon.giden {
+        align-self: flex-end; background: var(--balon-giden);
+        border-radius: 14px 14px 4px 14px;
+    }
+    .balon a { color: inherit; }
+    .altyazi { font-size: .87rem; color: var(--cok-soluk); margin: 0; }
+
+    /* ---------- Üç kademe ---------- */
+    .kademeler {
+        display: grid; grid-template-columns: repeat(3, 1fr);
+        gap: 1rem; margin: 1.8rem 0 .9rem;
+    }
+    @media (max-width: 46rem) { .kademeler { grid-template-columns: 1fr; } }
+    .kademe {
+        background: var(--kart); border: 1px solid var(--cizgi);
+        border-radius: 12px; padding: 1.1rem;
+        display: flex; flex-direction: column; gap: .6rem;
+    }
+    .kademe-ad { font-size: .95rem; font-weight: 650; margin: 0; }
+    .kademe-metin {
+        font-size: .92rem; line-height: 1.55; color: var(--soluk); margin: 0;
+    }
+
+    /* ---------- Adımlar ---------- */
+    .adimlar { list-style: none; padding: 0; margin: 0; counter-reset: adim; }
+    .adimlar li {
+        position: relative; padding-left: 3.1rem; padding-bottom: 1.8rem;
+        counter-increment: adim;
+    }
+    .adimlar li:last-child { padding-bottom: 0; }
+    .adimlar li::before {
+        content: counter(adim);
+        position: absolute; left: 0; top: 0;
+        width: 2rem; height: 2rem; border-radius: 50%;
+        background: var(--vurgu-acik); color: var(--vurgu);
+        display: grid; place-items: center;
+        font-size: .88rem; font-weight: 700; font-variant-numeric: tabular-nums;
+    }
+    .adimlar li:not(:last-child)::after {
+        content: ""; position: absolute; left: .97rem; top: 2.3rem; bottom: .3rem;
+        width: 1px; background: var(--cizgi);
+    }
+    .adimlar strong { display: block; font-weight: 650; margin-bottom: .15rem; }
+    .adimlar span { color: var(--soluk); font-size: .97rem; }
+
+    /* ---------- Vurgu kutusu ---------- */
+    .not {
+        background: var(--vurgu-acik); border-radius: 12px;
+        padding: 1.2rem 1.35rem; margin-top: 1.4rem;
+    }
+    .not p { font-size: .97rem; }
+
+    /* ---------- İletişim ---------- */
+    dl { margin: 0; display: grid; gap: 1.1rem; }
+    dt {
+        font-size: .76rem; letter-spacing: .08em; text-transform: uppercase;
+        color: var(--cok-soluk); font-weight: 600; margin: 0 0 .15rem;
+    }
+    dd { margin: 0; }
+
+    a { color: var(--vurgu); text-underline-offset: .18em; }
+
+    footer {
+        border-top: 1px solid var(--cizgi); background: var(--zemin-alt);
+        color: var(--soluk); font-size: .9rem;
+    }
+    .footer-ic { padding: 2.2rem 0 3rem; }
+    footer p { margin: 0 0 .35rem; }
+    footer p:last-child { margin: 0; color: var(--cok-soluk); }
+</style>
+{% endblock %}
 
 {% block body %}
-    <main style="font-family: system-ui, sans-serif; max-width: 640px; margin: 4rem auto; padding: 0 1rem;">
-        <h1>{{ message }}</h1>
-        <ul>
-            <li>Symfony {{ constant('Symfony\\Component\\HttpKernel\\Kernel::VERSION') }}</li>
-            <li>PHP {{ constant('PHP_VERSION') }}</li>
-            <li>Ortam: {{ app.environment }}</li>
-        </ul>
-        <p><a href="{{ path('app_health') }}">/health</a> — JSON durum ucu</p>
-    </main>
+<div class="tepe">
+    <div class="kabuk tepe-ic">
+        <p class="kurum">Anadolu Üniversitesi </p>
+        <h1>Kişiselleştirilmiş<br>yönlendirme mesajları</h1>
+        <p class="ozet">
+            Uzaktan eğitim öğrencilerinin ders materyallerine erişimini desteklemek için
+            yürütülen bir lisansüstü tez araştırması.
+        </p>
+    </div>
+</div>
+
+<div class="kabuk">
+    <section>
+        <p class="etiket">Araştırma sorusu</p>
+        <h2>Mesajı kişiye uyarlamak fark yaratır mı?</h2>
+        <div class="dar">
+            <p>
+                Uzaktan eğitimde ders materyallerine düzenli erişim, akademik başarının en
+                belirleyici unsurlarından biri. Bu araştırma, dönem boyunca WhatsApp
+                üzerinden gönderilen kısa yönlendirme mesajlarının bu erişim düzenini
+                destekleyip desteklemediğini inceliyor.
+            </p>
+            <p>
+                Mesajlar herkese aynı biçimde gönderilmiyor: her öğrencinin erişim
+                geçmişine, tercih ettiği saate ve yaş grubuna göre hem <em>zamanı</em> hem
+                <em>dili</em> uyarlanıyor. Araştırmanın sorusu da tam olarak bu.
+            </p>
+        </div>
+    </section>
+
+    <section>
+        <p class="etiket">Örnek</p>
+        <h2>Bir yönlendirme mesajı nasıl görünüyor?</h2>
+        <div class="konusma">
+            <div class="balon gelen">
+                Merhaba Ayşe, bir süredir sizi göremedik — bu gayet normal olabilir,
+                herkesin yoğun dönemleri olur. Sizi şu an en çok ne zorluyor, paylaşmak
+                ister misiniz?
+            </div>
+            <div class="balon giden">Zaman bulamıyorum</div>
+            <div class="balon gelen">
+                Anlıyorum, zaman bulmak pek çok kişi için gerçekten zor — bunda yalnız
+                değilsiniz. Sizin için en rahat olan neyse onu birlikte seçelim mi?
+            </div>
+        </div>
+        <p class="altyazi">
+            Öğrencinin adı ve mesajın gönderim saati kişiye göre belirlenir. Yanıt vermek
+            zorunlu değildir.
+        </p>
+    </section>
+
+    <section>
+        <p class="etiket">Kişiselleştirme</p>
+        <h2>Aynı mesaj, üç farklı dil</h2>
+        <div class="dar">
+            <p>
+                Mesajın dili öğrencinin yaş grubuna göre uyarlanıyor. Aşağıda aynı
+                durumun — bir süredir materyale erişilmemesi — üç kademedeki karşılığı
+                yer alıyor.
+            </p>
+        </div>
+        <div class="kademeler">
+            <div class="kademe">
+                <p class="kademe-ad">Genç</p>
+                <p class="kademe-metin">
+                    Selam Ayşe, bir süredir seni göremeyince nasıl olduğunu sormak
+                    istedim, umarım her şey yolundadır 🙂 Konuşmak istersen buradayım —
+                    seni şu an en çok ne zorluyor?
+                </p>
+            </div>
+            <div class="kademe">
+                <p class="kademe-ad">Yetişkin</p>
+                <p class="kademe-metin">
+                    Merhaba Ayşe, bir süredir sizi göremedik — bu gayet normal olabilir,
+                    herkesin yoğun dönemleri olur. Sizi şu an en çok ne zorluyor, paylaşmak
+                    ister misiniz?
+                </p>
+            </div>
+            <div class="kademe">
+                <p class="kademe-ad">İleri yaş</p>
+                <p class="kademe-metin">
+                    Merhaba Ayşe, bir süredir sizi göremedik — bu gayet normal olabilir,
+                    herkesin kendine ayırdığı zaman değişebilir. Sizi şu an en çok ne
+                    zorluyor, paylaşmak ister misiniz?
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <p class="etiket">İşleyiş</p>
+        <h2>Nasıl yürüyor?</h2>
+        <ol class="adimlar">
+            <li>
+                <strong>Kayıt</strong>
+                <span>Gönüllü öğrenciler kısa bir form doldurarak çalışmaya katılır.</span>
+            </li>
+            <li>
+                <strong>Dönem boyunca yönlendirme mesajları</strong>
+                <span>
+                    Materyallere bir süre erişilmediğinde ya da sınav dönemi yaklaştığında
+                    kısa bir hatırlatma gönderilir. Haftada en fazla bir yönlendirme mesajı
+                    gönderilir.
+                </span>
+            </li>
+            <li>
+                <strong>Yanıtlar</strong>
+                <span>
+                    Yanıt vermek zorunlu değildir. Yanıt verildiğinde, engel neyse — zaman,
+                    zorluk ya da motivasyon — ona uygun kısa bir öneri sunulur.
+                </span>
+            </li>
+        </ol>
+    </section>
+
+    <section>
+        <p class="etiket">Haklarınız</p>
+        <h2>Katılım gönüllüdür</h2>
+        <div class="dar">
+            <p>
+                Çalışmaya katılmak tamamen gönüllülük esasına dayanır ve katılmamak hiçbir
+                akademik sonuç doğurmaz. Katılımcılar çalışmadan <strong>dilediği an,
+                gerekçe belirtmeksizin</strong> ayrılabilir; ayrılma talebi süresizdir ve
+                otomatik geri dönüş yapılmaz.
+            </p>
+            <div class="not">
+                <p>
+                    Ayrılmak için aşağıdaki iletişim adresine tek satır bir ileti
+                    yeterlidir. Talep alındığında mesaj gönderimi durdurulur.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <p class="etiket">KVKK</p>
+        <h2>Kişisel verilerin korunması</h2>
+        <div class="dar">
+            <p>
+                Çalışma kapsamında kişisel veri işlenmektedir ve bu işleme 6698 sayılı
+                Kişisel Verilerin Korunması Kanunu kapsamında yürütülür. Veriler yalnızca
+                bu araştırmanın amaçları için kullanılır, üçüncü taraflarla paylaşılmaz ve
+                araştırma sonuçlarında hiçbir öğrenci tek tek tanınabilecek biçimde yer
+                almaz.
+            </p>
+            <p>
+                Mesajlar WhatsApp Business Platform üzerinden iletilir; bu nedenle mesaj
+                iletimi sırasında ilgili hizmet sağlayıcının koşulları da geçerlidir.
+                Ayrıntılı bilgilendirme ve açık rıza metni kayıt formunda yer alır.
+            </p>
+        </div>
+    </section>
+
+</div>
+
+<footer>
+    <div class="kabuk footer-ic">
+        <p>Anadolu Üniversitesi · Doktora tez çalışması</p>
+        <p>Bu sayfa bir araştırma projesine aittir; genel kullanıma açık bir hizmet sunmaz.</p>
+    </div>
+</footer>
 {% endblock %}

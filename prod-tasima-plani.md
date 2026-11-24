@@ -131,8 +131,10 @@ dört yerde yazıldı — iki `server_name` ve iki sertifika yolu — yani adım
 
 ```bash
 # 3b) Sertifikayı al — adım 2'deki HTTP nginx'i AYAKTA kalmalı, durdurulmaz
+# --entrypoint certbot ZORUNLU: servisin entrypoint'i yenileme döngüsü olduğu için
+# onu geçersiz kılmazsan certonly hiç çalışmaz, konteyner sessizce uykuya dalar.
 docker compose --env-file deploy/prod.env -f compose.yaml -f compose.prod.yaml \
-  -f compose.tls.yaml run --rm certbot \
+  -f compose.tls.yaml run --rm --entrypoint certbot certbot \
   certonly --webroot -w /var/www/certbot -d kym.anadolu.edu.tr \
   --email ADRES --agree-tos --no-eff-email
 

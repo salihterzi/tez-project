@@ -30,6 +30,15 @@ services:
       - certbot_conf:/etc/letsencrypt
       - certbot_www:/var/www/certbot
     # 12 saatte bir yenileme denemesi; süresi yaklaşmayan sertifikada hiçbir şey yapmaz.
+    #
+    # DİKKAT (2026-11-24'te acı şekilde öğrenildi): bu `entrypoint` yüzünden
+    # `docker compose run --rm certbot certonly ...` BEKLENDİĞİ GİBİ ÇALIŞMAZ.
+    # `run` argümanları *command* olarak geçiriyor, ama entrypoint `sh -c "<script>"`
+    # biçiminde; `sh -c` fazladan argümanları $0/$1 yapıp YOK SAYAR. Sonuç: certonly
+    # hiç çalışmaz, konteyner sessizce yenileme döngüsüne girip 12 saat uyur ve
+    # ekrana hiçbir şey yazmaz. Tek seferlik certbot çağrılarında entrypoint'i geri
+    # almak ZORUNLU:
+    #   docker compose ... run --rm --entrypoint certbot certbot certonly --webroot ...
     entrypoint: >
       sh -c "trap exit TERM;
              while :; do certbot renew --webroot -w /var/www/certbot --quiet;
