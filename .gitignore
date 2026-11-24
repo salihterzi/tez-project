@@ -33,3 +33,6 @@
 
 # Veritabanı yedekleri (make prod-yedek)
 /yedek/
+
+# İşletim sistemi artığı
+.DS_Store
