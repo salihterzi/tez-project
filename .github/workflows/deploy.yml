@@ -1,12 +1,39 @@
 name: Deploy
+
+# Sunucudaki self-hosted runner üzerinde çalışır. Runner'ın internete GELEN bağlantı
+# kabul etmesi gerekmez (kurumsal güvenlik duvarı onu süzüyor) — runner GitHub'a
+# kendisi bağlanır. Bu yüzden webhook/SSH yerine self-hosted runner kullanılıyor.
 on:
     push:
         branches: [main]
+
+# Üst üste binen dağıtımı engelle: derleme dakikalar sürüyor ve iki paralel
+# `docker compose up` birbirinin konteynerlerini değiştirir.
+concurrency:
+    group: prod-deploy
+    cancel-in-progress: false
+
 jobs:
     deploy:
         runs-on: self-hosted
         steps:
-            - run: |
+            # DİKKAT — burada ÇIPLAK `docker compose up` ÇAĞRILMAZ (2026-11-24'te üç
+            # kesintiye yol açtı). Çıplak komut compose.override.yaml'ı otomatik yükler
+            # ve her push'ta prod'u dev'e çevirir: nginx 80'den 8080'e taşınır (site
+            # kapanır), php_dev/nginx_base hedefleri paylaşılan imaj etiketlerini
+            # zehirler, phpMyAdmin 8081'de ve MySQL 3307'de internete açılır,
+            # APP_ENV=dev olur ve DATABASE_URL parolası `ChangeMe`ye düşer.
+            #
+            # deploy/dagit.sh doğru dosyaları (-f compose.yaml -f compose.prod.yaml)
+            # ve --env-file deploy/prod.env kullanır; ayrıca kilit alır, sunucuda
+            # commit'lenmemiş değişiklik varsa durur ve ÖNCE derler — derleme
+            # başarısız olursa çalışan site etkilenmez.
+            #
+            # Sıra önemli: `git pull` ÖNCE çalışır, böylece betiğin kendisi de güncellenir
+            # ve değişmiş sürümü çağrılır. Bu yüzden betiğe `--zorla` geçilir — pull HEAD'i
+            # çoktan ilerlettiği için betik aksi halde "değişiklik yok" deyip çıkardı.
+            - name: Çek ve dağıt
+              run: |
                   cd /opt/proje
-                  git pull
-                  docker compose up -d --build
+                  git pull --ff-only
+                  sh deploy/dagit.sh --zorla

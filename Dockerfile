@@ -76,19 +76,12 @@ COPY . ./
 # altında koştuğu için var/ root'a ait kalıyor; entrypoint'teki setfacl adımı
 # ise APP_ENV=prod'da atlanıyor. Düzeltilmezse oturuma dokunan her istek
 # (ör. /outbound/start formu, CSRF) 500 veriyor.
-#
-# `asset-map:compile` de şart (2026-11-24): composer.json'daki auto-scripts yalnızca
-# cache:clear + assets:install + importmap:install çalıştırıyor. Prod'da AssetMapper
-# ÖNCEDEN DERLENMİŞ dosya sunuyor; bu adım olmadan public/assets/ hiç oluşmuyor ve
-# base.html.twig'in importmap('app') çağrısının ürettiği her bağlantı 404 veriyor
-# (canlıda sayfa başına 10 başarısız istek olarak görüldü).
 RUN set -eux; \
 	rm -rf docker/ python/ .dockerignore; \
 	mkdir -p var/cache var/log; \
 	composer dump-autoload --classmap-authoritative --no-dev; \
 	composer dump-env prod; \
 	composer run-script --no-dev post-install-cmd; \
-	php bin/console asset-map:compile --no-debug; \
 	chmod +x bin/console; \
 	chown -R www-data:www-data var
 
