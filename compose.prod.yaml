@@ -7,6 +7,12 @@
 # `prod-*` hedefleri bu bayrakları zaten doğru geçiriyor.
 services:
   php:
+    # Ayrı etiket ZORUNLU (2026-11-24'te bir kesintiye yol açtı): compose.yaml
+    # `tez-proje-php` adını hem php_dev hem php_prod için kullanıyor. Etiketi hangi
+    # hedef en son derlediyse o kapıyor; `up` --build olmadan çağrıldığında sessizce
+    # yanlış imajı çalıştırıyor. Dev imajı prod'a düşerse xdebug'lı, APP_ENV=dev bir
+    # konteyner elde edilir.
+    image: ${IMAGES_PREFIX:-}tez-proje-php:prod
     build:
       target: php_prod
     environment:
@@ -33,6 +39,11 @@ services:
       - python_logs:/app/var/log
 
   nginx:
+    # Ayrı etiket: nginx_base'de /app/public YOK (dev'de bind mount'la geliyor),
+    # nginx_prod'da imaja kopyalanıyor. Etiket paylaşıldığı için dev derlemesi
+    # prod'un imajını ezmiş ve nginx `realpath() "/app/public" failed` ile her
+    # isteği reddetmişti.
+    image: ${IMAGES_PREFIX:-}tez-proje-nginx:prod
     build:
       target: nginx_prod
     ports:

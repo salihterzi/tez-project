@@ -76,11 +76,16 @@ prod-check: ## Prod: ortam dosyalarını ve birleşik compose çıktısını do�
 prod-build: prod-check ## Prod: imajları derle (php_prod + nginx_prod)
 	$(DC_PROD) build --pull
 
+# Derleme ve değiştirme AYRI adımlar (2026-11-24): `up -d --build` tek komutken
+# başarısız bir derlemenin ardından elle `down` çalıştırmak kesintiye yol açtı.
+# Önce derle — patlarsa çalışan konteynerlere hiç dokunulmaz, site ayakta kalır.
 prod-up: prod-check ## Prod: HTTP olarak ayağa kaldır (sertifika almadan ÖNCE)
-	$(DC_PROD) up -d --build --wait
+	$(DC_PROD) build
+	$(DC_PROD) up -d --wait
 
 prod-up-tls: prod-check ## Prod: TLS ile ayağa kaldır (sertifika ALINDIKTAN sonra)
-	$(DC_PROD_TLS) up -d --build --wait
+	$(DC_PROD_TLS) build
+	$(DC_PROD_TLS) up -d --wait
 
 prod-down: ## Prod: durdur
 	$(DC_PROD_TLS) down --remove-orphans
