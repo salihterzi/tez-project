@@ -6,23 +6,23 @@
 # Actions+SSH bu yüzden çalışmaz; sunucunun dışa bağlanıp değişikliği çekmesi gerekir.
 #
 # KULLANIM
-#   sh deploy/dagit.sh          # değişiklik varsa dağıt
-#   sh deploy/dagit.sh --zorla  # değişiklik olmasa da yeniden derle
+#   sh deploy/deploy.sh          # değişiklik varsa dağıt
+#   sh deploy/deploy.sh --force  # değişiklik olmasa da yeniden derle
 #
 # CRON (5 dakikada bir):
-#   */5 * * * * cd /opt/proje && sh deploy/dagit.sh >> /opt/proje/var/dagitim.log 2>&1
+#   */5 * * * * cd /opt/proje && sh deploy/deploy.sh >> /opt/proje/var/deploy.log 2>&1
 set -eu
 
 cd "$(dirname "$0")/.."
-PROJE=$(pwd)
-ZORLA=${1:-}
+PROJECT_DIR=$(pwd)
+FORCE=${1:-}
 
 # Üst üste binen çalıştırmaları engelle — derleme dakikalar sürebiliyor ve cron
 # beklemez. flock dosyayı tutar, ikinci çalıştırma sessizce çıkar.
-KILIT="$PROJE/var/dagitim.lock"
-mkdir -p "$PROJE/var"
+LOCK_FILE="$PROJECT_DIR/var/deploy.lock"
+mkdir -p "$PROJECT_DIR/var"
 if command -v flock >/dev/null 2>&1; then
-	exec 9>"$KILIT"
+	exec 9>"$LOCK_FILE"
 	flock -n 9 || { echo "$(date '+%F %T') · önceki dağıtım sürüyor, atlandı"; exit 0; }
 fi
 
@@ -36,20 +36,20 @@ if ! git diff --quiet || ! git diff --cached --quiet; then
 	exit 1
 fi
 
-ESKI=$(git rev-parse HEAD)
+OLD_REV=$(git rev-parse HEAD)
 git fetch --quiet origin main
-YENI=$(git rev-parse origin/main)
+NEW_REV=$(git rev-parse origin/main)
 
-if [ "$ESKI" = "$YENI" ] && [ "$ZORLA" != "--zorla" ]; then
-	log "değişiklik yok ($(echo "$ESKI" | cut -c1-7))"
+if [ "$OLD_REV" = "$NEW_REV" ] && [ "$FORCE" != "--force" ]; then
+	log "değişiklik yok ($(echo "$OLD_REV" | cut -c1-7))"
 	exit 0
 fi
 
-if [ "$ESKI" != "$YENI" ]; then
-	log "güncelleme: $(echo "$ESKI" | cut -c1-7) → $(echo "$YENI" | cut -c1-7)"
+if [ "$OLD_REV" != "$NEW_REV" ]; then
+	log "güncelleme: $(echo "$OLD_REV" | cut -c1-7) → $(echo "$NEW_REV" | cut -c1-7)"
 	# --ff-only: birleştirme commit'i üretmez, ayrışma varsa hata verir.
 	git merge --ff-only origin/main
-	git --no-pager log --oneline "$ESKI..$YENI" | sed 's/^/    /'
+	git --no-pager log --oneline "$OLD_REV..$NEW_REV" | sed 's/^/    /'
 fi
 
 # make prod-up önce derler, sonra değiştirir. Derleme patlarsa çalışan site

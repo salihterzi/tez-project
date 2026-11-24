@@ -24,16 +24,16 @@ jobs:
             # zehirler, phpMyAdmin 8081'de ve MySQL 3307'de internete açılır,
             # APP_ENV=dev olur ve DATABASE_URL parolası `ChangeMe`ye düşer.
             #
-            # deploy/dagit.sh doğru dosyaları (-f compose.yaml -f compose.prod.yaml)
+            # deploy/deploy.sh doğru dosyaları (-f compose.yaml -f compose.prod.yaml)
             # ve --env-file deploy/prod.env kullanır; ayrıca kilit alır, sunucuda
             # commit'lenmemiş değişiklik varsa durur ve ÖNCE derler — derleme
             # başarısız olursa çalışan site etkilenmez.
             #
             # Sıra önemli: `git pull` ÖNCE çalışır, böylece betiğin kendisi de güncellenir
-            # ve değişmiş sürümü çağrılır. Bu yüzden betiğe `--zorla` geçilir — pull HEAD'i
+            # ve değişmiş sürümü çağrılır. Bu yüzden betiğe `--force` geçilir — pull HEAD'i
             # çoktan ilerlettiği için betik aksi halde "değişiklik yok" deyip çıkardı.
             - name: Çek ve dağıt
               run: |
                   cd /opt/proje
                   git pull --ff-only
-                  sh deploy/dagit.sh --zorla
+                  sh deploy/deploy.sh --force
