@@ -52,10 +52,19 @@ if [ "$OLD_REV" != "$NEW_REV" ]; then
 	git --no-pager log --oneline "$OLD_REV..$NEW_REV" | sed 's/^/    /'
 fi
 
-# make prod-up önce derler, sonra değiştirir. Derleme patlarsa çalışan site
+# make prod-up-tls önce derler, sonra değiştirir. Derleme patlarsa çalışan site
 # ETKİLENMEZ — bu betiğin kesinti üretmemesi buna dayanıyor.
+#
+# `prod-up` DEĞİL, `prod-up-tls` (2026-11-25): `prod-up` TLS katmanını yüklemez ve
+# compose nginx'i 443 portu kapalı, prod-tls.conf bağlanmamış hâliyle yeniden
+# oluşturur. Yani her push HTTPS'i sessizce düşürür, site 80'e döner ve Meta
+# webhook'u kırılır. Sertifika 2026-11-25'te alındı, TLS artık kalıcı.
+#
+# SIFIRDAN SUNUCU KURULUMUNDA bu betik İLK dağıtım için kullanılamaz: sertifika
+# yokken nginx 443 bloğuyla açılmaz. O durumda prod-tasima-plani.md § 3'teki sıra
+# elle izlenir (make prod-up → certonly → make prod-up-tls), sonra bu betik devralır.
 log "dağıtım başlıyor"
-if make prod-up; then
+if make prod-up-tls; then
 	log "dağıtım TAMAM"
 else
 	log "dağıtım BAŞARISIZ — çalışan sürüm korundu"

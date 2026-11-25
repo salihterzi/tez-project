@@ -54,6 +54,24 @@ services:
       # bu dizinden sunuyor (bkz. docker/nginx/default.conf).
       - certbot_www:/var/www/certbot:ro
 
+  database:
+    # IDE'den (PhpStorm Database, DBeaver) tablolara erişim için — 2026-11-25.
+    #
+    # `127.0.0.1:` ÖNEKİ ZORUNLU. Önek olmadan (`"3306:3306"`) Docker portu
+    # 0.0.0.0'a bağlar ve bunu yaparken kuralı iptables'ın DOCKER zincirine
+    # yazar: UFW'de 3306 kapalı görünse bile MySQL internetten erişilebilir
+    # olur. 53 bin öğrencinin kişisel verisi için kabul edilemez (KVKK).
+    #
+    # Loopback'e bağlı olduğu için yalnızca SSH tüneliyle ulaşılır:
+    #   ssh -N -L 3308:127.0.0.1:3306 kullanici@sunucu
+    # Yerel 3308 seçiliyor çünkü 3307'de dev MySQL duruyor
+    # (compose.override.yaml) ve tünel onu ezerdi.
+    #
+    # HOST_DB_PORT ile değiştirilebilir; 127.0.0.1 kısmı sabit bırakıldı ki
+    # yanlış bir env değeri servisi kazara internete açamasın.
+    ports:
+      - "127.0.0.1:${HOST_DB_PORT:-3306}:3306"
+
 volumes:
   php_logs:
   python_logs:
